@@ -1,68 +1,43 @@
-# Setia Air-Cond & Electrical — Website Mockups
+# Setia Air-Cond & Electrical — Design Proposals
 
-Two website proposals for **Setia Air-Cond and Electrical Sdn Bhd**, a Daikin air
-conditioning and electrical contractor serving KL & Selangor since 1990.
+A single landing page for **Setia Air-Cond and Electrical Sdn Bhd** — Daikin air
+conditioning and electrical contractors, KL & Selangor, since 1990 — presenting
+the two website design proposals and linking out to the live mockups.
 
-Both are fully static multi-page sites — plain HTML, CSS, and vanilla JavaScript,
-no build step and no framework.
+Plain HTML and CSS, no build step, no JavaScript.
 
 ## What's inside
 
 ```
 setia-aircond/
-├── setiaaircond/      Proposal v1 (AXN-015)
-└── setiaaircondv2/    Proposal v2 (AXN-015-V2)
+├── index.html               The proposals landing page
+└── assets/
+    ├── proposal-01.png      Preview of Proposal 01
+    └── proposal-02.png      Preview of Proposal 02
 ```
 
-### `setiaaircond/` — v1
+The page is a diptych in the brand's own tokens (night ground, deep pine, mint
+air-thread, Georgia / Hanken Grotesk / Space Mono): two panels split by the mint
+seam, one per proposal, each linking to its live mockup. Hovering a proposal
+cools its readout from 33° to 24° — the device both proposals share.
 
-A premium redesign that reinterprets the brand green as deep emerald, with the
-bright green demoted to a precise accent, on a cool, airy, restrained type system
-(Georgia / Hanken Grotesk / Space Mono). It opens with a cinematic, scroll-scrubbed
-video intro — an AC unit powers on, the room cools from 33° to 24°, and the
-headline forms out of the air — then reveals the marketing site: a deep-emerald
-hero with a climate-instrument panel, a stat ribbon, services, an about section
-with a 1990 heritage badge, featured-Daikin rows, a premium brands roster, and a
-contact band. Reduced-motion and mobile fallbacks are included for the intro.
+## The two proposals
 
-### `setiaaircondv2/` — v2
+| # | Live mockup | In one line |
+|---|---|---|
+| 01 | [axelnova.my/setiaaircond](https://axelnova.my/setiaaircond/) | The cinematic instrument — a scroll-scrubbed cooling intro into a deep-emerald site with a climate-instrument hero (June 2026) |
+| 02 | [axelnova.my/setiaaircondv2](https://axelnova.my/setiaaircondv2/) | One brand, two registers — a night-building hero for the wow plus a quiet corporate page for procurement, answering feedback on 01 (July 2026) |
 
-The second proposal, built on one thesis: **one brand, two registers**. It answers
-client feedback on v1 (the intro "reads residential"; the homepage should "start
-with something wow"; other pages should be "simple and direct"; there must be
-"one consistency throughout all the pages"):
-
-- `index.html` — the wow: a sticky night-building hero in native scroll, where the
-  SETIA wordmark expands from the loading screen and the scroll walks it into the
-  page's only header, while the argument arrives in three beats (promise, proof,
-  action) as the readout settles from 33° to 24°. No WebGL, no video — three
-  parallax layers at three speeds.
-- `corporate.html` — the quiet register: dense, fast, crawlable capability content
-  for procurement, with JSON-LD and the SEO weight.
-- A shared **mastbar** header and a **mint air-thread** run through every page as
-  the consistency device.
-
-v2 has its own detailed [README](setiaaircondv2/README.md) covering the hero
-choreography, the fallback ladder, asset derivation, and known placeholders
-(registration numbers, some project-table columns) still awaiting client input.
-
-## Pages
-
-Both versions ship the same page set — home, about, services, electrical,
-projects, brands, certifications, clientele, enquiry, and contact — plus a
-`showcase.html` device-frame view. v2 adds `corporate.html`.
+The full proposal sources live in the `axelnova-mockups` repo under
+`mockups/setiaaircond/` and `mockups/setiaaircondv2/`.
 
 ## Viewing locally
 
-Each version is self-contained. Serve either folder with any static server:
+Open `index.html` directly, or serve the folder:
 
 ```sh
-cd setiaaircond      # or setiaaircondv2
 python3 -m http.server 8000
 ```
-
-Then open http://localhost:8000. Opening `index.html` directly from the file
-system also works, though the scroll choreography behaves best over HTTP.
 
 ---
 
