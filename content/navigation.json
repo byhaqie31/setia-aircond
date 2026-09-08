@@ -1,0 +1,36 @@
+{
+  "_readme": "Primary menu order and the route each page lives at. `legacy` lists the URL the same page had on the 2016 site, so the build can emit a redirect stub for it.",
+  "audience": [
+    { "label": "Homes", "to": "/" },
+    { "label": "Business & Retail", "to": "/#services" },
+    { "label": "Corporate & Projects", "to": "/corporate" }
+  ],
+  "menu": [
+    { "label": "Home", "to": "/" },
+    { "label": "Corporate & Projects", "to": "/corporate" },
+    { "label": "About Us", "to": "/about-us", "legacy": "/about-us.html" },
+    { "label": "Certifications", "to": "/certifications", "legacy": "/certifications.html" },
+    { "label": "Air Conditioning", "to": "/air-conditioner-services", "legacy": "/air-conditioner-services.html" },
+    { "label": "Electrical", "to": "/electrical-services", "legacy": "/electrical-services.html" },
+    { "label": "Brands", "to": "/brands", "legacy": "/brands.html" },
+    { "label": "Clientele", "to": "/clientele", "legacy": "/clientele.html" },
+    { "label": "Projects", "to": "/projects", "legacy": "/projects.html" },
+    { "label": "Enquiry", "to": "/enquiry", "legacy": "/enquiry.html" },
+    { "label": "Contact", "to": "/contact-us", "legacy": "/contact-us.html" }
+  ],
+  "footer": {
+    "company": ["/about-us", "/corporate", "/certifications", "/air-conditioner-services", "/electrical-services"],
+    "explore": ["/brands", "/clientele", "/projects", "/enquiry", "/contact-us"]
+  },
+  "legacyArticles": {
+    "_note": "Content pages on the 2016 site with no equivalent in the new design. They redirect to the nearest page so the inbound links and Daikin search traffic are not lost.",
+    "/york-air-cond-services.html": "/brands",
+    "/air-conditioners.html": "/air-conditioner-services",
+    "/aircon-repairs.html": "/air-conditioner-services",
+    "/aircond-services.html": "/air-conditioner-services",
+    "/7-reasons-to-choose-daikin-air-conditioner-for-your-malaysia-home.html": "/brands",
+    "/reasons-to-choose-daikin-vrv-system-for-your-air-conditioning.html": "/brands",
+    "/why-should-you-choose-daikin-air-conditioner.html": "/brands",
+    "/reasons-to-choose-daikin-air-conditioning-for-your-malaysia-home.html": "/brands"
+  }
+}

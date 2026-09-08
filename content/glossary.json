@@ -1,0 +1,11 @@
+{
+  "_readme": "Plain-language glosses for technical terms, used on the public view only. /corporate keeps the full engineering vocabulary. Keep each gloss to one sentence a homeowner would understand.",
+  "terms": [
+    { "term": "Chilled water", "gloss": "Large buildings are cooled by water chilled in a central plant room and piped to every floor, instead of one unit per room." },
+    { "term": "VRV / VRF", "gloss": "One outdoor unit running many indoor units, each set to its own temperature. Common in offices and shops." },
+    { "term": "Ducted systems", "gloss": "A single hidden unit that cools several rooms through ducts in the ceiling, so you see only the grilles." },
+    { "term": "Preventive maintenance", "gloss": "Regular scheduled servicing that cleans the unit and catches small faults before they become breakdowns." },
+    { "term": "Lightning arrestors", "gloss": "Rooftop rods and cabling that carry a lightning strike safely into the ground instead of through your building." },
+    { "term": "Earthing and grounding", "gloss": "A safe path for stray electricity, so a fault trips the breaker rather than shocking someone or starting a fire." }
+  ]
+}

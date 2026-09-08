@@ -1,44 +1,67 @@
-# Setia Air-Cond & Electrical — Design Proposals
+# Setia Air-Cond & Electrical
 
-A single landing page for **Setia Air-Cond and Electrical Sdn Bhd** — Daikin air
-conditioning and electrical contractors, KL & Selangor, since 1990 — presenting
-the two website design proposals and linking out to the live mockups.
+Production site for **Setia Air-Cond and Electrical Sdn Bhd** (setiaaircond.com.my), plus the design-proposals page that preceded it.
 
-Plain HTML and CSS, no build step, no JavaScript.
+## Design proposals
 
-## What's inside
+`proposals/index.html` is the plain-HTML page that presented the two website proposals (01 — the cinematic instrument, June 2026; 02 — one brand, two registers, July 2026) and links to the live mockups at axelnova.my/setiaaircond and axelnova.my/setiaaircondv2. Open it directly in a browser; it has no build step. The mockup sources live in the `axelnova-mockups` repo.
 
-```
-setia-aircond/
-├── index.html               The proposals landing page
-└── assets/
-    ├── proposal-01.png      Preview of Proposal 01
-    └── proposal-02.png      Preview of Proposal 02
-```
+## Production site
 
-The page is a diptych in the brand's own tokens (night ground, deep pine, mint
-air-thread, Georgia / Hanken Grotesk / Space Mono): two panels split by the mint
-seam, one per proposal, each linking to its live mockup. Hovering a proposal
-cools its readout from 33° to 24° — the device both proposals share.
+Ported from
+the approved v2 mockup (`axelnova-mockups/mockups/setiaaircondv2`). Nuxt 4, prerendered
+with `nuxt generate`; the output in `.output/public` is plain HTML, CSS, JS and images and
+runs on any static host, including cPanel.
 
-## The two proposals
-
-| # | Live mockup | In one line |
-|---|---|---|
-| 01 | [axelnova.my/setiaaircond](https://axelnova.my/setiaaircond/) | The cinematic instrument — a scroll-scrubbed cooling intro into a deep-emerald site with a climate-instrument hero (June 2026) |
-| 02 | [axelnova.my/setiaaircondv2](https://axelnova.my/setiaaircondv2/) | One brand, two registers — a night-building hero for the wow plus a quiet corporate page for procurement, answering feedback on 01 (July 2026) |
-
-The full proposal sources live in the `axelnova-mockups` repo under
-`mockups/setiaaircond/` and `mockups/setiaaircondv2/`.
-
-## Viewing locally
-
-Open `index.html` directly, or serve the folder:
+## Commands
 
 ```sh
-python3 -m http.server 8000
+npm install            # first time (npm may need --legacy-peer-deps on some machines)
+npm run dev            # local dev server
+npm run generate       # production build → .output/public
+npx serve .output/public
 ```
 
----
+Deploy by uploading the contents of `.output/public` to the web root. The folder already
+contains `sitemap.xml`, `robots.txt`, an `.htaccess` with 301 redirects for the 2016 URLs,
+and meta-refresh stubs for the same URLs on hosts that ignore `.htaccess`.
 
-Designed and built by [Axel Nova](https://axelnovaventures.com).
+## Updating content (the annual refresh)
+
+All company facts and datasets live in `content/`. Nothing in `app/` repeats them.
+
+| File | What it holds |
+|---|---|
+| `content/company.json` | Name, registration, phones, email, address, brands, dealerships |
+| `content/clients.json` | The clientele wall, plus which names feature in the hero and corporate strip |
+| `content/projects.json` | The project register (both disciplines), with the value flags below |
+| `content/certifications.json` | Certification cards and registration-number slots |
+| `content/brands.json` | One card per brand on /brands |
+| `content/gallery.json` | Project photographs for /projects (empty = section hidden) |
+| `content/why-choose-us.json` | "Why choose us" points for /about-us (placeholders = section hidden) |
+| `content/glossary.json` | Plain-language glosses used on the public view |
+| `content/navigation.json` | Menu order, routes, the audience switch, legacy URL redirects |
+
+Each file starts with a `_readme` explaining its fields. Placeholders are written as the string
+`"__TODO_CLIENT__"`; the site renders those as "pending" or hides the block, never as fake data.
+
+**Project values.** `value` is the RM figure as a number. `valueApproximate` adds the `~`.
+`valuePartial` adds the `*` (the register's "does not indicate the total project worth").
+`valueConfidential: true` withholds the figure and shows "Confidential**".
+
+After editing, run `npm run generate` and upload. The build fails loudly if a JSON file is malformed.
+
+## Where things are
+
+- `app/assets/css/styles.css` — the mockup stylesheet, byte-for-byte except one JS-off fix (noted inline).
+- `app/assets/css/port.css` — everything the port added (audience switch, dealership badges, glosses, gallery, WhatsApp block).
+- `app/utils/hero-engine.js` — the landing's scroll choreography, derived from the mockup's `main.js`.
+- `app/layouts/landing.vue` — the landing's three-state masthead; `app/layouts/default.vue` — every other page.
+- `app/pages/` — one file per route; `app/components/` — shared blocks.
+
+## Constraints that must hold
+
+- No server routes, no API handlers, no runtime dependencies. The enquiry form hands its message to WhatsApp or the visitor's mail client.
+- Native scroll only; no scroll hijacking. GSAP loads lazily on the landing alone. `/corporate` ships no GSAP.
+- Every route must stay readable with JavaScript disabled.
+- Company facts are never invented. Missing facts stay `__TODO_CLIENT__`.

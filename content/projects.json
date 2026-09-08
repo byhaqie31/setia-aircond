@@ -1,0 +1,146 @@
+{
+  "_readme": "The project register, exactly as the company's own register records it. Fields: `discipline` is \"air-conditioning\" or \"electrical\". `contractorOrOwner` mirrors the register's single 'Contractor / Owner' column; do not split it into client and main contractor unless the register does. `years` is the display string from the register; `yearFrom`/`yearTo` are for sorting only. `value` is the RM figure as a number, or null. `valueApproximate` = the register shows '~'. `valuePartial` = the register's single asterisk (the value shown is not the total project worth). `valueConfidential` = the register's double asterisk (value withheld); when true, `value` must be null and the table shows 'Confidential'. `featured` puts the row in the corporate page's featured table. `location` and `systemType` are shown only on the corporate table; leave as \"__TODO_CLIENT__\" until the client confirms.",
+  "notes": {
+    "partial": "The project value displayed does not indicate the total project worth.",
+    "confidential": "Some values have been omitted due to contract confidentiality."
+  },
+  "items": [
+    {
+      "discipline": "air-conditioning",
+      "contractorOrOwner": "Lim Kok Wing Intergrated Sdn Bhd",
+      "years": "2011, 2013", "yearFrom": 2011, "yearTo": 2013,
+      "scope": "Supply and install air conditioner (wall, ceiling suspended, cassette)",
+      "value": 459900.00, "valueApproximate": false, "valuePartial": false, "valueConfidential": false,
+      "featured": true, "featuredName": "Limkokwing University",
+      "location": "__TODO_CLIENT__", "systemType": "Wall, ceiling-suspended & cassette"
+    },
+    {
+      "discipline": "air-conditioning",
+      "contractorOrOwner": "Maxis Broadband",
+      "years": "2010–2016", "yearFrom": 2010, "yearTo": 2016,
+      "scope": "Supply and install air conditioner (wall, ceiling suspended, cassette, ducted); preventive maintenance and services (split, high-precision AC, etc.)",
+      "value": 1582000.00, "valueApproximate": true, "valuePartial": true, "valueConfidential": false,
+      "featured": true, "featuredName": "Maxis Broadband",
+      "location": "__TODO_CLIENT__", "systemType": "Split & high-precision"
+    },
+    {
+      "discipline": "air-conditioning",
+      "contractorOrOwner": "Mission Foods Malaysia Sdn Bhd",
+      "years": "2010–2016", "yearFrom": 2010, "yearTo": 2016,
+      "scope": "20 no. supply and install air conditioner; preventive maintenance and services (split, VRV, chiller, cooling tower)",
+      "value": 351800.00, "valueApproximate": false, "valuePartial": false, "valueConfidential": false,
+      "featured": true, "featuredName": "Mission Foods Malaysia",
+      "location": "__TODO_CLIENT__", "systemType": "Split, VRV, chiller & cooling tower"
+    },
+    {
+      "discipline": "air-conditioning",
+      "contractorOrOwner": "Maybank",
+      "years": "2010, 2012", "yearFrom": 2010, "yearTo": 2012,
+      "scope": "46 no. supply and install air conditioner; preventive maintenance and services",
+      "value": 300000.00, "valueApproximate": true, "valuePartial": true, "valueConfidential": false,
+      "featured": true, "featuredName": "Maybank",
+      "location": "__TODO_CLIENT__", "systemType": "__TODO_CLIENT__"
+    },
+    {
+      "discipline": "air-conditioning",
+      "contractorOrOwner": "Goodyear Malaysia Berhad",
+      "years": "2013–2016", "yearFrom": 2013, "yearTo": 2016,
+      "scope": "43 no. supply and install air conditioner; preventive maintenance and services (split, chiller)",
+      "value": 429358.70, "valueApproximate": true, "valuePartial": true, "valueConfidential": false,
+      "featured": true, "featuredName": "Goodyear Malaysia Berhad",
+      "location": "__TODO_CLIENT__", "systemType": "Split & chiller"
+    },
+    {
+      "discipline": "air-conditioning",
+      "contractorOrOwner": "Sony EMCS (Malaysia)",
+      "years": "2010–2014", "yearFrom": 2010, "yearTo": 2014,
+      "scope": "10 no. supply and install air conditioner (10HP and above); preventive maintenance and services",
+      "value": 385013.20, "valueApproximate": false, "valuePartial": false, "valueConfidential": false,
+      "featured": true, "featuredName": "Sony EMCS (Malaysia)",
+      "location": "__TODO_CLIENT__", "systemType": "__TODO_CLIENT__"
+    },
+    {
+      "discipline": "air-conditioning",
+      "contractorOrOwner": "Garden International School",
+      "years": "2013–2015", "yearFrom": 2013, "yearTo": 2015,
+      "scope": "23 no. supply and install air conditioner; preventive maintenance and services (split, chiller)",
+      "value": null, "valueApproximate": false, "valuePartial": false, "valueConfidential": true,
+      "featured": true, "featuredName": "Garden International School",
+      "location": "__TODO_CLIENT__", "systemType": "Split & chiller"
+    },
+    {
+      "discipline": "air-conditioning",
+      "contractorOrOwner": "ViewQwest Management Sdn Bhd",
+      "years": "2016", "yearFrom": 2016, "yearTo": 2016,
+      "scope": "Supply and install VRV air conditioner; preventive maintenance and services",
+      "value": null, "valueApproximate": false, "valuePartial": false, "valueConfidential": true,
+      "featured": true, "featuredName": "ViewQwest Management",
+      "location": "__TODO_CLIENT__", "systemType": "VRV"
+    },
+    {
+      "discipline": "electrical",
+      "contractorOrOwner": "Radient Trend Sdn Bhd",
+      "years": "2003", "yearFrom": 2003, "yearTo": 2003,
+      "scope": "2½-storey semi-D, 150 unit houses — electrical, telephone and antenna wiring",
+      "value": 650000.00, "valueApproximate": true, "valuePartial": false, "valueConfidential": false,
+      "featured": false, "location": "__TODO_CLIENT__", "systemType": null
+    },
+    {
+      "discipline": "electrical",
+      "contractorOrOwner": "Bukit Ikhlas Development Sdn Bhd",
+      "years": "2006", "yearFrom": 2006, "yearTo": 2006,
+      "scope": "27 blocks condominium & club house, 430 unit houses — electrical, telephone and antenna wiring; street light and feeder pillar cabling",
+      "value": 4200000.00, "valueApproximate": false, "valuePartial": false, "valueConfidential": false,
+      "featured": false, "location": "__TODO_CLIENT__", "systemType": null
+    },
+    {
+      "discipline": "electrical",
+      "contractorOrOwner": "Europlus Construction Sdn Bhd",
+      "years": "2006", "yearFrom": 2006, "yearTo": 2006,
+      "scope": "Street lighting installation for Phase 1 and 2 — 568 units at Dengkil, Daerah Sepang",
+      "value": 1200000.00, "valueApproximate": false, "valuePartial": false, "valueConfidential": false,
+      "featured": false, "location": "Dengkil, Daerah Sepang", "systemType": null
+    },
+    {
+      "discipline": "electrical",
+      "contractorOrOwner": "UiTM — Shah Alam / Terengganu",
+      "years": "2006–2007", "yearFrom": 2006, "yearTo": 2007,
+      "scope": "Fire-fighting assignment and miscellaneous — system upgrading, installation of detectors, equipment and fire protection system",
+      "value": 550000.00, "valueApproximate": true, "valuePartial": false, "valueConfidential": false,
+      "featured": false, "location": "Shah Alam / Terengganu", "systemType": null
+    },
+    {
+      "discipline": "electrical",
+      "contractorOrOwner": "Kej. Mahirjaya Sdn Bhd",
+      "years": "2009", "yearFrom": 2009, "yearTo": 2009,
+      "scope": "Electrical assignment and miscellaneous — office upgrading, installation of new wiring",
+      "value": 1300000.00, "valueApproximate": false, "valuePartial": false, "valueConfidential": false,
+      "featured": false, "location": "__TODO_CLIENT__", "systemType": null
+    },
+    {
+      "discipline": "electrical",
+      "contractorOrOwner": "Kenforce Construction Sdn Bhd",
+      "years": "2010", "yearFrom": 2010, "yearTo": 2010,
+      "scope": "3-storey bungalow, PJ — smart home system wiring",
+      "value": 1100000.00, "valueApproximate": false, "valuePartial": false, "valueConfidential": false,
+      "featured": false, "location": "PJ", "systemType": null
+    },
+    {
+      "discipline": "electrical",
+      "contractorOrOwner": "Valserv Sdn Bhd",
+      "years": "2010", "yearFrom": 2010, "yearTo": 2010,
+      "scope": "338 unit apartment & 2 bungalow at TDRM Gambang, Pahang — electrical infra, electrical wiring, telephone wiring",
+      "value": 6200000.00, "valueApproximate": false, "valuePartial": false, "valueConfidential": false,
+      "featured": false, "location": "TDRM Gambang, Pahang", "systemType": null
+    },
+    {
+      "discipline": "electrical",
+      "contractorOrOwner": "Kenforce Construction Sdn Bhd",
+      "years": "2014–2016", "yearFrom": 2014, "yearTo": 2016,
+      "scope": "19 unit 2-storey + 2 unit 3-storey shoplots at Prai, Negeri Sembilan — electrical infra, electrical wiring, telephone wiring",
+      "value": 750000.00, "valueApproximate": false, "valuePartial": false, "valueConfidential": false,
+      "featured": false, "location": "Prai, Negeri Sembilan", "systemType": null
+    }
+  ],
+  "_todo": "__TODO_CLIENT__ Project records 2017 onward; the register above ends at 2016."
+}

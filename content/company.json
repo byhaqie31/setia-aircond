@@ -1,0 +1,68 @@
+{
+  "_readme": "Single source of truth for company facts. Every page reads from here. Never round, embellish or invent a value. \"__TODO_CLIENT__\" means the client has not supplied it yet.",
+  "legalName": "Setia Air-Cond and Electrical Sdn Bhd",
+  "displayName": "Setia Air-Cond & Electrical",
+  "shortName": "Setia Air-Cond",
+  "wordmark": "SETIA",
+  "wordmarkSub": "AIR-COND & ELECTRICAL",
+  "established": 1990,
+  "registration": {
+    "legacy": "502557-T",
+    "ssm12": "__TODO_CLIENT__"
+  },
+  "phones": {
+    "tollFree": { "display": "1-800-88-7412", "href": "tel:1800887412" },
+    "main": { "display": "+603-5631 8325", "href": "tel:+60356318325" },
+    "secondary": { "display": "+603-5633 8325", "href": "tel:+60356338325" },
+    "fax": { "display": "+603-5632 7072" }
+  },
+  "whatsapp": {
+    "_note": "The mockup used the office landline as the WhatsApp number. Confirm the real WhatsApp-enabled number with the client. Digits only, country code first, no plus.",
+    "number": "60356318325",
+    "confirmed": false
+  },
+  "email": "mail@setiaaircond.com.my",
+  "address": {
+    "line1": "No. 4A (Ground Floor), Block H",
+    "line2": "Jalan SS13/1F",
+    "postcode": "47500",
+    "city": "Subang Jaya",
+    "state": "Selangor Darul Ehsan",
+    "country": "Malaysia",
+    "countryCode": "MY"
+  },
+  "areasServed": ["Kuala Lumpur", "Selangor"],
+  "siteUrl": "https://setiaaircond.com.my",
+  "brands": ["Daikin", "Acson", "Panasonic", "York", "Carrier", "Fujiaire", "Toshiba"],
+  "brandsUnconfirmed": {
+    "_note": "Samsung appears on the client's live About page and on four mockup pages, but not on the live homepage, the mockup landing or the JSON-LD. Confirm whether Setia still supplies Samsung before adding it to `brands`.",
+    "names": ["Samsung"]
+  },
+  "dealerships": [
+    {
+      "brand": "Daikin",
+      "title": "Authorised Daikin dealer",
+      "issuer": "Group Associated (C&L) Sdn Bhd",
+      "detail": "Certificate of Dealership for Daikin air conditioning.",
+      "award": "Million Ringgit Sales Award, 14 consecutive years"
+    },
+    {
+      "brand": "Acson",
+      "title": "Authorised Acson dealer",
+      "issuer": "__TODO_CLIENT__",
+      "detail": "__TODO_CLIENT__",
+      "award": null
+    },
+    {
+      "brand": "Panasonic",
+      "title": "Authorised Panasonic dealer",
+      "issuer": "__TODO_CLIENT__",
+      "detail": "__TODO_CLIENT__",
+      "award": null
+    }
+  ],
+  "experience": {
+    "manYears": "over 100"
+  },
+  "designedBy": { "name": "Axel Nova", "url": "https://axelnovaventures.com" }
+}

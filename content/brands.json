@@ -1,0 +1,13 @@
+{
+  "_readme": "One card per brand on /brands. The `brands` order and membership in company.json is the source for which brands are shown; a card here without a matching name in company.json is not rendered.",
+  "items": [
+    { "name": "Daikin", "tag": "Flagship dealership", "lead": true, "text": "Our primary brand — efficient inverter splits, multi-split and VRV/VRF commercial systems, certified dealership." },
+    { "name": "York", "text": "Trusted American HVAC for homes and commercial buildings." },
+    { "name": "Acson", "text": "Reliable cooling, widely serviced across Malaysia." },
+    { "name": "Panasonic", "text": "Efficient, quiet split systems with strong air quality features." },
+    { "name": "Carrier", "text": "Pioneering air conditioning for demanding commercial loads." },
+    { "name": "Fujiaire", "text": "Value-focused units for residential and light commercial use." },
+    { "name": "Samsung", "text": "Modern, connected cooling with sleek indoor designs." },
+    { "name": "Toshiba", "text": "Durable inverter technology engineered for efficiency." }
+  ]
+}
