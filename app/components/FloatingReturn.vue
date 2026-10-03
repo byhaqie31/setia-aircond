@@ -1,13 +1,20 @@
 <script setup lang="ts">
+// `threshold` is how many viewport heights the page must have scrolled before the control
+// appears; `focusTarget` receives focus once a back-to-top journey lands. The home action
+// links to `homeTo`, or with `homeTo` null it emits `home` for the page to handle in place.
+const props = withDefaults(defineProps<{ threshold?: number; focusTarget?: string; homeTo?: string | null; homeLabel?: string; homeIcon?: string }>(), {
+  threshold: .6, focusTarget: '#page-content', homeTo: '/', homeLabel: 'Back to home', homeIcon: 'icon--home',
+})
+const emit = defineEmits<{ home: [] }>()
 const { $scrollTo } = useNuxtApp()
 const visible = ref(false)
 const mode = ref<'home' | 'top'>('home')
 let lastY = 0
 let frame: number | undefined
 
-// The control appears once the header's home link has scrolled away. It reads the
-// scroll direction with a little slack so a slow or jittery wheel does not flicker it:
-// moving down offers home, moving back up offers the top of the page.
+// Past the threshold the control reads the scroll direction with a little slack so a
+// slow or jittery wheel does not flicker it: moving down offers home, moving back up
+// offers the top of the page.
 function measure() {
   frame = undefined
   const y = window.scrollY
@@ -16,7 +23,7 @@ function measure() {
     mode.value = delta < 0 ? 'top' : 'home'
     lastY = y
   }
-  visible.value = y > window.innerHeight * .6
+  visible.value = y > window.innerHeight * props.threshold
 }
 
 function onScroll() {
@@ -27,8 +34,9 @@ function toTop() {
   mode.value = 'top'
   $scrollTo(0, {
     immediate: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    // Focus follows the journey so keyboard users do not stay on an off-screen button.
-    onComplete: () => document.getElementById('page-content')?.focus({ preventScroll: true }),
+    // Focus follows the journey so keyboard users do not stay on an off-screen button; the
+    // frame's delay lets a scroll-driven scene lift any inert state first.
+    onComplete: () => requestAnimationFrame(() => document.querySelector<HTMLElement>(props.focusTarget)?.focus({ preventScroll: true })),
   })
 }
 
@@ -46,9 +54,12 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="floating-return" :class="{ 'is-visible': visible, 'is-top': mode === 'top' }" :inert="!visible" :aria-hidden="!visible || undefined">
-    <NuxtLink class="floating-return__control floating-return__home" to="/" aria-label="Back to home" data-tip="Back to home" :inert="mode !== 'home'" :aria-hidden="mode !== 'home' || undefined">
-      <span class="icon icon--home" aria-hidden="true" />
+    <NuxtLink v-if="homeTo" class="floating-return__control floating-return__home" :to="homeTo" :aria-label="homeLabel" :data-tip="homeLabel" :inert="mode !== 'home'" :aria-hidden="mode !== 'home' || undefined">
+      <span class="icon" :class="homeIcon" aria-hidden="true" />
     </NuxtLink>
+    <button v-else class="floating-return__control floating-return__home" type="button" :aria-label="homeLabel" :data-tip="homeLabel" :inert="mode !== 'home'" :aria-hidden="mode !== 'home' || undefined" @click="emit('home')">
+      <span class="icon" :class="homeIcon" aria-hidden="true" />
+    </button>
     <button class="floating-return__control floating-return__top" type="button" aria-label="Back to top" data-tip="Back to top" :inert="mode !== 'top'" :aria-hidden="mode !== 'top' || undefined" @click="toTop">
       <span class="icon icon--arrow floating-return__up" aria-hidden="true" />
     </button>
@@ -73,6 +84,8 @@ onBeforeUnmount(() => {
 .floating-return__control:hover::after, .floating-return__control:focus-visible::after { opacity: 1; transform: translate(0, -50%); }
 /* The loading covers keep their own layer in the DOM until their exit motion finishes. */
 :global(body:has(.site-page-cover.is-active) .floating-return), :global(body:has(.cooling-loader) .floating-return) { display: none; }
+/* Commercial moves between its scenes in place; the control steps aside like the contact bar does. */
+:global(body:has(.commercial-view.is-transitioning) .floating-return) { opacity: 0; visibility: hidden; pointer-events: none; }
 @media (max-width: 1023px) {
   .floating-return { left: max(18px, env(safe-area-inset-left)); width: 50px; height: 50px; }
   .floating-return .icon { width: 18px; height: 18px; }

@@ -7,6 +7,7 @@ type Scene = 'services' | 'clients'
 const props = defineProps<{ arrival?: ArrivalMode | null }>()
 const route = useRoute()
 const router = useRouter()
+const { $scrollTo } = useNuxtApp()
 const supportHashes = ['#certifications', '#capability', '#commercial-brands', '#tender', '#commercial-contacts', '#brands']
 const sceneFromRoute = (): Scene => route.query.scene === 'clients' || supportHashes.includes(route.hash) || (!route.query.scene && route.hash === '#commercial-clients') ? 'clients' : 'services'
 const scene = ref<Scene>(sceneFromRoute())
@@ -148,6 +149,12 @@ function onClientBack() {
   goingBack.value = true
   sceneMoving.value = true
   phase.value = 'exit'
+}
+
+// The floating control climbs back through the clients screen first, then plays its usual exit into the building.
+function returnToBuilding() {
+  if (scene.value !== 'clients' || phase.value !== 'ready' || sceneMoving.value) return
+  $scrollTo(0, { immediate: reducedMotion.value, onComplete: onClientBack })
 }
 
 function onClientExit() {
@@ -303,6 +310,7 @@ onBeforeUnmount(() => {
     </section>
 
     <CommercialSupportSections v-if="scene !== 'clients' && !enhanced" :scene-ready="!scrollLocked" />
+    <FloatingReturn v-if="enhanced" :threshold="1" focus-target="#commercial-clients" :home-to="null" home-label="Back to commercial" home-icon="icon--factory" @home="returnToBuilding" />
   </main>
 </template>
 

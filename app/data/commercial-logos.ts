@@ -32,7 +32,7 @@ export const commercialCompanyLogos: Record<string, CompanyLogo> = {
 
 export const commercialCredentialLogos: Record<string, CompanyLogo | undefined> = {
   SSM: { src: '/images/commercial/ssm.png', width: 3508, height: 2481, treatment: 'reverse' },
-  G5: { src: '/images/commercial/cidb-compact.png', width: 1938, height: 590, treatment: 'solid' },
+  G7: { src: '/images/commercial/cidb-compact.png', width: 1938, height: 590, treatment: 'solid' },
   ST: { src: '/images/commercial/st.svg', width: 206, height: 40, treatment: 'light' },
   MOF: { src: '/images/commercial/mof.svg', width: 255, height: 40, treatment: 'solid' },
   // ISO 9001:2015 is a standard, not a certifying company; retain its text reference.
