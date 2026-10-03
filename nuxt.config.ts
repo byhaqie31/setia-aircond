@@ -2,7 +2,7 @@ import { resolve } from 'node:path'
 import { allCommercialParties, commercialServices } from './app/data/commercial-view'
 
 const cloudflareBuild = process.env.SETIA_CLOUDFLARE_BUILD === '1'
-const siteBaseURL = cloudflareBuild ? '/example/setia-aircond/' : '/'
+const siteBaseURL = '/'
 const commercialDetailRoutes = [
   '/commercial/projects',
   ...commercialServices.map(service => `/commercial/services/${service.slug}`),

@@ -2,14 +2,11 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "setia-aircond",
   "main": "workers/site.mjs",
-  "account_id": "5a4f0068945953681bbd5882d75773cd",
+  "account_id": "c1dec8e19d78da58382723cad35034be",
   "compatibility_date": "2026-09-10",
   "compatibility_flags": ["nodejs_compat"],
-  "workers_dev": false,
+  "workers_dev": true,
   "preview_urls": false,
-  "routes": [
-    { "pattern": "trlabs.my/example/setia-aircond*", "zone_name": "trlabs.my" }
-  ],
   "assets": {
     "directory": ".cloudflare/assets",
     "binding": "ASSETS",

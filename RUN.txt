@@ -21,15 +21,16 @@ Validate deployment without publishing:
 
 Preview the Cloudflare build:
   npm run preview:cloudflare
-  Open http://localhost:8788/example/setia-aircond/
+  Open http://localhost:8788/
 
 Publish after authenticating to the configured Cloudflare account:
   npx wrangler login
   npm run deploy:cloudflare
 
-The included configuration targets trlabs.my/example/setia-aircond.
-For another account/domain, update wrangler.jsonc, nuxt.config.ts,
-workers/site.mjs and the output prefix in scripts/build-cloudflare.mjs.
+The included configuration deploys to the Axel Nova Cloudflare account
+as the "setia-aircond" Worker on its workers.dev URL, served at the root.
+For a custom domain, add a route in wrangler.jsonc and update siteUrl
+in nuxt.config.ts.
 
 This package excludes documentation, references, tests, editable 3D
 sources, development caches and installed dependencies. workers/site.mjs

@@ -25,7 +25,7 @@ for (const entry of await readdir(assetRoot)) {
   assert.equal(dirname(target), assetRoot);
   await rm(target, { recursive: true, force: true });
 }
-const destination = join(assetRoot, 'example/setia-aircond');
+const destination = assetRoot;
 const excluded = ['images/residential/camera-journey-v2', 'images/residential/sequence'];
 await cp(output, destination, {
   recursive: true,
@@ -35,9 +35,9 @@ await cp(output, destination, {
   }),
 });
 const html = await readFile(join(destination, 'index.html'), 'utf8');
-assert.ok(html.includes('/example/setia-aircond/_nuxt/'), 'Build must use the public example base path');
+assert.ok(html.includes('"/_nuxt/'), 'Build must use the root base path');
 const metadata = {
-  baseURL: '/example/setia-aircond/',
+  baseURL: '/',
   builtAt: new Date().toISOString(),
   sourceCommit: spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout?.trim() || null,
   sourceDirty: Boolean(spawnSync('git', ['status', '--porcelain', '--untracked-files=no'], { cwd: root, encoding: 'utf8' }).stdout?.trim()),
