@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://setiaaircond.com.my/sitemap.xml

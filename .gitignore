@@ -22,3 +22,12 @@ logs
 .env
 .env.*
 !.env.example
+
+# Cloudflare build outputs (setiaac)
+.nuxt-cloudflare
+.output-cloudflare
+.cloudflare
+.wrangler
+
+# Claude Code local settings
+.claude/settings.local.json

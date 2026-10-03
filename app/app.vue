@@ -1,57 +1,45 @@
 <script setup lang="ts">
-const company = useCompany()
-const site = useRuntimeConfig().public.siteUrl
+const { $sitePath } = useNuxtApp()
+const route = useRoute()
+const siteUrl = useRuntimeConfig().public.siteUrl.replace(/\/?$/, '/')
+const socialImage = new URL('images/social/setia-aircond-og-v2.png', siteUrl).href
+const socialTitle = 'Setia | Air-conditioning & Electrical Since 1990'
+const socialDescription = 'Air-conditioning and electrical systems for residential and commercial spaces. Supplied, installed and maintained by Setia since 1990.'
+const socialImageAlt = 'SETIA Air-Cond. Better cooling. Since 1990. A close-up of an ivory air conditioner with sculpted airflow on deep green.'
 
-/* LocalBusiness, once, on every page, from the shared config. */
-const ld = {
-  '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
-  name: company.legalName,
-  alternateName: company.displayName,
-  description: 'Air conditioning and electrical contractor serving commercial, industrial and residential clients in Kuala Lumpur and Selangor. Chilled-water systems, VRV/VRF, ducted and split air conditioning, electrical wiring, cabling, earthing and lightning protection.',
-  foundingDate: String(company.established),
-  url: `${site}/`,
-  email: company.email,
-  telephone: company.phones.main.display,
-  faxNumber: company.phones.fax.display,
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: `${company.address.line1}, ${company.address.line2}`,
-    addressLocality: company.address.city,
-    addressRegion: company.address.state,
-    postalCode: company.address.postcode,
-    addressCountry: company.address.countryCode,
+useSeoMeta({
+  ogType: 'website',
+  ogSiteName: 'Setia Air-Cond',
+  ogTitle: socialTitle,
+  ogDescription: socialDescription,
+  ogUrl: () => {
+    const url = new URL(siteUrl)
+    const path = route.path.replace(/^\/+|\/+$/g, '')
+    url.pathname += path ? `${path}/` : ''
+    return url.href
   },
-  areaServed: company.areasServed.map(name => ({ '@type': 'AdministrativeArea', name })),
-  knowsAbout: [
-    'Chilled water systems', 'VRV and VRF air conditioning', 'Ducted air conditioning',
-    'Split air conditioning', 'Preventive maintenance', 'Electrical wiring',
-    'Network and fibre-optic cabling', 'Lightning arrestor', 'Earthing and grounding',
-  ],
-  brand: company.brands,
-  contactPoint: [{
-    '@type': 'ContactPoint',
-    contactType: 'sales',
-    telephone: company.phones.tollFree.display,
-    email: company.email,
-    areaServed: 'MY',
-    availableLanguage: ['en', 'ms'],
-  }],
-}
-
+  ogImage: socialImage,
+  ogImageSecureUrl: socialImage,
+  ogImageType: 'image/png',
+  ogImageWidth: 1734,
+  ogImageHeight: 907,
+  ogImageAlt: socialImageAlt,
+  twitterCard: 'summary_large_image',
+  twitterTitle: socialTitle,
+  twitterDescription: socialDescription,
+  twitterImage: socialImage,
+  twitterImageAlt: socialImageAlt,
+})
 useHead({
-  script: [
-    /* Set before first paint so the JS-off CSS fallbacks (drawer open in the
-       flow, hero as a still, reveals visible) only apply when scripting really
-       is off. Must stay inline and first. */
-    { innerHTML: "document.documentElement.classList.add('js')", tagPriority: 'critical' },
-    { type: 'application/ld+json', innerHTML: JSON.stringify(ld) },
-  ],
+  link: [{ rel: 'preload', href: $sitePath('/fonts/hanken-grotesk-variable.ttf'), as: 'font', type: 'font/ttf', crossorigin: '' }],
+  noscript: [{ innerHTML: '<style>@media(min-width:1024px){.floating-contact{display:block!important}}</style>' }],
 })
 </script>
 
 <template>
-  <NuxtLayout>
+  <NuxtRouteAnnouncer />
+  <SitePageTransition>
     <NuxtPage />
-  </NuxtLayout>
+  </SitePageTransition>
+  <FloatingContact v-if="route.path.replace(/\/$/, '') !== '/get-a-quote'" />
 </template>

@@ -1,0 +1,364 @@
+/**
+ * Commercial content ledger. Project wording and values are transcribed from
+ * https://www.setiaaircond.com.my/projects.html (checked 2026-09-30).
+ * Client names follow https://www.setiaaircond.com.my/clientele.html.
+ * Technical descriptions are informational; they are not extra Setia work claims.
+ */
+
+export const commercialSources = {
+  clientServiceAdditions: 'references/commercial-view/client-service-additions-2026-10-02.md',
+  projects: 'https://www.setiaaircond.com.my/projects.html',
+  clientele: 'https://www.setiaaircond.com.my/clientele.html',
+  services: 'https://www.setiaaircond.com.my/air-conditioner-services.html',
+  coolingTower: 'https://baltimoreaircoil.com/what-is-a-cooling-tower',
+  pump: 'https://www.grundfos.com/us/learn/ecademy/all-courses/pumping-schemes-in-chilled-water-systems/an-introduction-to-pumping-schemes-in-hvac-applications',
+  chiller: 'https://www.trane.com/commercial/north-america/us/en/products-systems/chillers.html',
+  vrv: 'https://www.daikin.com.my/product_type/air-cooled-vrv/',
+  ahu: 'https://www.daikin.com.my/product/vrv-ahu/',
+} as const
+
+export interface CommercialService {
+  id: string
+  slug: string
+  title: string
+  shortLine: string
+  explanation: string
+  systemDetails: string[]
+  serviceItems: string[]
+  scopeStatus: 'published' | 'enquiry' | 'client-confirmed'
+  sourceRefs: string[]
+  primaryImage: string | null
+  secondaryImage: string | null
+  imageAlt: string
+  detailAlt: string
+}
+
+export const commercialServices: CommercialService[] = [
+  {
+    id: 'cooling-tower', slug: 'cooling-tower', title: 'Cooling tower',
+    shortLine: 'Installation, repair and preventive maintenance',
+    explanation: 'A cooling tower rejects heat from circulating water to the outside air. In a water-cooled building system, it helps the cooling plant release heat collected indoors.',
+    systemDetails: [
+      'Warm water arrives from the cooling plant. Air moving through the tower carries heat away before the water returns to the system.',
+      'Tower selection, access and maintenance requirements depend on the connected chiller plant and the building’s operating conditions.',
+    ],
+    serviceItems: ['New system design and installation', 'Troubleshooting and repair', 'Preventive maintenance', 'Retrofit and system replacement'],
+    scopeStatus: 'published', sourceRefs: ['services', 'coolingTower'],
+    primaryImage: '/images/commercial/details/cooling-tower.webp', secondaryImage: '/images/commercial/details/cooling-tower.webp',
+    imageAlt: 'Cooling towers above a commercial building',
+    detailAlt: 'Cooling tower fans and connected pipework',
+  },
+  {
+    id: 'pump', slug: 'pump', title: 'Pump',
+    shortLine: 'Discuss pumping and water-circulation requirements',
+    explanation: 'Pumps circulate water through pipework and connected cooling equipment. Chilled-water and condenser-water circuits serve different parts of a building system.',
+    systemDetails: [
+      'In a chilled-water circuit, pumps move cool water between the chiller and air-conditioning equipment. A separate condenser-water circuit may connect a water-cooled chiller to a cooling tower.',
+      'The required arrangement depends on the installed plant, flow demands and pipework. Setia can review the wider air-conditioning brief before proposing work on a particular pump.',
+    ],
+    serviceItems: ['Discuss your existing pumping arrangement', 'Review the connected air-conditioning system', 'Request a site-specific proposal'],
+    scopeStatus: 'enquiry', sourceRefs: ['pump'],
+    primaryImage: '/images/commercial/details/pump.webp', secondaryImage: '/images/commercial/details/pump.webp',
+    imageAlt: 'Commercial HVAC pump and motor beside cooling pipework',
+    detailAlt: 'Pump connections, valves and water pipes',
+  },
+  {
+    id: 'chilled-water-piping', slug: 'chilled-water-piping', title: 'Chilled water piping works',
+    shortLine: 'Pipework for chilled-water systems',
+    explanation: 'Chilled-water piping connects the cooling plant to the equipment it serves. Talk to Setia about chilled-water piping works for your commercial building.',
+    systemDetails: [
+      'The pipework carries chilled water between the cooling plant and connected air-conditioning equipment.',
+      'Share your existing pipe routes, equipment connections and site access requirements so the work can be planned around your building.',
+    ],
+    serviceItems: ['Chilled-water piping works', 'Review of pipe routes and equipment connections', 'Site-specific work proposal'],
+    scopeStatus: 'client-confirmed', sourceRefs: ['clientServiceAdditions'],
+    primaryImage: '/images/commercial/details/pump.webp', secondaryImage: '/images/commercial/details/chiller.webp',
+    imageAlt: 'Illustrative cooling-system pipework connected to a pump',
+    detailAlt: 'Illustrative water pipes and connections at a chiller',
+  },
+  {
+    id: 'chiller', slug: 'chiller', title: 'Chiller',
+    shortLine: 'Installation, servicing and system replacement',
+    explanation: 'A chiller produces chilled water for air-conditioning equipment. Its heat can be rejected through air-cooled equipment or a water-cooled plant, depending on the system.',
+    systemDetails: [
+      'Chilled water flows to connected coils, where it absorbs heat from air serving the building. The chiller then removes that heat from the water so the cycle can continue.',
+      'The plant layout determines whether heat is rejected directly to outside air or through a separate cooling-tower circuit.',
+    ],
+    serviceItems: ['New system design and installation', 'Troubleshooting and repair', 'Preventive maintenance', 'Retrofit and system replacement'],
+    scopeStatus: 'published', sourceRefs: ['services', 'chiller'],
+    primaryImage: '/images/commercial/details/chiller.webp', secondaryImage: '/images/commercial/details/chiller.webp',
+    imageAlt: 'Chiller installed in a commercial cooling plant',
+    detailAlt: 'Chiller connections in a mechanical plant area',
+  },
+  {
+    id: 'vrf-vrv', slug: 'vrf-vrv', title: 'VRF / VRV',
+    shortLine: 'Multi-zone installation and preventive maintenance',
+    explanation: 'A variable-refrigerant system connects outdoor equipment to indoor units serving different spaces. VRV is a commonly used name for this type of system.',
+    systemDetails: [
+      'The outdoor equipment adjusts refrigerant delivery as connected spaces call for cooling. Indoor units can serve different rooms without one large chilled-water distribution system.',
+      'The number and type of indoor units, pipe routes and controls are selected for the actual building. VRV is Daikin’s name for its variable-refrigerant systems; VRF is the general term.',
+    ],
+    serviceItems: ['New VRV system installation', 'Troubleshooting and repair', 'Preventive maintenance', 'Retrofit and system replacement'],
+    scopeStatus: 'published', sourceRefs: ['services', 'vrv'],
+    primaryImage: '/images/commercial/details/vrf-vrv.webp', secondaryImage: '/images/commercial/details/vrf-vrv.webp',
+    imageAlt: 'Grouped VRF and VRV outdoor units on a commercial roof',
+    detailAlt: 'Outdoor units connected to indoor cooling zones',
+  },
+  {
+    id: 'ahu', slug: 'ahu', title: 'AHU',
+    shortLine: 'Air-handling and filtration enquiries',
+    explanation: 'An air-handling unit (AHU) moves air through components such as filters, coils and fans before distributing it through ducts. The connected cooling source depends on the building design.',
+    systemDetails: [
+      'A typical air-handling unit draws in air, passes it through filters and a cooling coil, then uses a fan to move conditioned air into connected ductwork.',
+      'An AHU can be part of different cooling arrangements. Its sections, capacity and ventilation strategy are site-specific, so Setia should review the existing installation before defining work.',
+    ],
+    serviceItems: ['Discuss the air-handling arrangement at your site', 'Discuss filtration and ducting works', 'Request a site-specific proposal'],
+    scopeStatus: 'enquiry', sourceRefs: ['services', 'ahu'],
+    primaryImage: '/images/commercial/details/ahu.webp', secondaryImage: '/images/commercial/details/ahu.webp',
+    imageAlt: 'Air-handling unit with connected ductwork',
+    detailAlt: 'Illustration of filter, coil and fan sections inside an air-handling unit',
+  },
+  {
+    id: 'duct-services', slug: 'duct-services', title: 'Duct services',
+    shortLine: 'Duct supply, installation and repair',
+    explanation: 'Setia supplies, installs and repairs air-conditioning ductwork for commercial spaces.',
+    systemDetails: [
+      'Ductwork carries air between air-conditioning equipment and the spaces it serves.',
+      'Duct routes, connections and access depend on your building. Share the areas that need new ductwork or repair when requesting a quote.',
+    ],
+    serviceItems: ['Duct supply', 'Duct installation', 'Duct repair'],
+    scopeStatus: 'client-confirmed', sourceRefs: ['clientServiceAdditions'],
+    primaryImage: '/images/commercial/details/ahu.webp', secondaryImage: '/images/commercial/details/ahu.webp',
+    imageAlt: 'Illustrative air-handling unit and connected ductwork',
+    detailAlt: 'Illustrative ductwork connected to air-handling equipment',
+  },
+]
+
+export type ProjectDiscipline = 'air-conditioning' | 'electrical'
+
+export interface CommercialProjectRecord {
+  id: string
+  partyId: string
+  discipline: ProjectDiscipline
+  partyName: string
+  yearText: string
+  originalScope: string
+  displayScope: string
+  valueDisplay: string
+  qualifier: string | null
+  sourceRef: 'projects'
+  sourceRow: number
+  quantities: string[]
+  explicitSystems: string[]
+  location: string | null
+}
+
+const nonTotalQualifier = 'The published value does not indicate the total project worth.'
+const withheldQualifier = 'The published value was omitted due to contract confidentiality.'
+
+export const commercialProjectRecords: CommercialProjectRecord[] = [
+  {
+    id: 'ac-01', partyId: 'limkokwing-university', discipline: 'air-conditioning', partyName: 'LIM KOK WING INTERGRATED SDN BHD', yearText: '2011, 2013',
+    originalScope: 'SUPPLY AND INSTALL AIR CONDITIONER (WALL, CEILING SUSPENDED, CASSETTE)',
+    displayScope: 'Supplied and installed wall-mounted, ceiling-suspended and cassette air conditioners.',
+    valueDisplay: 'RM 459,900.00', qualifier: null, sourceRef: 'projects', sourceRow: 1, quantities: [], explicitSystems: ['Wall-mounted', 'Ceiling-suspended', 'Cassette'], location: null,
+  },
+  {
+    id: 'ac-02', partyId: 'maxis', discipline: 'air-conditioning', partyName: 'MAXIS BROADBAND', yearText: '2010–2016',
+    originalScope: 'SUPPLY AND INSTALL AIR CONDITIONER (WALL, CEILING SUSPENDED, CASSETTE, DUCTED) PREVENTIVE MAINTENANCE AND SERVICES OF AIR CONDITIONER (SPLIT,HIGH PRECISION AC,ETC)',
+    displayScope: 'Supplied and installed wall-mounted, ceiling-suspended, cassette and ducted air conditioners; provided preventive maintenance and servicing for split and high-precision units.',
+    valueDisplay: '~ RM 1,582,000.00*', qualifier: nonTotalQualifier, sourceRef: 'projects', sourceRow: 2, quantities: [], explicitSystems: ['Wall-mounted', 'Ceiling-suspended', 'Cassette', 'Ducted', 'Split', 'High-precision AC'], location: null,
+  },
+  {
+    id: 'ac-03', partyId: 'mission-foods', discipline: 'air-conditioning', partyName: 'MISSION FOODS MALAYSIA SDN BHD', yearText: '2010–2016',
+    originalScope: '20 NO OF SUPPLY AND INSTALL AIR CONDITIONER PREVENTIVE MAINTENANCE AND SERVICES OF AIR CONDITIONER (SPLIT,VRV,CHILLER, COOLING TOWER)',
+    displayScope: 'The register lists 20 air conditioners supplied and installed, plus preventive maintenance and servicing for split, VRV, chiller and cooling-tower systems.',
+    valueDisplay: 'RM 351,800.00', qualifier: null, sourceRef: 'projects', sourceRow: 3, quantities: ['20 air conditioners'], explicitSystems: ['Split', 'VRV', 'Chiller', 'Cooling tower'], location: null,
+  },
+  {
+    id: 'ac-04', partyId: 'maybank', discipline: 'air-conditioning', partyName: 'MAYBANK', yearText: '2010, 2012',
+    originalScope: '46 NO OF SUPPLY AND INSTALL AIR CONDITIONER PREVENTIVE MAINTENANCE AND SERVICES OF AIR CONDITIONER',
+    displayScope: 'The register lists 46 air conditioners supplied and installed, with preventive maintenance and servicing.',
+    valueDisplay: '~ RM 300,000.00*', qualifier: nonTotalQualifier, sourceRef: 'projects', sourceRow: 4, quantities: ['46 air conditioners'], explicitSystems: [], location: null,
+  },
+  {
+    id: 'ac-05', partyId: 'goodyear', discipline: 'air-conditioning', partyName: 'GOODYEAR MALAYSIA BERHAD', yearText: '2013–2016',
+    originalScope: '43 NO OF SUPPLY AND INSTALL AIR CONDITIONER PREVENTIVE MAINTENANCE AND SERVICES OF AIR CONDITIONER (SPLIT,CHILLER)',
+    displayScope: 'The register lists 43 air conditioners supplied and installed, with preventive maintenance and servicing for split and chiller systems.',
+    valueDisplay: '~ RM 429,358.70*', qualifier: nonTotalQualifier, sourceRef: 'projects', sourceRow: 5, quantities: ['43 air conditioners'], explicitSystems: ['Split', 'Chiller'], location: null,
+  },
+  {
+    id: 'ac-06', partyId: 'sony-emcs', discipline: 'air-conditioning', partyName: 'SONY EMCS (MALAYSIA)', yearText: '2010–2014',
+    originalScope: '10 NO OF SUPPLY AND INSTALL AIR CONDITIONER (10HP AND ABOVE) PREVENTIVE MAINTENANCE AND SERVICES OF AIR CONDITIONER',
+    displayScope: 'The register lists ten air conditioners of 10 HP and above supplied and installed, with preventive maintenance and servicing.',
+    valueDisplay: 'RM 385,013.20', qualifier: null, sourceRef: 'projects', sourceRow: 6, quantities: ['10 air conditioners', '10 HP and above'], explicitSystems: [], location: null,
+  },
+  {
+    id: 'ac-07', partyId: 'garden-international-school', discipline: 'air-conditioning', partyName: 'GARDEN INTERNATIONAL SCHOOL', yearText: '2013–2015',
+    originalScope: '23 NO OF SUPPLY AND INSTALL AIR CONDITIONER PREVENTIVE MAINTENANCE AND SERVICES OF AIR CONDITIONER (SPLIT,CHILLER)',
+    displayScope: 'The register lists 23 air conditioners supplied and installed, with preventive maintenance and servicing for split and chiller systems.',
+    valueDisplay: 'RM**', qualifier: withheldQualifier, sourceRef: 'projects', sourceRow: 7, quantities: ['23 air conditioners'], explicitSystems: ['Split', 'Chiller'], location: null,
+  },
+  {
+    id: 'ac-08', partyId: 'viewqwest', discipline: 'air-conditioning', partyName: 'VIEWQWEST MANAGEMENT SDN BHD', yearText: '2016',
+    originalScope: 'SUPPLY AND INSTALL VRV AIR CONDITIONER PREVENTIVE MAINTENANCE AND SERVICES OF AIR CONDITIONER',
+    displayScope: 'Supplied and installed VRV air conditioning and provided preventive maintenance and servicing.',
+    valueDisplay: 'RM**', qualifier: withheldQualifier, sourceRef: 'projects', sourceRow: 8, quantities: [], explicitSystems: ['VRV'], location: null,
+  },
+  {
+    id: 'el-01', partyId: 'radient-trend', discipline: 'electrical', partyName: 'RADIENT TREND SDN BHD', yearText: '2003',
+    originalScope: '2 1/2 STOREY SEMI D HOUSE 150 UNIT HOUSES ELECTRICAL, TELPHONE AND ATTENA WIRING.',
+    displayScope: 'Electrical, telephone and antenna wiring for 150 two-and-a-half-storey semi-detached houses.',
+    valueDisplay: '~RM 650,000.00', qualifier: 'Approximate value as published.', sourceRef: 'projects', sourceRow: 9, quantities: ['150 houses'], explicitSystems: ['Electrical wiring', 'Telephone wiring', 'Antenna wiring'], location: null,
+  },
+  {
+    id: 'el-02', partyId: 'bukit-ikhlas-development', discipline: 'electrical', partyName: 'BUKIT IKHLAS DEVELOPMENT SDN BHD', yearText: '2006',
+    originalScope: '27 BLOCKS CONDOMINIUM & CLUB HOUSE 430 UNIT HOUSES ELECTRICAL, TELPHONE AND ATTENA WIRING. STREET LIGHT AND FEEDER PILLAR CABLING.',
+    displayScope: 'Electrical, telephone and antenna wiring for 430 units across 27 condominium blocks and a clubhouse, plus street lighting and feeder-pillar cabling.',
+    valueDisplay: 'RM 4,200,000.00', qualifier: null, sourceRef: 'projects', sourceRow: 10, quantities: ['27 blocks and clubhouse', '430 units'], explicitSystems: ['Electrical wiring', 'Telephone wiring', 'Antenna wiring', 'Street lighting', 'Feeder-pillar cabling'], location: null,
+  },
+  {
+    id: 'el-03', partyId: 'europlus-construction', discipline: 'electrical', partyName: 'EUROPLUS CONSTRUCTION SDN BHD', yearText: '2006',
+    originalScope: 'STREET LIGHTING INSTALLATION WORK FOR PHASE 1 AND 2 - 568 UNITS AT DENGKIL DAERAH SEPANG',
+    displayScope: 'Street-lighting installation for phases one and two, covering 568 units at Dengkil, Sepang.',
+    valueDisplay: 'RM 1,200,000.00', qualifier: null, sourceRef: 'projects', sourceRow: 11, quantities: ['568 units', 'Phases 1 and 2'], explicitSystems: ['Street lighting'], location: 'Dengkil, Sepang',
+  },
+  {
+    id: 'el-04', partyId: 'uitm', discipline: 'electrical', partyName: 'UITM-SHAH ALAM/TERENGGANU', yearText: '2006–2007',
+    originalScope: 'FIRE FIGHTING ASSIGNMENT, PROJECT AND MISCELLANEOUS e.g. SYSTEM UPGRADING, INSTALLATION OF DETECTORS, EQUIPMENT AND FIRE PROTECTION SYSTEM.',
+    displayScope: 'Fire-protection work, including system upgrades and installation of detectors, equipment and a fire-protection system.',
+    valueDisplay: '~RM 550,000.00', qualifier: 'Approximate value as published.', sourceRef: 'projects', sourceRow: 12, quantities: [], explicitSystems: ['Fire-protection systems', 'Detectors'], location: null,
+  },
+  {
+    id: 'el-05', partyId: 'kej-mahirjaya', discipline: 'electrical', partyName: 'KEJ.MAHIRJAYA SDN BHD', yearText: '2009',
+    originalScope: 'ELECTRICAL ASSIGNMENT, PROJECT AND MISCELLANEOUS e.g. OFFICE UPGRADING, INSTALLATION OF NEW WIRING.',
+    displayScope: 'Office electrical upgrades and installation of new wiring.',
+    valueDisplay: 'RM 1,300,000.00', qualifier: null, sourceRef: 'projects', sourceRow: 13, quantities: [], explicitSystems: ['Electrical wiring'], location: null,
+  },
+  {
+    id: 'el-06', partyId: 'kenforce-construction', discipline: 'electrical', partyName: 'KENFORCE CONSTRUCTION SDN BHD', yearText: '2010',
+    originalScope: '3 STOREY BUNGLOW PJ SMART HOME SYSTEM WIRING',
+    displayScope: 'Smart-home system wiring for a three-storey bungalow in PJ.',
+    valueDisplay: 'RM 1,100,000.00', qualifier: null, sourceRef: 'projects', sourceRow: 14, quantities: ['Three-storey bungalow'], explicitSystems: ['Smart-home wiring'], location: 'PJ',
+  },
+  {
+    id: 'el-07', partyId: 'valserv', discipline: 'electrical', partyName: 'VALSERV SDN BHD', yearText: '2010',
+    originalScope: '338 UNIT APARTMENT & 2 BUNGLOW AT TDRM GAMBANG PAHANG ELECTRICAL INFRA, ELECTRICAL WIRING,TEPEPHONE WIRING',
+    displayScope: 'Electrical infrastructure, electrical wiring and telephone wiring for 338 apartments and two bungalows at TDRM Gambang, Pahang.',
+    valueDisplay: 'RM 6,200,000.00', qualifier: null, sourceRef: 'projects', sourceRow: 15, quantities: ['338 apartments', '2 bungalows'], explicitSystems: ['Electrical infrastructure', 'Electrical wiring', 'Telephone wiring'], location: 'TDRM Gambang, Pahang',
+  },
+  {
+    id: 'el-08', partyId: 'kenforce-construction', discipline: 'electrical', partyName: 'KENFORCE CONSTRUCTION SDN BHD', yearText: '2014–2016',
+    originalScope: '19 UNIT 2 STOREY SHOP LOT/ 2 UNIT 3 STOREY SHOPLOT AT PRAI NEGERI SEMBILAN ELECTRICAL INFRA, ELECTRICAL WIRING,TEPEPHONE WIRING',
+    displayScope: 'Electrical infrastructure, electrical wiring and telephone wiring for 19 two-storey and two three-storey shoplots.',
+    valueDisplay: 'RM 750,000.00', qualifier: null, sourceRef: 'projects', sourceRow: 16, quantities: ['19 two-storey shoplots', '2 three-storey shoplots'], explicitSystems: ['Electrical infrastructure', 'Electrical wiring', 'Telephone wiring'], location: null,
+  },
+]
+
+export interface CommercialClient {
+  id: string
+  slug: string
+  displayName: string
+  logoSrc: string | null
+  summary: string
+  projectIds: string[]
+  galleryOrder: number
+  sourceRefs: string[]
+}
+
+const portfolioSummary = 'N/A'
+
+const gallery = (
+  id: string, displayName: string, galleryOrder: number, logoSrc: string | null = null,
+  summary = portfolioSummary, projectIds: string[] = [], sourceRefs: string[] = ['clientele'],
+): CommercialClient => ({
+  id, slug: id, displayName,
+  logoSrc: galleryOrder >= 0 ? `/images/commercial/clients/${id}.webp` : logoSrc,
+  summary, projectIds, galleryOrder, sourceRefs,
+})
+
+// The first eight entries follow the approved PDF order; subsequent entries
+// retain the published gallery order. All gallery marks are locally stored,
+// pale transparent variants of the verified original identities.
+export const commercialClients: CommercialClient[] = [
+  gallery('maxis', 'Maxis', 0, '/images/commercial/maxis.svg', 'Air-conditioning installation and preventive maintenance for Maxis Broadband, 2010–2016.', ['ac-02'], ['clientele', 'projects']),
+  gallery('sony-emcs', 'Sony EMCS (Malaysia)', 1, '/images/commercial/sony.svg', 'Air-conditioning installation, preventive maintenance and servicing, 2010–2014.', ['ac-06'], ['clientele', 'projects']),
+  gallery('maybank', 'Maybank', 2, '/images/commercial/maybank.svg', 'Air-conditioning installation, preventive maintenance and servicing, 2010 and 2012.', ['ac-04'], ['clientele', 'projects']),
+  gallery('goodyear', 'Goodyear', 3, '/images/commercial/goodyear.svg', 'Air-conditioning installation and split/chiller servicing for Goodyear Malaysia Berhad, 2013–2016.', ['ac-05'], ['clientele', 'projects']),
+  gallery('mission-foods', 'Mission Foods', 4, '/images/commercial/mission.png', 'Air-conditioning installation and servicing across split, VRV, chiller and cooling-tower systems, 2010–2016.', ['ac-03'], ['clientele', 'projects']),
+  gallery('garden-international-school', 'Garden International School', 5, '/images/commercial/garden-crest.png', 'Air-conditioning installation and split/chiller maintenance, 2013–2015.', ['ac-07'], ['clientele', 'projects']),
+  gallery('limkokwing-university', 'Limkokwing University', 6, '/images/commercial/limkokwing.svg', 'Wall-mounted, ceiling-suspended and cassette air-conditioning installation for Lim Kok Wing Intergrated Sdn Bhd, 2011 and 2013.', ['ac-01'], ['clientele', 'projects']),
+  gallery('viewqwest', 'ViewQwest', 7, '/images/commercial/viewqwest-primary.png', 'VRV air-conditioning installation and preventive maintenance for ViewQwest Management Sdn Bhd, 2016.', ['ac-08'], ['projects']),
+  gallery('affin-bank', 'Affin Bank', 8, '/images/commercial/affin.png'),
+  gallery('university-of-malaya', 'University Malaya', 9),
+  gallery('assunta-hospital', 'Assunta Hospital', 10),
+  gallery('tun-hussein-onn-eye-hospital', 'Tun Hussein Onn National Eye Hospital', 11),
+  gallery('sca', 'SCA', 12),
+  gallery('west-port', 'West Port', 13),
+  gallery('tylon-corporation', 'Tylon Corporation', 14),
+  gallery('bukit-ikhlas', 'Bukit Ikhlas', 15),
+  gallery('wellcome-communication', 'Wellcome Communication', 16),
+  gallery('ups', 'UPS', 17),
+  gallery('siemens', 'Siemens', 18),
+  gallery('kumpulan-europlus', 'Kumpulan Europlus', 19),
+  gallery('sime-darby', 'Sime Darby', 20),
+  gallery('crown-hotel', 'Crown Hotel', 21),
+  gallery('tesco', 'Tesco', 22),
+  gallery('panasonic', 'Panasonic', 23),
+  gallery('sp-setia', 'SP Setia', 24),
+  gallery('segi-university-colleges', 'SEGi University & Colleges', 25),
+]
+
+// These parties are documented in the project register but not necessarily
+// identified with a corresponding mark in the Clientele gallery.
+export const commercialProjectParties: CommercialClient[] = [
+  gallery('radient-trend', 'Radient Trend Sdn Bhd', -1, null, 'Electrical, telephone and antenna wiring for 150 houses, 2003.', ['el-01'], ['projects']),
+  gallery('bukit-ikhlas-development', 'Bukit Ikhlas Development Sdn Bhd', -1, null, 'Electrical and related infrastructure for condominium blocks and a clubhouse, 2006.', ['el-02'], ['projects']),
+  gallery('europlus-construction', 'Europlus Construction Sdn Bhd', -1, null, 'Street-lighting installation in Dengkil, Sepang, 2006.', ['el-03'], ['projects']),
+  gallery('uitm', 'UiTM Shah Alam / Terengganu', -1, null, 'Fire-protection system work recorded in 2006–2007.', ['el-04'], ['projects']),
+  gallery('kej-mahirjaya', 'Kej. Mahirjaya Sdn Bhd', -1, null, 'Office electrical upgrade and wiring recorded in 2009.', ['el-05'], ['projects']),
+  gallery('kenforce-construction', 'Kenforce Construction Sdn Bhd', -1, null, 'Two separately recorded electrical projects from 2010 and 2014–2016.', ['el-06', 'el-08'], ['projects']),
+  gallery('valserv', 'Valserv Sdn Bhd', -1, null, 'Electrical infrastructure and wiring for apartments and bungalows, 2010.', ['el-07'], ['projects']),
+]
+
+export const allCommercialParties: CommercialClient[] = [...commercialClients, ...commercialProjectParties]
+
+export function getCommercialService(slug: string) {
+  return commercialServices.find(service => service.slug === slug)
+}
+
+export function getCommercialParty(slug: string) {
+  return allCommercialParties.find(party => party.slug === slug)
+}
+
+export function getCommercialPartyRecords(partyId: string) {
+  return commercialProjectRecords.filter(record => record.partyId === partyId)
+}
+
+export interface CommercialIllustration {
+  src: string
+  alt: string
+}
+
+const detailImage = (name: string, alt: string): CommercialIllustration => ({
+  src: `/images/commercial/details/${name}.webp`, alt,
+})
+
+const acContext = detailImage('project-air-conditioning', 'Illustrative commercial office with ceiling cassette, wall-mounted air conditioner and ducts')
+const acDetail = detailImage('project-ac-detail', 'Illustrative close view of a ceiling-suspended air-conditioning unit and connections')
+const electricalContext = detailImage('project-electrical', 'Illustrative electrical distribution room and organized cable routes')
+const electricalDetail = detailImage('project-electrical-detail', 'Illustrative close view of protected electrical cabling and conduits')
+
+/** Representative equipment visuals only. They never depict the named project site. */
+export function getCommercialProjectIllustrations(record: CommercialProjectRecord): CommercialIllustration[] {
+  switch (record.id) {
+    case 'ac-03': return [detailImage('cooling-tower', 'Illustrative commercial cooling tower and connected pipework'), detailImage('chiller', 'Illustrative commercial chiller plant')]
+    case 'ac-05':
+    case 'ac-07': return [detailImage('chiller', 'Illustrative commercial chiller plant'), acDetail]
+    case 'ac-08': return [detailImage('vrf-vrv', 'Illustrative group of VRF and VRV outdoor units'), acDetail]
+    case 'el-03': return [detailImage('project-street-lighting', 'Illustrative street lighting and roadside feeder cabinet'), electricalDetail]
+    case 'el-04': return [detailImage('project-fire-protection', 'Illustrative detectors, sprinkler pipework and fire control panel'), electricalDetail]
+    case 'el-06': return [detailImage('project-smart-home', 'Illustrative home control interface and protected electrical wiring'), electricalDetail]
+    default: return record.discipline === 'air-conditioning' ? [acContext, acDetail] : [electricalContext, electricalDetail]
+  }
+}

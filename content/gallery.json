@@ -1,6 +1,0 @@
-{
-  "_readme": "Project photographs for the gallery on /projects. Drop images into public/images/projects/ and add one entry per photo. `src` is the path under /images/projects/, `alt` describes what is in the picture, `caption` is optional. The gallery renders nothing while `items` is empty.",
-  "items": [],
-  "_example": { "src": "/images/projects/example.jpg", "alt": "Ceiling cassette units installed across an open-plan office", "caption": "Client name, location, year", "width": 1600, "height": 1067 },
-  "_todo": "__TODO_CLIENT__ Project photographs."
-}

@@ -1,0 +1,151 @@
+{
+  "title": "Commercial cooling, delivered at scale.",
+  "description": "Setia Air-Cond and Electrical Sdn Bhd designs, installs and maintains air conditioning and electrical systems for commercial, industrial and institutional buildings across Kuala Lumpur and Selangor. One contractor for the plant, the distribution and the power behind both — CIDB G5, Suruhanjaya Tenaga C Class, ISO 9001:2015 certified, and doing this since 1990.",
+  "history": "Est. 1990 · 35+ years",
+  "clients": [
+    "Sony Malaysia",
+    "Maybank",
+    "Maxis",
+    "Affin Bank",
+    "Goodyear",
+    "Mission Foods"
+  ],
+  "projects": [
+    {
+      "name": "Maxis Broadband",
+      "location": "Kuala Lumpur",
+      "scope": "Supply and install wall, ceiling-suspended, cassette and ducted units; preventive maintenance across the estate",
+      "system": "Split & high-precision"
+    },
+    {
+      "name": "Sony EMCS (Malaysia)",
+      "location": "Bangi, Selangor",
+      "scope": "Supply and install 10 units at 10HP and above; preventive maintenance and servicing",
+      "system": "Ducted split"
+    },
+    {
+      "name": "Maybank",
+      "location": "Klang Valley branches",
+      "scope": "Supply and install 46 units; scheduled preventive maintenance and servicing",
+      "system": "Split"
+    },
+    {
+      "name": "Goodyear Malaysia Berhad",
+      "location": "Shah Alam, Selangor",
+      "scope": "Supply and install 43 units; preventive maintenance and servicing",
+      "system": "Split & chiller"
+    },
+    {
+      "name": "Mission Foods Malaysia",
+      "location": "Selangor",
+      "scope": "Supply and install 20 units; preventive maintenance across plant and office",
+      "system": "VRV, chiller & cooling tower"
+    },
+    {
+      "name": "Garden International School",
+      "location": "Mont Kiara, Kuala Lumpur",
+      "scope": "Supply and install 23 units; preventive maintenance and servicing",
+      "system": "Split & chiller"
+    },
+    {
+      "name": "Limkokwing University",
+      "location": "Cyberjaya, Selangor",
+      "scope": "Supply and install wall, ceiling-suspended and cassette units across campus buildings",
+      "system": "Split & cassette"
+    },
+    {
+      "name": "ViewQwest Management",
+      "location": "Kuala Lumpur",
+      "scope": "Supply and install VRV system; preventive maintenance and servicing",
+      "system": "VRV"
+    }
+  ],
+  "projectNote": "Placeholder: location & system type pending client confirmation",
+  "certifications": [
+    {
+      "code": "SSM",
+      "title": "Companies Commission of Malaysia",
+      "issuer": "Suruhanjaya Syarikat Malaysia",
+      "detail": "Registered as Setia Air-Cond and Electrical Sdn Bhd. Company no. 502557-T."
+    },
+    {
+      "code": "G5",
+      "title": "CIDB Certification",
+      "issuer": "Construction Industry Development Board",
+      "detail": "Grade G5 — Category M01, M15, E04 & E11. Reg. no. pending"
+    },
+    {
+      "code": "ST",
+      "title": "Suruhanjaya Tenaga",
+      "issuer": "Energy Commission of Malaysia",
+      "detail": "Declared as a C Class Contractor. Reg. no. pending"
+    },
+    {
+      "code": "MOF",
+      "title": "Ministry of Finance",
+      "issuer": "Kementerian Kewangan Malaysia",
+      "detail": "Registration for government supply and services. Reg. no. pending"
+    },
+    {
+      "code": "ISO",
+      "title": "ISO 9001:2015",
+      "issuer": "Quality Management System",
+      "detail": "Certified quality management across operations. Certificate no. pending"
+    },
+    {
+      "code": "DAIKIN",
+      "title": "Daikin Dealership",
+      "issuer": "Group Associated (C&L) Sdn Bhd",
+      "detail": "Certificate of Dealership for Daikin air conditioning. Million Ringgit Sales Award winner, 14 consecutive years."
+    }
+  ],
+  "capabilities": [
+    {
+      "label": "01 — Air conditioning",
+      "title": "Systems we design, install and maintain",
+      "items": [
+        "Chilled-water systems: chillers, cooling towers, pumps and distribution",
+        "VRV / VRF multi-zone systems",
+        "Ducted systems and air-handling units",
+        "Split, cassette, ceiling-suspended and wall-mounted units",
+        "High-precision cooling for server and equipment rooms",
+        "Scheduled preventive maintenance programmes and reactive servicing"
+      ]
+    },
+    {
+      "label": "02 — Electrical",
+      "title": "Infrastructure the cooling depends on",
+      "items": [
+        "Electrical wiring and distribution for commercial and industrial buildings",
+        "Lighting systems, street lighting and feeder pillar cabling",
+        "Network, fibre-optic and telephone cabling",
+        "Lightning arrestor installation",
+        "Earthing and grounding systems",
+        "Fire protection system upgrading and detector installation"
+      ]
+    },
+    {
+      "label": "03 — Brands carried",
+      "title": "Supplied, installed and supported",
+      "items": [
+        "Daikin — authorised dealership, the bulk of our commercial work",
+        "Acson, Panasonic, Toshiba",
+        "York, Carrier, Fujiaire",
+        "Servicing and repair for all unit types, whoever supplied them"
+      ]
+    },
+    {
+      "label": "04 — Maintenance programmes",
+      "title": "How the contracts are structured",
+      "items": [
+        "Scheduled preventive maintenance, quarterly or half-yearly",
+        "Multi-site estate contracts with consolidated reporting",
+        "Chemical wash, coil cleaning and refrigerant top-up",
+        "Breakdown response for contracted sites",
+        "Condition reporting and replacement planning"
+      ]
+    }
+  ],
+  "tenderDescription": "For tender documents, bills of quantities, site visits and pre-qualification packs. We'll confirm receipt the same working day.",
+  "whatsappHref": "https://wa.me/60356318325?text=Hi%20Setia%20Air-Cond%2C%20I%27d%20like%20to%20discuss%20a%20commercial%20project%20tender."
+}

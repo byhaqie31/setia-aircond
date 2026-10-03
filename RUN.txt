@@ -1,0 +1,38 @@
+SetiaAC - run and deploy package
+
+Use Node.js 22.23.2 (the project's pinned version) and npm.
+Open a terminal inside the extracted setiaac folder.
+
+Install dependencies:
+  npm ci
+
+Run locally:
+  npm run dev
+
+Build and preview the standard Nuxt app:
+  npm run build
+  npm run preview
+
+Build for the existing Cloudflare deployment:
+  npm run build:cloudflare
+
+Validate deployment without publishing:
+  npx wrangler deploy --dry-run
+
+Preview the Cloudflare build:
+  npm run preview:cloudflare
+  Open http://localhost:8788/example/setia-aircond/
+
+Publish after authenticating to the configured Cloudflare account:
+  npx wrangler login
+  npm run deploy:cloudflare
+
+The included configuration targets trlabs.my/example/setia-aircond.
+For another account/domain, update wrangler.jsonc, nuxt.config.ts,
+workers/site.mjs and the output prefix in scripts/build-cloudflare.mjs.
+
+This package excludes documentation, references, tests, editable 3D
+sources, development caches and installed dependencies. workers/site.mjs
+is required for the Cloudflare routing. Public images, fonts and models
+are included. The Cloudflare build runs independently of the dev server
+and does not require a Git repository.
