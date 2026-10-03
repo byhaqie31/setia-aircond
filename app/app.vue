@@ -32,7 +32,7 @@ useSeoMeta({
 })
 useHead({
   link: [{ rel: 'preload', href: $sitePath('/fonts/hanken-grotesk-variable.ttf'), as: 'font', type: 'font/ttf', crossorigin: '' }],
-  noscript: [{ innerHTML: '<style>@media(min-width:1024px){.floating-contact{display:block!important}}</style>' }],
+  noscript: [{ innerHTML: '<style>@media(min-width:1024px){.floating-contact{display:flex!important}}</style>' }],
 })
 </script>
 

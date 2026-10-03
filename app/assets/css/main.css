@@ -203,15 +203,20 @@ h1:focus { outline: none; }
 .hero--entering-commercial .building-canvas::before { position: absolute; inset: 0 -6.8182%; background: url('/images/hero/building-zoom-extended-v1.webp') center / 100% 100% no-repeat; mask-image: linear-gradient(to right, #000 0 6%, transparent 7.5% 92.5%, #000 94% 100%); content: ''; }
 .hero--entering-commercial .building-frame { overflow: visible; transform: scale(.88); transform-origin: center bottom; transition: transform .6s cubic-bezier(.25, .75, .22, 1); }
 .hero--entering-residential .building-scene { overflow: clip; }
-.hero--entering-residential .building-frame { overflow: visible; transform-origin: top left; transform: translate3d(var(--residential-zoom-x, -16vw), var(--residential-zoom-y, 10svh), 0) scale(var(--residential-zoom-scale, 3.1)); transition: transform 1.05s cubic-bezier(.25, .75, .22, 1); }
+/* ResidentialTransition drives the camera; see utils/residential-zoom.ts. */
+.hero--entering-residential .building-frame { overflow: visible; transform-origin: top left; will-change: transform; }
 @media (prefers-reduced-motion: reduce) { .hero--entering-commercial .building-frame { transform: none; transition: none; } }
 .navigation-error { color: var(--paper); font-size: 14px; }
 .residential-transition { position: fixed; inset: 0; z-index: 100; }
 .residential-transition__room, .residential-transition__room > picture, .residential-transition__room > picture > img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .residential-transition__room { display: block; opacity: 0; will-change: opacity; background: #191b17; }
 .residential-transition__room > picture > img { object-fit: cover; object-position: center; max-width: none; }
-.residential-transition__shade { position: absolute; inset: 0; background: linear-gradient(90deg, #07180fcc 0%, #07180f25 57%, transparent 100%), linear-gradient(0deg, #061b12ee 0%, #061b1280 21%, transparent 62%), linear-gradient(180deg, #051b13b8 0%, transparent 22%); }
-@media (max-width: 680px) { .residential-transition__shade { background: linear-gradient(0deg, #061b12ef 0%, #061b12a3 22%, transparent 58%), linear-gradient(180deg, #051b13c2 0%, transparent 25%); } }
+.residential-transition__room.is-zooming { transform-origin: 0 0; will-change: transform, opacity, clip-path; }
+/* Coming back from Residential, the room covers the first frame before the camera pulls out. */
+.residential-transition__room.is-returning { opacity: 1; }
+/* Same shade as .residential-view__room-shade so the route swap is seamless. */
+.residential-transition__shade { position: absolute; inset: 0; background: linear-gradient(90deg, #07180fc4 0%, #07180f10 49%, transparent 100%), linear-gradient(0deg, #061b12d6 0%, #061b1240 26%, transparent 58%), linear-gradient(180deg, #051b1399 0%, transparent 22%); }
+@media (max-width: 680px) { .residential-transition__shade { background: linear-gradient(0deg, #061b12e0 0%, #061b126e 32%, transparent 66%), linear-gradient(180deg, #051b13c2 0%, transparent 25%); } }
 .residential-transition__skip { position: absolute; right: var(--page-gutter); bottom: 24px; min-height: 44px; padding: 10px 16px; border: 1px solid #bed0c366; border-radius: 100px; color: var(--paper); background: var(--service-stage); font-size: 13px; opacity: 0; pointer-events: none; }
 .residential-transition__skip:focus-visible { opacity: 1; pointer-events: auto; }
 

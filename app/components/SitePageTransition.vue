@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import type { BuildingFloor } from '~/utils/navigation'
 import { waitForPageAssets } from '~/utils/page-loading'
 
 const router = useRouter()
 const nuxtApp = useNuxtApp()
 const supportsLoader = (path: string) => ['/', '/about-us', '/get-a-quote'].includes(path.replace(/\/+$/, '') || '/')
 const startup = Boolean(nuxtApp.ssrContext || nuxtApp.isHydrating) && supportsLoader(router.currentRoute.value.path)
+const serviceReturn = useState<BuildingFloor | null>('service-return', () => null)
 const content = useTemplateRef<HTMLElement>('content')
 const cover = useTemplateRef<HTMLElement>('cover')
 const active = ref(startup)
@@ -144,6 +146,14 @@ onMounted(() => {
       return
     }
     const attempt = ++generation
+    // The home page pulls its camera back out of the room instead of showing the loader.
+    const returningHome = from.path.replace(/\/+$/, '') === '/residential' && (to.path.replace(/\/+$/, '') || '/') === '/'
+      && !preference?.matches && !document.hidden
+    serviceReturn.value = returningHome ? 'residential' : null
+    if (returningHome) {
+      finish()
+      return
+    }
     blackFade.value = from.path === '/' && to.path === '/commercial'
     // The matched entry cover already fills the viewport before router.push.
     const coveredByBuilding = from.path === '/' && ['/residential', '/commercial'].includes(to.path)
