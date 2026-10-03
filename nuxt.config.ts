@@ -18,7 +18,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-09-08',
   devtools: { enabled: true },
   runtimeConfig: {
-    public: { siteUrl: 'https://trlabs.my/example/setia-aircond/' },
+    public: { siteUrl: 'https://setia-aircond.axelnova.workers.dev/' },
   },
   css: ['lenis/dist/lenis.css', '~/assets/css/main.css', '~/assets/css/service-story.css'],
   app: {
