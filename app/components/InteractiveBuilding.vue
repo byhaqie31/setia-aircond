@@ -7,6 +7,7 @@ const hoveredFloor = ref<Floor | null>(null)
 const focusedFloor = ref<Floor | null>(null)
 const residentialControl = useTemplateRef<HTMLAnchorElement>('residentialControl')
 const commercialControl = useTemplateRef<HTMLAnchorElement>('commercialControl')
+const baseImage = useTemplateRef<HTMLImageElement>('baseImage')
 const residentialImage = useTemplateRef<HTMLImageElement>('residentialImage')
 const commercialImages = useTemplateRef<HTMLImageElement[]>('commercialImages')
 const activeFloor = computed(() => props.enteringFloor ?? hoveredFloor.value ?? focusedFloor.value)
@@ -51,11 +52,12 @@ function explore(floor: Floor = 'residential') {
 }
 
 async function prepareFloor(floor: Floor) {
-  const images = floor === 'residential' ? [residentialImage.value] : commercialImages.value ?? []
-  await Promise.allSettled(images.map(async image => {
+  const plates = floor === 'residential' ? [residentialImage.value] : commercialImages.value ?? []
+  // The dimmed base sits under every lit floor, so a camera move must find it decoded as well.
+  await Promise.allSettled([baseImage.value, ...plates].map(async image => {
     if (image && typeof image.decode === 'function') await image.decode()
   }))
-  ready[floor] = images.some(image => Boolean(image?.complete && image.naturalWidth))
+  ready[floor] = plates.some(image => Boolean(image?.complete && image.naturalWidth))
 }
 
 function enter(floor: Floor, event: MouseEvent) {
@@ -73,6 +75,7 @@ defineExpose({ explore, prepareFloor })
     <div class="building-frame">
       <div class="building-canvas" :data-active-floor="activeFloor ?? 'none'">
         <img
+          ref="baseImage"
           class="building-image building-image--base"
           src="/images/hero/building-dimmed-v1.png"
           alt="A cutaway building overlooking Kuala Lumpur, with a home above an office and café, showing air-conditioning equipment and electrical systems."

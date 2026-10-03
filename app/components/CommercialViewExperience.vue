@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { commercialClients } from '~/data/commercial-view'
 import type { ScenePhase } from '~/utils/commercial-view-layout'
+import type { ArrivalMode } from '~/utils/navigation'
 
 type Scene = 'services' | 'clients'
+const props = defineProps<{ arrival?: ArrivalMode | null }>()
 const route = useRoute()
 const router = useRouter()
 const supportHashes = ['#certifications', '#capability', '#commercial-brands', '#tender', '#commercial-contacts', '#brands']
@@ -258,7 +260,8 @@ onMounted(() => {
   window.addEventListener('touchcancel', onTouchEnd, true)
   window.addEventListener('keydown', onScrollKey, true)
   window.addEventListener('keyup', onScrollKeyUp, true)
-  if (phase.value === 'intro') headerTimer = setTimeout(() => { headerReady.value = true }, 1650)
+  // A matched arrival already spent the camera move without a header, so bring it back sooner.
+  if (phase.value === 'intro') headerTimer = setTimeout(() => { headerReady.value = true }, props.arrival ? 500 : 1650)
 })
 
 onBeforeUnmount(() => {
@@ -293,6 +296,7 @@ onBeforeUnmount(() => {
         :reduced-motion="reducedMotion"
         :selected-service-slug="selectedServiceSlug"
         :from-clients="buildingArrived"
+        :arrival="arrival"
         @ready="onSceneReady"
         @next="onBuildingNext"
         @exit-complete="onBuildingExit"

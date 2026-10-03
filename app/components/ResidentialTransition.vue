@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { ResidentialZoomPlan } from '~/utils/residential-zoom'
+import type { BuildingZoomPlan } from '~/utils/building-zoom'
 
-const props = defineProps<{ destination?: string; duration?: number; zoom?: ResidentialZoomPlan | null; returning?: boolean }>()
+const props = defineProps<{ destination?: string; duration?: number; zoom?: BuildingZoomPlan | null; returning?: boolean }>()
 const emit = defineEmits<{ complete: [animateArrival: boolean]; cancel: [] }>()
 const paper = useTemplateRef<HTMLElement>('paper')
 const shade = useTemplateRef<HTMLElement>('shade')
@@ -42,7 +42,7 @@ async function cancel() {
   if (!disposed) emit('cancel')
 }
 
-function startCamera(plan: ResidentialZoomPlan, direction: PlaybackDirection = 'normal') {
+function startCamera(plan: BuildingZoomPlan, direction: PlaybackDirection = 'normal') {
   const timing: KeyframeAnimationOptions = { duration: plan.duration, fill: 'both', direction }
   const room = paper.value!.animate(plan.roomKeyframes, timing)
   camera = [
@@ -56,7 +56,7 @@ function startCamera(plan: ResidentialZoomPlan, direction: PlaybackDirection = '
 }
 
 /** Play the entry path backwards: the room shrinks into its window as the building pulls out. */
-function playReturn(plan: ResidentialZoomPlan) {
+function playReturn(plan: BuildingZoomPlan) {
   if (completed || disposed) return
   try {
     startCamera(plan, 'reverse')

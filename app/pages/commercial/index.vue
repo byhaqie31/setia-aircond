@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import corporate from '~/data/corporate.json'
-import type { BuildingFloor } from '~/utils/navigation'
+import type { ArrivalMode, ServiceArrival } from '~/utils/navigation'
 
-const arrival = useState<BuildingFloor | null>('service-arrival', () => null)
-if (arrival.value === 'commercial') arrival.value = null
+const serviceArrival = useState<ServiceArrival | null>('service-arrival', () => null)
+// The home page's cover already shows this scene grown and lit, so the intro continues from there.
+const arrival: ArrivalMode | null = serviceArrival.value?.floor === 'commercial' ? (serviceArrival.value.animate ? 'animated' : 'instant') : null
+serviceArrival.value = null
 const siteUrl = useRuntimeConfig().public.siteUrl.replace(/\/?$/, '/')
 
 useHead({
@@ -15,5 +17,5 @@ useHead({
 </script>
 
 <template>
-  <CommercialViewExperience />
+  <CommercialViewExperience :arrival="arrival" />
 </template>

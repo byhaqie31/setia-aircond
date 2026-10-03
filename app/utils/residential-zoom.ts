@@ -1,25 +1,10 @@
-export interface ResidentialZoomPlan {
-  frame: HTMLElement
-  frameKeyframes: Keyframe[]
-  roomKeyframes: Keyframe[]
-  shadeKeyframes: Keyframe[]
-  duration: number
-}
+import { easeCamera, frameKeyframe, roomPose, round, samples, smoothstep, translate, type BuildingZoomPlan, type CameraPose, type Point } from '~/utils/building-zoom'
 
-interface Point { x: number; y: number }
+export type ResidentialZoomPlan = BuildingZoomPlan
 
 // Matches .building-image--residential: the lit upstairs window on the canvas.
 const roomWindow: Point[] = [{ x: .47192, y: .27016 }, { x: .84669, y: .22581 }, { x: .84858, y: .42137 }, { x: .47192, y: .45766 }]
 const roomFocus: Point = { x: .66, y: .345 }
-const samples = 48
-
-const easeCamera = (t: number) => t < .5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2
-const smoothstep = (from: number, to: number, t: number) => {
-  const x = Math.min(1, Math.max(0, (t - from) / (to - from)))
-  return x * x * (3 - 2 * x)
-}
-const round = (value: number) => Math.round(value * 100) / 100
-const translate = ({ x, y }: Point, scale: number) => `translate3d(${round(x)}px, ${round(y)}px, 0) scale(${scale.toFixed(4)})`
 
 /**
  * One camera path for both layers. The building scales logarithmically so the
@@ -27,7 +12,7 @@ const translate = ({ x, y }: Point, scale: number) => `translate3d(${round(x)}px
  * as if it were painted behind the lit window. It resolves inside the window,
  * then the aperture opens until the photo is the full viewport.
  */
-export function planResidentialZoom(frame: HTMLElement, canvas: HTMLElement, duration = 1700): ResidentialZoomPlan {
+export function planResidentialZoom(frame: HTMLElement, canvas: HTMLElement, duration = 1700): BuildingZoomPlan {
   const frameRect = frame.getBoundingClientRect()
   const canvasRect = canvas.getBoundingClientRect()
   const width = window.innerWidth
@@ -38,7 +23,7 @@ export function planResidentialZoom(frame: HTMLElement, canvas: HTMLElement, dur
 
   // Screen mapping of the frame at eased progress e: p -> offset + zoom * p,
   // with the room's focus travelling to the viewport centre.
-  const camera = (e: number) => {
+  const camera = (e: number): CameraPose => {
     const zoom = scale ** e
     return {
       zoom,
@@ -66,14 +51,12 @@ export function planResidentialZoom(frame: HTMLElement, canvas: HTMLElement, dur
   const roomKeyframes: Keyframe[] = []
   for (let index = 0; index <= samples; index++) {
     const t = index / samples
-    const { zoom, offset } = camera(easeCamera(t))
-    // The frame transforms from its own top-left corner.
-    frameKeyframes.push({ offset: t, transform: translate({ x: offset.x + frameRect.left * (zoom - 1), y: offset.y + frameRect.top * (zoom - 1) }, zoom) })
-    // Room = frame camera now, composed with the inverse of the final camera.
-    const roomZoom = zoom / end.zoom
+    const pose = camera(easeCamera(t))
+    frameKeyframes.push(frameKeyframe(t, pose, frameRect))
+    const room = roomPose(pose, end)
     roomKeyframes.push({
       offset: t,
-      transform: translate({ x: offset.x - roomZoom * end.offset.x, y: offset.y - roomZoom * end.offset.y }, roomZoom),
+      transform: translate(room.offset, room.zoom),
       opacity: smoothstep(.2, .48, t).toFixed(3),
       clipPath: clipAt(smoothstep(.42, .94, t)),
     })

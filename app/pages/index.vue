@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { isPlainNavigation, type BuildingFloor } from '~/utils/navigation'
-import { planResidentialZoom, type ResidentialZoomPlan } from '~/utils/residential-zoom'
+import { isPlainNavigation, type BuildingFloor, type ServiceArrival } from '~/utils/navigation'
+import type { BuildingZoomPlan } from '~/utils/building-zoom'
+import { planCommercialZoom } from '~/utils/commercial-zoom'
+import { planResidentialZoom } from '~/utils/residential-zoom'
 
 const building = useTemplateRef('building')
 const exploreTrigger = useTemplateRef<HTMLButtonElement>('exploreTrigger')
@@ -9,17 +11,18 @@ const commercialChoice = useTemplateRef<HTMLAnchorElement>('commercialChoice')
 const transition = useTemplateRef('transition')
 const choosingFloor = ref(false)
 const serviceReturn = useState<BuildingFloor | null>('service-return', () => null)
-// Back from Residential: open inside the room, then pull the camera out.
-const returningHome = ref(serviceReturn.value === 'residential' && import.meta.client
-  && !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+// Back from a floor: open inside its scene, then pull the camera out to the building.
+const returningFrom = ref<BuildingFloor | null>(import.meta.client && serviceReturn.value
+  && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? serviceReturn.value : null)
 serviceReturn.value = null
-const showTransition = ref(returningHome.value)
+const showTransition = ref(Boolean(returningFrom.value))
 const openingFloor = ref<BuildingFloor | null>(null)
+const cameraFloor = computed(() => openingFloor.value ?? returningFrom.value)
 // Holds a DOM element, so keep it out of Vue's deep reactivity.
-const residentialZoom = shallowRef<ResidentialZoomPlan | null>(null)
-const serviceArrival = useState<BuildingFloor | null>('service-arrival', () => null)
+const zoomPlan = shallowRef<BuildingZoomPlan | null>(null)
+const serviceArrival = useState<ServiceArrival | null>('service-arrival', () => null)
 const navigationError = ref('')
-const destinationName = computed(() => openingFloor.value === 'commercial' ? 'Commercial' : 'Residential')
+const destinationName = computed(() => cameraFloor.value === 'commercial' ? 'Commercial' : 'Residential')
 const router = useRouter()
 let lightingTimer: ReturnType<typeof setTimeout> | undefined
 let assetTimer: ReturnType<typeof setTimeout> | undefined
@@ -46,7 +49,7 @@ onMounted(() => {
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
   reducedMotion.addEventListener('change', onMotionChange)
   window.addEventListener('keydown', onKeydown, true)
-  if (returningHome.value) playReturn()
+  if (returningFrom.value) void playReturn()
 })
 
 onBeforeUnmount(() => {
@@ -101,30 +104,38 @@ function prepareResidentialImages() {
   })))
 }
 
-function prepareResidentialZoom() {
-  residentialZoom.value = null
-  if (typeof document === 'undefined') return
+/** Measure the building at rest; the overlay plays the plan forwards on entry and backwards on return. */
+function planZoom(floor: BuildingFloor, duration?: number) {
+  if (typeof document === 'undefined') return null
   const frame = document.querySelector<HTMLElement>('.building-frame')
   const canvas = frame?.querySelector<HTMLElement>('.building-canvas')
-  if (frame && canvas) residentialZoom.value = planResidentialZoom(frame, canvas)
+  if (!frame || !canvas) return null
+  return floor === 'commercial' ? planCommercialZoom(frame, canvas, duration) : planResidentialZoom(frame, canvas, duration)
 }
 
-function playReturn() {
-  const frame = document.querySelector<HTMLElement>('.building-frame')
-  const canvas = frame?.querySelector<HTMLElement>('.building-canvas')
-  if (frame && canvas && transition.value) transition.value.playReturn(planResidentialZoom(frame, canvas, 1500))
+async function playReturn() {
+  const floor = returningFrom.value
+  if (!floor) return
+  // The scene covers the first frame; let the lit plates decode before the camera pulls out to them.
+  await Promise.race([
+    building.value ? building.value.prepareFloor(floor).catch(() => {}) : Promise.resolve(),
+    new Promise<void>(resolve => setTimeout(resolve, 600)),
+  ])
+  if (disposed || returningFrom.value !== floor) return
+  const plan = planZoom(floor, floor === 'commercial' ? 1400 : 1500)
+  if (plan && transition.value) transition.value.playReturn(plan)
   else void endReturn()
 }
 
 async function endReturn() {
-  returningHome.value = false
+  returningFrom.value = null
   showTransition.value = false
   await nextTick()
   if (!disposed) document.getElementById('hero-title')?.focus({ preventScroll: true })
 }
 
 function onTransitionComplete(animateArrival: boolean) {
-  if (returningHome.value) void endReturn()
+  if (returningFrom.value) void endReturn()
   else void openFloor(animateArrival)
 }
 
@@ -150,7 +161,7 @@ function chooseFloor(floor: BuildingFloor, event: MouseEvent) {
 }
 
 async function enterFloor(floor: BuildingFloor) {
-  if (openingFloor.value || returningHome.value || disposed) return
+  if (openingFloor.value || returningFrom.value || disposed) return
   const attempt = ++entryAttempt
   openingFloor.value = floor
   navigationError.value = ''
@@ -173,13 +184,13 @@ async function enterFloor(floor: BuildingFloor) {
   finishAssetWait = undefined
   await nextTick()
   if (disposed || attempt !== entryAttempt) return
-  // Both routes hand off when the shared matched-image fade completes. The
-  // residential push-in starts while its window is still lighting up.
+  // Both cameras start while the chosen floor is still lighting up, and the
+  // overlay hands off once its scene covers the building.
   lightingTimer = setTimeout(() => {
     if (disposed || attempt !== entryAttempt) return
-    if (floor === 'residential') prepareResidentialZoom()
+    zoomPlan.value = planZoom(floor)
     showTransition.value = true
-  }, floor === 'commercial' ? 150 : 300)
+  }, 300)
 }
 
 async function openFloor(animateArrival = true) {
@@ -188,7 +199,8 @@ async function openFloor(animateArrival = true) {
   navigating = true
   entryAttempt++
   clearEntryTimers()
-  serviceArrival.value = animateArrival ? floor : null
+  // A covered swap lets the floor continue from the frame the overlay shows.
+  serviceArrival.value = showTransition.value ? { floor, animate: animateArrival } : null
   try {
     const failure = await router.push(`/${floor}`)
     if (failure) throw failure
@@ -196,6 +208,7 @@ async function openFloor(animateArrival = true) {
     if (disposed) return
     serviceArrival.value = null
     showTransition.value = false
+    zoomPlan.value = null
     openingFloor.value = null
     navigationError.value = `${floor === 'residential' ? 'Residential' : 'Commercial'} could not open. Please try again.`
     await restoreEntryFocus(floor)
@@ -210,6 +223,7 @@ async function cancelEntry() {
   entryAttempt++
   clearEntryTimers()
   showTransition.value = false
+  zoomPlan.value = null
   serviceArrival.value = null
   openingFloor.value = null
   if (floor) await restoreEntryFocus(floor)
@@ -240,7 +254,7 @@ function onMotionChange(event: MediaQueryListEvent) {
 </script>
 
 <template>
-  <main class="hero" :class="{ 'hero--entering': showTransition, 'hero--entering-commercial': showTransition && openingFloor === 'commercial', 'hero--entering-residential': showTransition && (openingFloor === 'residential' || returningHome) }" :inert="showTransition" :aria-busy="Boolean(openingFloor)" aria-labelledby="hero-title">
+  <main class="hero" :class="{ 'hero--entering': showTransition, 'hero--entering-commercial': showTransition && cameraFloor === 'commercial', 'hero--entering-residential': showTransition && cameraFloor === 'residential' }" :inert="showTransition" :aria-busy="Boolean(openingFloor)" aria-labelledby="hero-title">
     <HeroAtmosphere />
     <a class="skip-link" href="#hero-title">Skip to content</a>
     <header class="site-header">
@@ -275,10 +289,10 @@ function onMotionChange(event: MediaQueryListEvent) {
       <p v-if="navigationError" class="navigation-error" role="alert">{{ navigationError }}</p>
     </div>
 
-    <InteractiveBuilding ref="building" :entering-floor="openingFloor ?? (returningHome ? 'residential' : null)" @enter="enterFloor" />
-    <ResidentialTransition v-if="showTransition" ref="transition" :returning="returningHome" :destination="destinationName" :duration="openingFloor === 'commercial' ? 600 : 1050" :zoom="openingFloor === 'residential' ? residentialZoom : null" @complete="onTransitionComplete" @cancel="cancelEntry">
-      <template v-if="openingFloor === 'commercial'" #default>
-        <CommercialBuildingScene phase="intro" entry-preview inert />
+    <InteractiveBuilding ref="building" :entering-floor="cameraFloor" @enter="enterFloor" />
+    <ResidentialTransition v-if="showTransition" ref="transition" :returning="Boolean(returningFrom)" :destination="destinationName" :duration="cameraFloor === 'commercial' ? 600 : 1050" :zoom="zoomPlan" @complete="onTransitionComplete" @cancel="cancelEntry">
+      <template v-if="cameraFloor === 'commercial'" #default>
+        <CommercialBuildingScene phase="intro" :preview="returningFrom ? 'return' : 'entry'" inert />
       </template>
     </ResidentialTransition>
   </main>

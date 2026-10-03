@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { commercialServices } from '~/data/commercial-view'
 import { compactEquipmentLabels, compactRowLabels, compactRowWidths, type CommercialLeader, type CommercialLabelBounds, type ScenePhase } from '~/utils/commercial-view-layout'
+import type { ArrivalMode } from '~/utils/navigation'
 
 const props = withDefaults(defineProps<{
   phase: ScenePhase
@@ -10,7 +11,10 @@ const props = withDefaults(defineProps<{
   unlitSrc?: string
   litSrc?: string
   fromClients?: boolean
-  entryPreview?: boolean
+  /** Rendered inside the home page's cover: 'entry' holds the frame the page will continue from, 'return' the resting scene it leaves. */
+  preview?: 'entry' | 'return' | null
+  /** Arriving under that cover, the scene is already grown and lit, so only the reveal remains. */
+  arrival?: ArrivalMode | null
 }>(), {
   reducedMotion: false,
   selectedServiceSlug: null,
@@ -27,8 +31,8 @@ const emit = defineEmits<{
 }>()
 
 type LocalStage = 'hold' | 'grow' | 'settle' | 'reveal' | 'ready' | 'retract' | 'unlight' | 'dim' | 'zoom' | 'backdrop' | 'exit' | 'skyline'
-const stage = ref<LocalStage>(props.fromClients ? 'skyline' : 'hold')
-const revealed = ref(0)
+const stage = ref<LocalStage>(props.fromClients ? 'skyline' : props.preview === 'return' ? 'ready' : props.preview || props.arrival ? 'settle' : 'hold')
+const revealed = ref(props.preview === 'return' ? commercialServices.length : 0)
 const enhanced = ref(false)
 const pageVisible = ref(true)
 const desktop = ref(false)
@@ -120,9 +124,13 @@ function showReady(announce = true) {
 }
 
 function beginIntro() {
-  if (props.entryPreview) return
+  if (props.preview) return
   if (props.fromClients) {
     beginReturn()
+    return
+  }
+  if (props.arrival) {
+    beginArrival()
     return
   }
   cancelSequence()
@@ -150,6 +158,27 @@ function beginIntro() {
       }, 650)
     }, 1000)
   }, 650)
+}
+
+/** The home cover handed over a grown, lit building: skip the hold and grow, then reveal the services. */
+function beginArrival() {
+  cancelSequence()
+  if (props.arrival === 'instant' || props.reducedMotion || document.hidden) {
+    showReady()
+    return
+  }
+  const current = sequence
+  stage.value = 'settle'
+  revealed.value = 0
+  void nextTick(updateLeaders)
+  later(() => {
+    if (current !== sequence) return
+    stage.value = 'reveal'
+    commercialServices.forEach((_, index) => {
+      later(() => { if (current === sequence) revealed.value = index + 1 }, index * 110)
+    })
+    later(() => { if (current === sequence) showReady() }, (commercialServices.length - 1) * 110 + 520)
+  }, 200)
 }
 
 function beginReturn() {
@@ -228,8 +257,15 @@ function updateLeaders() {
   const scene = stageElement.value
   const image = (unlitFailed.value ? litImageElement.value : imageElement.value) ?? imageElement.value
   if (!scene || !image) return
-  const sceneRect = scene.getBoundingClientRect()
-  const imageRect = image.getBoundingClientRect()
+  // The home cover scales this scene while it measures; work in layout pixels either way.
+  const scaled = scene.getBoundingClientRect()
+  const unit = scene.offsetWidth ? scaled.width / scene.offsetWidth : 1
+  const measure = (element: Element) => {
+    const rect = element.getBoundingClientRect()
+    return new DOMRect(rect.left / unit, rect.top / unit, rect.width / unit, rect.height / unit)
+  }
+  const sceneRect = measure(scene)
+  const imageRect = measure(image)
   if (!sceneRect.width || !sceneRect.height || !imageRect.width || !imageRect.height) return
   const naturalWidth = image.naturalWidth || 2169
   const naturalHeight = image.naturalHeight || 725
@@ -246,7 +282,7 @@ function updateLeaders() {
   Array.from(markerElement.value?.children ?? []).forEach(marker => resizeObserver?.observe(marker))
   if (!desktop.value) {
     headingMaxWidth.value = undefined
-    const headingBottom = (headingElement.value?.getBoundingClientRect().bottom ?? sceneRect.top + 180) - sceneRect.top
+    const headingBottom = (headingElement.value ? measure(headingElement.value).bottom : sceneRect.top + 180) - sceneRect.top
     const artworkPositions = naturalHeight / naturalWidth > .5 ? mobileEquipmentPositions : equipmentPositions
     const anchors = artworkPositions.map(item => (drawnLeft + item.x * drawnWidth - sceneRect.left) / sceneRect.width)
     const stagger = Math.max(Math.min(96, sceneRect.height * .1), Math.max(44, ...markerHeights.filter((_, index) => index % 2 === 0)) + 14)
@@ -300,8 +336,8 @@ function updateLeaders() {
   markerTops.value = Object.fromEntries(equipmentPositions.map((item, index) => [item.id,
     labelTop.value * sceneRect.height - (['chilled-water-piping', 'duct-services'].includes(item.id) ? (markerHeights[index] ?? 100) + 24 : 0),
   ]))
-  const headingRect = headingElement.value?.getBoundingClientRect()
-  const firstLabelLeft = drawnLeft + equipmentPositions[0].x * drawnWidth - (markerElement.value?.firstElementChild?.getBoundingClientRect().width ?? 220) / 2
+  const headingRect = headingElement.value ? measure(headingElement.value) : undefined
+  const firstLabelLeft = drawnLeft + equipmentPositions[0].x * drawnWidth - (markerElement.value?.firstElementChild ? measure(markerElement.value.firstElementChild).width : 220) / 2
   headingMaxWidth.value = headingRect && sceneRect.top + labelTop.value * sceneRect.height < headingRect.bottom + 32
     ? `${Math.max(240, firstLabelLeft - headingRect.left - 24)}px`
     : undefined

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { BuildingFloor } from '~/utils/navigation'
+import type { ServiceArrival } from '~/utils/navigation'
 
-const serviceArrival = useState<BuildingFloor | null>('service-arrival', () => null)
-const arriving = serviceArrival.value === 'residential'
+const serviceArrival = useState<ServiceArrival | null>('service-arrival', () => null)
+const arriving = serviceArrival.value?.floor === 'residential' && serviceArrival.value.animate
 serviceArrival.value = null
 
 useHead({

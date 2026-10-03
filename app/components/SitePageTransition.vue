@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RouteLocationNormalized } from 'vue-router'
 import type { BuildingFloor } from '~/utils/navigation'
 import { waitForPageAssets } from '~/utils/page-loading'
 
@@ -110,6 +111,15 @@ async function pageReady() {
   })
 }
 
+/** A floor whose opening scene is still on screen hands the home page a matched frame to pull out of. */
+function matchedReturn(from: RouteLocationNormalized, to: RouteLocationNormalized): BuildingFloor | null {
+  if ((to.path.replace(/\/+$/, '') || '/') !== '/' || preference?.matches || document.hidden) return null
+  const path = from.path.replace(/\/+$/, '')
+  if (path === '/residential') return 'residential'
+  if (path === '/commercial' && document.querySelector('.commercial-view .commercial-building-scene:not(.is-exiting)')) return 'commercial'
+  return null
+}
+
 function openPageNow() {
   skipAssets = true
   loadingRequest?.abort()
@@ -146,11 +156,10 @@ onMounted(() => {
       return
     }
     const attempt = ++generation
-    // The home page pulls its camera back out of the room instead of showing the loader.
-    const returningHome = from.path.replace(/\/+$/, '') === '/residential' && (to.path.replace(/\/+$/, '') || '/') === '/'
-      && !preference?.matches && !document.hidden
-    serviceReturn.value = returningHome ? 'residential' : null
-    if (returningHome) {
+    // The home page pulls its camera back out of the floor's scene instead of showing the loader.
+    const returningFrom = matchedReturn(from, to)
+    serviceReturn.value = returningFrom
+    if (returningFrom) {
       finish()
       return
     }
