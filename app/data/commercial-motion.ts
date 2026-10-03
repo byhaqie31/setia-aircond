@@ -1,5 +1,5 @@
 import corporate from './corporate.json'
-import { airConditioningBrandLogos } from './air-conditioning'
+import { airConditioningBrandLogos, commercialPlantBrandLogos } from './air-conditioning'
 
 export const commercialChapters = [
   {
@@ -29,14 +29,9 @@ export const commercialChapters = [
   },
 ] as const
 
-// Commercial-only supplier changes requested by the client on 2026-10-02.
-// Original manufacturer artwork: references/brands/commercial-2026-10-02.md.
-export const commercialBrandLogos = [
-  ...airConditioningBrandLogos.slice(0, 5),
-  { name: 'Trane', src: '/images/brands/trane.png', width: 2385, height: 795, treatment: 'solid' as const },
-  { name: 'Dunham-Bush', src: '/images/brands/dunham-bush.webp', width: 170, height: 85, treatment: 'solid' as const },
-  { name: 'Daikin Applied', src: '/images/brands/daikin-applied.png', width: 2463, height: 413, treatment: 'solid' as const },
-]
+// Supplier changes requested by the client on 2026-10-02: the first five shared
+// brands, then the chiller and plant-room makers defined alongside them.
+export const commercialBrandLogos = [...airConditioningBrandLogos.slice(0, 5), ...commercialPlantBrandLogos]
 export const commercialBrands = commercialBrandLogos.map(brand => brand.name)
 export const commercialEnquiry = '/get-a-quote?property=commercial'
 export const commercialTenderPack = 'mailto:mail@setiaaircond.com.my?subject=Tender%20pack%20request'

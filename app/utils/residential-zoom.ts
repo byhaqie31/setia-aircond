@@ -8,18 +8,21 @@ const roomFocus: Point = { x: .66, y: .345 }
 
 // Share of the timeline the camera spends travelling; the rest is the hand-off inside the window.
 const travel = .64
-// Only after the camera has landed: the photo fades in behind the window, then the aperture opens.
-const photoFade = { from: travel, to: travel + .18 }
-const apertureOpen = { from: travel + .05, to: 1 }
-const shadeIn = .8
+// The photo fades in behind the window over the last stretch of the push-in, so the
+// interior is fully there the moment the camera lands; the aperture begins opening
+// just before that landing so the hand-off never reads as a stop.
+const photoFade = { from: travel - .18, to: travel }
+const apertureOpen = { from: travel - .06, to: 1 }
+const shadeIn = .76
 
 /**
  * One camera path for both layers. The building scales logarithmically so the
  * push-in reads at a constant speed, while the room photo rides the same path
- * as if it were painted behind the lit window. The photo stays hidden until the
- * camera has come to rest inside the window; only then does it fade in over the
- * lit room and the aperture open until the photo is the full viewport. Played
- * in reverse, the aperture closes and the photo clears before the camera pulls out.
+ * as if it were painted behind the lit window. The photo fades in over the lit
+ * room during the final, decelerating stretch of the push-in, so the window
+ * already shows the interior as the camera settles, and the aperture then opens
+ * until the photo is the full viewport. Played in reverse, the aperture closes
+ * and the photo clears as the camera begins to pull out.
  */
 export function planResidentialZoom(frame: HTMLElement, canvas: HTMLElement, duration = 2200): BuildingZoomPlan {
   const frameRect = frame.getBoundingClientRect()

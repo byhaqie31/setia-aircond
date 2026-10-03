@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { airConditioningBrandLogos } from '~/data/air-conditioning'
+import { aboutBrandLogos } from '~/data/air-conditioning'
 
 const story = useTemplateRef<HTMLElement>('story')
 const { $scrollTo } = useNuxtApp()
@@ -117,11 +117,12 @@ onMounted(async () => {
         standards.fromTo(root.querySelector('.about-support'), { opacity: .2, y: 36 }, { opacity: 1, y: 0, duration: .55 }, 1.25)
         standards.to({}, { duration: .45 })
 
-        const brands = chapter('.about-brands-band', 1.8)
+        const brands = chapter('.about-brands-band', 2.1)
         brands.fromTo(root.querySelector('#about-brands-title'), { opacity: .2, y: 32 }, { opacity: 1, y: 0, duration: .5 }, 0)
         brands.fromTo(root.querySelectorAll('[data-about-brand]'), { opacity: 0, y: 70, rotationX: 65 }, {
-          opacity: 1, y: 0, rotationX: 0, duration: .55, stagger: .13,
+          opacity: 1, y: 0, rotationX: 0, duration: .55, stagger: .1,
         }, .25)
+        brands.fromTo(root.querySelector('[data-about-brand-more]'), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: .4 }, '>-.15')
         brands.to({}, { duration: .55 })
 
         const enquiry = chapter('.about-enquiry', 1.1, 'top 35%')
@@ -247,18 +248,20 @@ onBeforeUnmount(() => {
     <div class="about-brands service-brands company-width">
       <h2 id="about-brands-title">Supplying<br>and supporting.</h2>
       <ul aria-label="Air-conditioning brands we supply and support">
-        <li v-for="brand in airConditioningBrandLogos" :key="brand.name">
+        <li v-for="brand in aboutBrandLogos" :key="brand.name">
           <div class="service-brand-mark" data-about-brand>
             <div class="service-brand-image"><img :src="$sitePath(brand.src)" :alt="brand.name" :width="brand.width" :height="brand.height" :class="`about-brand--${brand.treatment}`" loading="lazy" decoding="async"></div>
             <span class="about-brand-caption" aria-hidden="true">{{ brand.name }}</span>
           </div>
         </li>
       </ul>
+      <p class="about-brands__more" data-about-brand-more>and many more</p>
     </div>
     </section>
 
     <CompanyEnquirySection class="about-enquiry" heading-id="about-enquiry-title" />
     </div>
+    <FloatingReturn />
   </CompanyPage>
 </template>
 
@@ -296,12 +299,15 @@ onBeforeUnmount(() => {
 .about-support { margin-top: 44px; }
 .about-standards p + p { margin-top: 20px; }
 .about-brands-band { background: #16513a; --company-muted: #d1e4d7; }
-.about-brands { padding: clamp(56px, 7vw, 100px) 0; background: transparent; }
+.about-brands { padding: clamp(48px, 6vw, 80px) 0; background: transparent; }
+.about-brands h2 { margin-bottom: clamp(32px, 4vw, 48px); text-align: center; }
+.about-brands li { padding: 26px 0; }
 .about-brands .service-brand-mark { transform-origin: center bottom; }
 .about-brands li::after { background: var(--company-line); }
 .about-brand--solid { filter: brightness(0) invert(1); }
 .about-brand--reverse { filter: grayscale(1) invert(1) brightness(1.4); }
 .about-brand-caption { color: var(--company-muted); font-size: 12px; }
+.about-brands__more { margin: 28px 0 0; color: var(--company-muted); font-size: 14px; line-height: 1.5; text-align: center; }
 [data-about-pinned] { min-height: 100svh; align-content: center; }
 .about-purpose-band[data-about-pinned], .about-brands-band[data-about-pinned] { display: flex; align-items: center; }
 @media (max-width: 850px) {

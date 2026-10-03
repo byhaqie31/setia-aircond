@@ -477,10 +477,10 @@ onBeforeUnmount(() => {
 .client-scene__pagination .client-scene__dot:hover:not([aria-disabled='true'])::before { border-color: #a0ebbb; }
 .client-scene__pagination .client-scene__dot[aria-current='true']::before { background: #a0ebbb; border-color: #a0ebbb; transform: scale(1.25); }
 .client-scene__center { grid-column: 2; grid-row: 1; align-self: end; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
-/* Same pill as the building scene's actions, so both scenes keep their controls at the bottom centre. */
-.client-scene__pagination .client-scene__back { justify-content: center; width: auto; min-height: 44px; padding: 10px 20px; border: 1px solid #d5e8d966; border-radius: 100px; color: #f5f5ed; background: #061710a6; font-size: 14px; font-weight: 600; line-height: 1.25; white-space: nowrap; text-shadow: none; pointer-events: auto; transition: background-color .2s ease, border-color .2s ease, transform .2s ease; }
+/* Same white pill as the building scene's secondary action (and the arrows above), so both scenes keep their controls at the bottom centre. */
+.client-scene__pagination .client-scene__back { justify-content: center; width: auto; min-height: 44px; padding: 10px 20px; border: 1px solid transparent; border-radius: 100px; color: var(--service-stage); background: var(--paper); box-shadow: 0 2px 10px #0617104d; font-size: 14px; font-weight: 600; line-height: 1.25; white-space: nowrap; text-shadow: none; pointer-events: auto; transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease; }
 .client-scene__pagination .client-scene__back .icon { width: 16px; height: 16px; }
-.client-scene__pagination .client-scene__back:hover:not([aria-disabled='true']) { color: #f5f5ed; background: #16513a; border-color: #a0ebbb99; transform: translateY(-1px); }
+.client-scene__pagination .client-scene__back:hover:not([aria-disabled='true']) { color: var(--service-stage); background: #fff; box-shadow: 0 4px 14px #06171066; transform: translateY(-1px); }
 .client-scene__all { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 24px 0; }
 .client-scene__all > * { color: #d2e2d6; font-size: 14px; }
 .client-scene__all.is-visually-hidden { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

@@ -607,11 +607,12 @@ onBeforeUnmount(() => {
 .commercial-building-scene__marker strong { font-size: clamp(15px, 1.1vw, 18px); line-height: 1.2; }
 .commercial-building-scene__marker span { max-width: 22ch; color: #cfddd1; font-size: clamp(12px, .8vw, 14px); line-height: 1.35; }
 .commercial-building-scene__actions { position: absolute; z-index: 5; inset-inline: 16px; bottom: max(22px, 3.5svh); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; pointer-events: none; }
-.commercial-building-scene__action { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; padding: 12px 22px; border: 1px solid #d5e8d966; border-radius: 100px; color: #f5f5ed; background: #061710a6; font-size: 14px; font-weight: 600; line-height: 1.25; white-space: nowrap; text-decoration: none; pointer-events: auto; transition: background-color .2s ease, border-color .2s ease, transform .2s ease; }
+/* Secondary pill is white, like the client scene arrows; --next is the green primary. */
+.commercial-building-scene__action { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; padding: 12px 22px; border: 1px solid transparent; border-radius: 100px; color: var(--service-stage); background: var(--paper); box-shadow: 0 2px 10px #0617104d; font-size: 14px; font-weight: 600; line-height: 1.25; white-space: nowrap; text-decoration: none; pointer-events: auto; transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease; }
 .commercial-building-scene__action .icon { width: 16px; height: 16px; }
-.commercial-building-scene__action:hover { background: #16513a; border-color: #a0ebbb99; transform: translateY(-1px); }
-.commercial-building-scene__action--next { border-color: transparent; color: var(--stage); background: var(--green); }
-.commercial-building-scene__action--next:hover { background: var(--green-bright); border-color: transparent; }
+.commercial-building-scene__action:hover { background: #fff; box-shadow: 0 4px 14px #06171066; transform: translateY(-1px); }
+.commercial-building-scene__action--next { color: var(--stage); background: var(--green); box-shadow: none; }
+.commercial-building-scene__action--next:hover { background: var(--green-bright); box-shadow: none; }
 .commercial-building-scene__action[aria-disabled='true'] { cursor: wait; }
 .commercial-building-scene__heading, .commercial-building-scene__actions, .commercial-building-scene__service-list { transition: opacity 220ms ease; }
 .commercial-building-scene.is-exiting :is(.commercial-building-scene__heading, .commercial-building-scene__actions, .commercial-building-scene__service-list) { opacity: 0; pointer-events: none; }

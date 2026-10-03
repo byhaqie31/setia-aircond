@@ -47,7 +47,17 @@ export const airConditioningBrandLogos = [
 ] as const
 export const airConditioningEnquiry = '/get-a-quote?property=residential'
 
-// Residential-only replacement requested on 2026-10-02; shared/About list stays intact.
-export const residentialBrandLogos = airConditioningBrandLogos.map(brand => brand.name === 'Fujiaire'
-  ? { name: 'Midea', src: '/images/brands/midea.svg', width: 3228, height: 1242, treatment: 'solid' as const }
-  : brand)
+const mideaBrandLogo = { name: 'Midea', src: '/images/brands/midea.svg', width: 3228, height: 1242, treatment: 'solid' } as const
+// Residential-only replacement requested on 2026-10-02; the shared list stays intact.
+export const residentialBrandLogos = airConditioningBrandLogos.map(brand => brand.name === 'Fujiaire' ? mideaBrandLogo : brand)
+
+// Chiller and plant-room makers requested for Commercial on 2026-10-02.
+// Original manufacturer artwork: references/brands/commercial-2026-10-02.md.
+export const commercialPlantBrandLogos = [
+  { name: 'Trane', src: '/images/brands/trane.png', width: 2385, height: 795, treatment: 'solid' },
+  { name: 'Dunham-Bush', src: '/images/brands/dunham-bush.webp', width: 170, height: 85, treatment: 'solid' },
+  { name: 'Daikin Applied', src: '/images/brands/daikin-applied.png', width: 2463, height: 413, treatment: 'solid' },
+] as const
+
+// About us shows every brand carried: the shared list, the plant-room makers and Midea.
+export const aboutBrandLogos = [...airConditioningBrandLogos, ...commercialPlantBrandLogos, mideaBrandLogo]

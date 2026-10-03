@@ -131,8 +131,8 @@ h1:focus { outline: none; }
 .hero-explore__trigger, .hero-explore__choices { grid-area: 1 / 1; align-self: start; }
 .hero-explore__trigger { position: relative; z-index: 1; justify-self: start; min-width: 158px; transform: translateX(0); opacity: 1; transition: transform .44s cubic-bezier(.22, 1, .36, 1), opacity .18s ease .1s, background .2s ease; }
 .hero-explore__trigger:hover { transform: translateX(0); }
-.hero-explore__about { position: absolute; left: 174px; top: 0; display: inline-flex; align-items: center; justify-content: center; width: min(158px, calc(100% - 174px)); min-height: var(--explore-height); padding: 10px 12px; border: 1px solid #f8fbf866; border-radius: 100px; color: var(--paper); font-size: 15px; font-weight: 600; white-space: nowrap; transition: opacity .18s ease, background-color .2s ease; }
-.hero-explore__about:hover { background: #e9f1eb14; }
+.hero-explore__about { position: absolute; left: 174px; top: 0; display: inline-flex; align-items: center; justify-content: center; width: min(158px, calc(100% - 174px)); min-height: var(--explore-height); padding: 10px 12px; border: 1px solid transparent; border-radius: 100px; color: var(--service-stage); background: var(--paper); font-size: 15px; font-weight: 600; white-space: nowrap; box-shadow: 0 2px 10px #0617104d; transition: opacity .18s ease, background-color .2s ease, box-shadow .2s ease; }
+.hero-explore__about:hover { background: #fff; box-shadow: 0 4px 14px #06171066; }
 .hero-explore.is-choosing .hero-explore__about { opacity: 0; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .hero-explore__about { transition: none; } }
 .hero-explore.is-choosing .hero-explore__trigger { transform: translateX(var(--explore-offset)); opacity: 0; pointer-events: none; transition-delay: 0s; }
