@@ -122,7 +122,7 @@ async function playReturn() {
     new Promise<void>(resolve => setTimeout(resolve, 600)),
   ])
   if (disposed || returningFrom.value !== floor) return
-  const plan = planZoom(floor, floor === 'commercial' ? 1400 : 1500)
+  const plan = planZoom(floor, floor === 'commercial' ? 1400 : 1800)
   if (plan && transition.value) transition.value.playReturn(plan)
   else void endReturn()
 }

@@ -11,6 +11,7 @@
     "build:cloudflare": "node scripts/build-cloudflare.mjs",
     "preview:cloudflare": "wrangler dev --port 8788",
     "deploy:cloudflare": "wrangler deploy",
+    "deploy": "npm run build:cloudflare && npm run deploy:cloudflare",
     "preview": "nuxt preview",
     "typecheck": "nuxt typecheck",
     "postinstall": "nuxt prepare"

@@ -6,13 +6,22 @@ export type ResidentialZoomPlan = BuildingZoomPlan
 const roomWindow: Point[] = [{ x: .47192, y: .27016 }, { x: .84669, y: .22581 }, { x: .84858, y: .42137 }, { x: .47192, y: .45766 }]
 const roomFocus: Point = { x: .66, y: .345 }
 
+// Share of the timeline the camera spends travelling; the rest is the hand-off inside the window.
+const travel = .64
+// Only after the camera has landed: the photo fades in behind the window, then the aperture opens.
+const photoFade = { from: travel, to: travel + .18 }
+const apertureOpen = { from: travel + .05, to: 1 }
+const shadeIn = .8
+
 /**
  * One camera path for both layers. The building scales logarithmically so the
  * push-in reads at a constant speed, while the room photo rides the same path
- * as if it were painted behind the lit window. It resolves inside the window,
- * then the aperture opens until the photo is the full viewport.
+ * as if it were painted behind the lit window. The photo stays hidden until the
+ * camera has come to rest inside the window; only then does it fade in over the
+ * lit room and the aperture open until the photo is the full viewport. Played
+ * in reverse, the aperture closes and the photo clears before the camera pulls out.
  */
-export function planResidentialZoom(frame: HTMLElement, canvas: HTMLElement, duration = 1700): BuildingZoomPlan {
+export function planResidentialZoom(frame: HTMLElement, canvas: HTMLElement, duration = 2200): BuildingZoomPlan {
   const frameRect = frame.getBoundingClientRect()
   const canvasRect = canvas.getBoundingClientRect()
   const width = window.innerWidth
@@ -47,18 +56,21 @@ export function planResidentialZoom(frame: HTMLElement, canvas: HTMLElement, dur
     return `${round(from.x + (to.x - from.x) * amount)}px ${round(from.y + (to.y - from.y) * amount)}px`
   }).join(', ')})`
 
+  // Sample the whole timeline densely enough that the camera leg keeps its usual resolution.
+  const steps = Math.round(samples / travel)
   const frameKeyframes: Keyframe[] = []
   const roomKeyframes: Keyframe[] = []
-  for (let index = 0; index <= samples; index++) {
-    const t = index / samples
-    const pose = camera(easeCamera(t))
+  for (let index = 0; index <= steps; index++) {
+    const t = index / steps
+    // The camera finishes its move at `travel` and holds its landing pose for the hand-off.
+    const pose = camera(easeCamera(Math.min(1, t / travel)))
     frameKeyframes.push(frameKeyframe(t, pose, frameRect))
     const room = roomPose(pose, end)
     roomKeyframes.push({
       offset: t,
       transform: translate(room.offset, room.zoom),
-      opacity: smoothstep(.2, .48, t).toFixed(3),
-      clipPath: clipAt(smoothstep(.42, .94, t)),
+      opacity: smoothstep(photoFade.from, photoFade.to, t).toFixed(3),
+      clipPath: clipAt(smoothstep(apertureOpen.from, apertureOpen.to, t)),
     })
   }
 
@@ -66,7 +78,7 @@ export function planResidentialZoom(frame: HTMLElement, canvas: HTMLElement, dur
     frame,
     frameKeyframes,
     roomKeyframes,
-    shadeKeyframes: [{ opacity: 0, offset: 0 }, { opacity: 0, offset: .58 }, { opacity: 1, offset: 1, easing: 'ease' }],
+    shadeKeyframes: [{ opacity: 0, offset: 0 }, { opacity: 0, offset: shadeIn, easing: 'ease' }, { opacity: 1, offset: 1 }],
     duration,
   }
 }
