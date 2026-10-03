@@ -6,11 +6,11 @@ defineProps<{ current: 'about' | 'quote' }>()
   <div class="company-page">
     <a class="skip-link" href="#page-content">Skip to content</a>
     <header class="company-header">
-      <div class="service-header company-header__inner company-width">
-        <NuxtLink class="service-identity" to="/" aria-label="Setia Air-Cond and Electrical home"><SetiaWordmark class="service-brand" /></NuxtLink>
-        <nav aria-label="Main navigation">
-          <NuxtLink v-if="current === 'about'" class="service-quote" to="/get-a-quote">Get a quote<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
-          <NuxtLink v-else class="service-quote" to="/about-us">About us<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
+      <div class="site-header company-header__inner">
+        <NuxtLink class="brand" to="/" aria-label="Setia Air-Cond and Electrical home"><SetiaWordmark class="brand__name" /></NuxtLink>
+        <nav class="site-nav" aria-label="Main navigation">
+          <NuxtLink v-if="current === 'about'" class="site-nav__quote" to="/get-a-quote">Get a quote<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
+          <NuxtLink v-else class="site-nav__quote" to="/about-us">About us<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
         </nav>
       </div>
     </header>
@@ -29,7 +29,7 @@ defineProps<{ current: 'about' | 'quote' }>()
 .company-page h2 { margin: 0 0 28px; font-size: clamp(36px, 4vw, 60px); }
 .company-page p { line-height: 1.7; }
 .company-page .company-header { position: relative; z-index: 4; width: 100%; }
-.company-page .company-header__inner { min-height: 64px; padding: 8px 0; }
+/* The header reuses the home page .site-header lockup so the logo, gutters and sizing match page to page. */
 .company-width { width: min(100% - var(--page-gutter) * 2, var(--company-content-width, 1240px)); margin-inline: auto; }
 .company-intro { padding-block: clamp(56px, 8vw, 120px) clamp(56px, 7vw, 96px); }
 .company-intro p { max-width: 54ch; margin: 28px 0 0; color: var(--company-muted); font-size: clamp(17px, 1.4vw, 20px); }

@@ -79,9 +79,10 @@ img { display: block; max-width: 100%; }
 .brand { display: inline-flex; align-items: center; gap: 20px; }
 .brand__name { font-size: clamp(30px, 2.6vw, 42px); }
 .site-nav { display: flex; align-items: center; }
-.site-nav__quote { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--paper); font-size: 14px; font-weight: 600; white-space: nowrap; text-underline-offset: 4px; }
+.site-nav__quote { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--paper); font-size: 14px; font-weight: 600; white-space: nowrap; }
 .site-nav__quote .icon { width: 16px; height: 16px; }
-.site-nav__quote:hover { text-decoration: underline; }
+/* One hover for every header "Get a quote": the home nav, the shared service header and the commercial detail header. */
+:is(.site-nav__quote, .service-quote, .commercial-detail__quote):hover { text-decoration: underline; text-underline-offset: 5px; }
 .site-nav__quote:focus-visible { outline: 2px solid var(--paper); outline-offset: 4px; }
 .button {
   display: inline-flex;

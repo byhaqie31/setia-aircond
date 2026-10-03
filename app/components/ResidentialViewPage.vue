@@ -155,15 +155,16 @@ onBeforeUnmount(() => observer?.disconnect())
   .residential-view__service:nth-child(n + 4) { padding-top: 12px; border-top: 1px solid #bed0c342; }
 }
 @media (max-width: 680px) {
-  .residential-view__hero { min-height: max(100svh, 820px); }
+  .residential-view__hero { display: flex; flex-direction: column; min-height: max(100svh, 820px); }
   .residential-view__room img { object-position: center; }
   .residential-view__room-shade { background: linear-gradient(0deg, #061b12e0 0%, #061b126e 32%, transparent 66%), linear-gradient(180deg, #051b13c2 0%, transparent 25%); }
   .residential-view__header { padding: 16px var(--page-gutter); gap: 12px; }
   .residential-view__brand { font-size: clamp(20px, 5.4vw, 28px); }
   .residential-view__quote { font-size: 12px; }
-  .residential-view__hero-copy { left: var(--page-gutter); right: var(--page-gutter); bottom: 305px; max-width: none; }
+  /* Stack the copy above the services instead of pinning it, so it sits centred and clear of the panel. */
+  .residential-view__hero-copy { position: relative; inset: auto; margin: auto var(--page-gutter) 36px; max-width: none; text-align: center; }
   .residential-view__hero h1 { font-size: clamp(43px, 10vw, 62px); }
-  .residential-view__services { padding: 17px var(--page-gutter) 71px; }
+  .residential-view__services { position: relative; inset: auto; padding: 17px var(--page-gutter) 71px; }
   .residential-view__service-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .residential-view__service { min-height: 66px; padding: 8px 10px 4px; }
   .residential-view__service:nth-child(2n + 1) { padding-left: 0; border-left: 0; }
