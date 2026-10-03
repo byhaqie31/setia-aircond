@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import CommercialSkylinePlate from '~/components/CommercialSkylinePlate.vue'
 import { commercialServices } from '~/data/commercial-view'
+import { easeCamera, samples, smoothstep } from '~/utils/building-zoom'
 import { compactEquipmentLabels, compactRowLabels, compactRowWidths, type CommercialLeader, type CommercialLabelBounds, type ScenePhase } from '~/utils/commercial-view-layout'
 import type { ArrivalMode } from '~/utils/navigation'
 
@@ -34,7 +36,6 @@ type LocalStage = 'hold' | 'grow' | 'settle' | 'reveal' | 'ready' | 'retract' | 
 const stage = ref<LocalStage>(props.fromClients ? 'skyline' : props.preview === 'return' ? 'ready' : props.preview || props.arrival ? 'settle' : 'hold')
 const revealed = ref(props.preview === 'return' ? commercialServices.length : 0)
 const enhanced = ref(false)
-const pageVisible = ref(true)
 const desktop = ref(false)
 const mobile = ref(false)
 const unlitFailed = ref(false)
@@ -47,11 +48,12 @@ const usableImage = computed(() => unlitLoaded.value || litLoaded.value)
 const imageUnavailable = computed(() => allImagesFailed.value || imageTimedOut.value)
 const sceneElement = ref<HTMLElement | null>(null)
 const stageElement = ref<HTMLElement | null>(null)
+const plateElement = ref<HTMLElement | null>(null)
+const streetElement = ref<HTMLElement | null>(null)
+const skylinePlate = ref<InstanceType<typeof CommercialSkylinePlate> | null>(null)
 const exitDrop = ref('0px')
 const headingElement = ref<HTMLElement | null>(null)
-const headingMaxWidth = ref<string | undefined>()
 const markerElement = ref<HTMLElement | null>(null)
-const labelTop = ref(.38)
 const imageElement = ref<HTMLImageElement | null>(null)
 const litImageElement = ref<HTMLImageElement | null>(null)
 const streetUnlit = ref('')
@@ -114,6 +116,7 @@ function cancelSequence() {
   sequence++
   pending.forEach(clearTimeout)
   pending = []
+  cancelCamera()
 }
 
 function showReady(announce = true) {
@@ -181,6 +184,60 @@ function beginArrival() {
   }, 200)
 }
 
+let camera: Animation[] = []
+
+function cancelCamera() {
+  for (const animation of camera) animation.cancel()
+  camera = []
+}
+
+/**
+ * One pull-back shared by the building and the skyline behind it. The
+ * building recedes at a constant perceived speed while the city arrives from
+ * twice its size on the same camera, crossfading through the middle of the
+ * move; the lights dim first and the skyline brightens as it settles.
+ */
+function cameraKeyframes() {
+  const exposure = Number.parseFloat(sceneElement.value ? getComputedStyle(sceneElement.value).getPropertyValue('--commercial-art-exposure') : '') || 1
+  const plate: Keyframe[] = []
+  const street: Keyframe[] = []
+  const skyline: Keyframe[] = []
+  for (let index = 0; index <= samples; index++) {
+    const t = index / samples
+    const zoom = .5 ** easeCamera(t)
+    const exposed = (exposure * (1 - .65 * smoothstep(.08, .5, t))).toFixed(3)
+    const present = (1 - smoothstep(.42, .72, t)).toFixed(3)
+    const lit = smoothstep(.5, .96, t)
+    plate.push({ offset: t, transform: `translateY(${exitDrop.value}) scale(${zoom.toFixed(4)})`, opacity: present, filter: `brightness(${exposed})` })
+    street.push({ offset: t, opacity: present, filter: `brightness(${exposed})` })
+    skyline.push({
+      offset: t,
+      transform: `translateX(-50%) scale(${(zoom * 2).toFixed(4)})`,
+      opacity: smoothstep(.3, .62, t).toFixed(3),
+      filter: `brightness(${(.22 + .88 * lit).toFixed(3)}) contrast(1.04) saturate(${(.6 + .42 * lit).toFixed(3)})`,
+    })
+  }
+  return { plate, street, skyline }
+}
+
+/** Drive the handoff with the Web Animations API; the class state is set to the destination first, so nothing snaps when the animations are released. */
+function startCamera(direction: PlaybackDirection, duration: number) {
+  cancelCamera()
+  const plate = plateElement.value
+  const skyline = skylinePlate.value?.$el as HTMLElement | undefined
+  if (!plate || !skyline || typeof plate.animate !== 'function') return null
+  try {
+    const frames = cameraKeyframes()
+    const timing: KeyframeAnimationOptions = { duration, direction, fill: 'both' }
+    camera = [plate.animate(frames.plate, timing), skyline.animate(frames.skyline, timing)]
+    if (streetElement.value) camera.push(streetElement.value.animate(frames.street, timing))
+    return camera[0]!.finished
+  } catch {
+    cancelCamera()
+    return null
+  }
+}
+
 function beginReturn() {
   cancelSequence()
   if (props.reducedMotion || document.hidden) {
@@ -190,22 +247,28 @@ function beginReturn() {
   const current = sequence
   stage.value = 'skyline'
   revealed.value = 0
-  // Undo the same light, depth and camera beats used by the forward handoff.
-  later(() => { if (current === sequence) stage.value = 'exit' }, 60)
-  later(() => { if (current === sequence) stage.value = 'backdrop' }, 520)
-  later(() => { if (current === sequence) stage.value = 'zoom' }, 840)
-  later(() => { if (current === sequence) stage.value = 'dim' }, 1060)
-  later(() => { if (current === sequence) stage.value = 'unlight' }, 1710)
-  later(() => { if (current === sequence) stage.value = 'settle' }, 1950)
+  // Play the pull-back backwards: the city recedes as the building comes forward, then its lights and labels return.
   later(() => {
     if (current !== sequence) return
-    stage.value = 'reveal'
-    void nextTick(updateLeaders)
-    commercialServices.forEach((_, index) => {
-      later(() => { if (current === sequence) revealed.value = index + 1 }, index * 110)
-    })
-    later(() => { if (current === sequence) showReady() }, (commercialServices.length - 1) * 110 + 520)
-  }, 2670)
+    stage.value = 'unlight'
+    const finished = startCamera('reverse', 1500)
+    const land = () => {
+      if (current !== sequence) return
+      cancelCamera()
+      stage.value = 'settle'
+      void nextTick(updateLeaders)
+      later(() => {
+        if (current !== sequence) return
+        stage.value = 'reveal'
+        commercialServices.forEach((_, index) => {
+          later(() => { if (current === sequence) revealed.value = index + 1 }, index * 110)
+        })
+        later(() => { if (current === sequence) showReady() }, (commercialServices.length - 1) * 110 + 520)
+      }, 520)
+    }
+    if (finished) void finished.then(land).catch(() => {})
+    else later(land, 700)
+  }, 60)
 }
 
 function beginExit() {
@@ -219,14 +282,15 @@ function beginExit() {
   stage.value = 'retract'
   revealed.value = 0
   const current = sequence
-  // Keep the dim skyline behind the sharp foreground until the building leaves.
-  later(() => { if (current === sequence) stage.value = 'unlight' }, 240)
-  later(() => { if (current === sequence) stage.value = 'dim' }, 720)
-  later(() => { if (current === sequence) stage.value = 'zoom' }, 980)
-  later(() => { if (current === sequence) stage.value = 'backdrop' }, 1250)
-  later(() => { if (current === sequence) stage.value = 'exit' }, 1650)
-  later(() => { if (current === sequence) stage.value = 'skyline' }, 2050)
-  later(() => { if (current === sequence) emit('exit-complete') }, 2750)
+  // Labels retract, then one pull-back carries the building into the skyline behind it.
+  later(() => {
+    if (current !== sequence) return
+    stage.value = 'skyline'
+    const finished = startCamera('normal', 1700)
+    const handOff = () => { if (current === sequence) emit('exit-complete') }
+    if (finished) void finished.then(handOff).catch(() => {})
+    else later(handOff, 700)
+  }, 220)
 }
 
 function requestNext() {
@@ -236,7 +300,6 @@ function requestNext() {
 }
 
 function onVisibilityChange() {
-  pageVisible.value = !document.hidden
   if (document.hidden && props.phase === 'intro' && stage.value !== 'ready') showReady()
   else if (document.hidden && props.phase === 'exit') {
     cancelSequence()
@@ -281,7 +344,6 @@ function updateLeaders() {
   const markerHeights = Array.from(markerElement.value?.children ?? [], marker => (marker as HTMLElement).offsetHeight)
   Array.from(markerElement.value?.children ?? []).forEach(marker => resizeObserver?.observe(marker))
   if (!desktop.value) {
-    headingMaxWidth.value = undefined
     const headingBottom = (headingElement.value ? measure(headingElement.value).bottom : sceneRect.top + 180) - sceneRect.top
     const artworkPositions = naturalHeight / naturalWidth > .5 ? mobileEquipmentPositions : equipmentPositions
     const anchors = artworkPositions.map(item => (drawnLeft + item.x * drawnWidth - sceneRect.left) / sceneRect.width)
@@ -328,19 +390,18 @@ function updateLeaders() {
     return
   }
   labelBounds.value = []
-  // Follow the client's two square-corner routes into the empty left side.
-  const roofClearanceTop = Math.min(...equipmentPositions.map((item, index) =>
-    drawnTop + item.y * drawnHeight - sceneRect.top - (markerHeights[index] ?? 100) - 48,
+  const raise = (index: number) => ['chilled-water-piping', 'duct-services'].includes(equipmentPositions[index]?.id ?? '') ? (markerHeights[index] ?? 100) + 24 : 0
+  // Leader lines keep at least this much height between a label and its equipment.
+  const roofClearance = (leader: number) => Math.min(...equipmentPositions.map((item, index) =>
+    drawnTop + item.y * drawnHeight - sceneRect.top - (markerHeights[index] ?? 100) - leader,
   ))
-  labelTop.value = Math.min(sceneRect.height * .38, roofClearanceTop) / sceneRect.height
-  markerTops.value = Object.fromEntries(equipmentPositions.map((item, index) => [item.id,
-    labelTop.value * sceneRect.height - (['chilled-water-piping', 'duct-services'].includes(item.id) ? (markerHeights[index] ?? 100) + 24 : 0),
-  ]))
-  const headingRect = headingElement.value ? measure(headingElement.value) : undefined
-  const firstLabelLeft = drawnLeft + equipmentPositions[0].x * drawnWidth - (markerElement.value?.firstElementChild ? measure(markerElement.value.firstElementChild).width : 220) / 2
-  headingMaxWidth.value = headingRect && sceneRect.top + labelTop.value * sceneRect.height < headingRect.bottom + 32
-    ? `${Math.max(240, firstLabelLeft - headingRect.left - 24)}px`
-    : undefined
+  // The centred heading sits over the middle of the row, so the raised labels must clear its bottom edge.
+  const headingBottom = headingElement.value ? measure(headingElement.value).bottom - sceneRect.top : 0
+  const clearHeading = headingBottom + 20 + Math.max(0, ...equipmentPositions.map((_, index) => raise(index)))
+  let rowTop = Math.min(sceneRect.height * .38, roofClearance(48))
+  if (rowTop < clearHeading) rowTop = Math.min(clearHeading, roofClearance(24))
+  markerTops.value = Object.fromEntries(equipmentPositions.map((item, index) => [item.id, rowTop - raise(index)]))
+  // Follow the client's two square-corner routes into the empty left side.
   leaders.value = equipmentPositions.map((item, index) => {
     const targetX = (drawnLeft + item.x * drawnWidth - sceneRect.left) / sceneRect.width
     const targetY = (drawnTop + item.y * drawnHeight - sceneRect.top) / sceneRect.height
@@ -385,7 +446,6 @@ watch([desktop, usableImage], () => { void nextTick(updateLeaders) })
 
 onMounted(() => {
   enhanced.value = true
-  pageVisible.value = !document.hidden
   if (imageElement.value?.complete) {
     unlitLoaded.value = imageElement.value.naturalWidth > 0
     unlitFailed.value = !unlitLoaded.value
@@ -427,19 +487,19 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="commercial-services" ref="sceneElement" class="commercial-building-scene" :class="{ 'is-enhanced': enhanced, 'is-desktop': desktop, 'is-compact': enhanced && !desktop, 'is-grown': isGrown, 'is-exiting': isExiting, 'is-reduced': reducedMotion, 'is-restored': phase === 'ready', 'is-cue-active': stage === 'ready' && phase !== 'exit' && pageVisible }" :style="{ '--commercial-exit-drop': exitDrop, '--commercial-compact-min': compactMinimum, '--commercial-compact-overflow': compactOverflow, '--commercial-mobile-art-ratio': mobileArtworkRatio }" :data-lenis-prevent="enhanced && !desktop ? '' : undefined" aria-labelledby="commercial-services-heading">
-    <CommercialSkylinePlate v-if="enhanced || fromClients" class="commercial-building-scene__skyline" aria-hidden="true"
+  <section id="commercial-services" ref="sceneElement" class="commercial-building-scene" :class="{ 'is-enhanced': enhanced, 'is-desktop': desktop, 'is-compact': enhanced && !desktop, 'is-grown': isGrown, 'is-exiting': isExiting, 'is-reduced': reducedMotion, 'is-restored': phase === 'ready' }" :style="{ '--commercial-exit-drop': exitDrop, '--commercial-compact-min': compactMinimum, '--commercial-compact-overflow': compactOverflow, '--commercial-mobile-art-ratio': mobileArtworkRatio }" :data-lenis-prevent="enhanced && !desktop ? '' : undefined" aria-labelledby="commercial-services-heading">
+    <CommercialSkylinePlate v-if="enhanced || fromClients" ref="skylinePlate" class="commercial-building-scene__skyline" aria-hidden="true"
       :revealed="skylineVisible" :dimmed="stage !== 'skyline'" :backdrop="stage !== 'skyline'" />
     <div ref="stageElement" class="commercial-building-scene__stage">
-      <div ref="headingElement" class="commercial-building-scene__heading" :style="{ maxWidth: headingMaxWidth }">
+      <div ref="headingElement" class="commercial-building-scene__heading">
         <p class="commercial-building-scene__eyebrow">Commercial</p>
         <h1 id="commercial-services-heading">Commercial air-conditioning services</h1>
       </div>
 
-      <div v-if="enhanced" class="commercial-building-scene__street" aria-hidden="true"
+      <div v-if="enhanced" ref="streetElement" class="commercial-building-scene__street" aria-hidden="true"
         :class="{ 'is-lit': showLit || unlitFailed, 'is-dimmed': stage === 'dim' || isZoomed, 'is-zoomed': isZoomed, 'is-exiting': stage === 'exit' || stage === 'skyline', 'is-image-unavailable': imageUnavailable }"
         :style="{ '--commercial-street-unlit': `url('${streetUnlit}')`, '--commercial-street-lit': `url('${streetLit}')` }" />
-      <div class="commercial-building-scene__plate" :class="{ 'is-grown': isGrown, 'is-dimmed': stage === 'dim' || isZoomed, 'is-zoomed': isZoomed, 'is-exiting': stage === 'exit' || stage === 'skyline', 'is-image-unavailable': imageUnavailable }">
+      <div ref="plateElement" class="commercial-building-scene__plate" :class="{ 'is-grown': isGrown, 'is-dimmed': stage === 'dim' || isZoomed, 'is-zoomed': isZoomed, 'is-exiting': stage === 'exit' || stage === 'skyline', 'is-image-unavailable': imageUnavailable }">
         <picture class="commercial-building-scene__image-wrap">
         <source media="(max-width: 1023px) and (orientation: landscape)" :srcset="`${$sitePath('/images/commercial/building/commercial-roof-unlit-1280.webp')} 1280w, ${$sitePath(unlitSrc)} 2169w`" sizes="100vw">
         <source media="(max-width: 1099px)" :srcset="`${$sitePath('/images/commercial/building/commercial-roof-mobile-unlit-v4.webp')} 800w, ${$sitePath('/images/commercial/building/commercial-roof-mobile-unlit-v4-1280.webp')} 1280w`" sizes="min(max(100vw, calc(40svh / .7)), 120vw)">
@@ -505,9 +565,10 @@ onBeforeUnmount(() => {
         </NuxtLink>
       </div>
 
-      <a class="commercial-building-scene__next" :href="$sitePath('/commercial?scene=clients')" :aria-disabled="phase === 'exit' || undefined" @click.prevent="requestNext">
-        <span>Scroll to explore</span><span class="commercial-building-scene__next-line" aria-hidden="true"><i /></span>
-      </a>
+      <div class="commercial-building-scene__actions">
+        <NuxtLink class="commercial-building-scene__action" to="/"><span class="icon icon--home" aria-hidden="true" />Back home</NuxtLink>
+        <a class="commercial-building-scene__action commercial-building-scene__action--next" :href="$sitePath('/commercial?scene=clients')" :aria-disabled="phase === 'exit' || undefined" @click.prevent="requestNext"><span class="icon icon--people" aria-hidden="true" />Show clientele</a>
+      </div>
       <p v-if="imageUnavailable" class="commercial-building-scene__fallback" role="status">Explore the commercial services below.</p>
     </div>
 
@@ -516,9 +577,6 @@ onBeforeUnmount(() => {
         <span>{{ service.title }}</span><small>{{ service.shortLine }}</small>
       </NuxtLink>
     </nav>
-    <div class="commercial-building-scene__mobile-next">
-      <a :href="$sitePath('/commercial?scene=clients')" @click.prevent="requestNext">Scroll to explore<span class="commercial-building-scene__next-line" aria-hidden="true"><i /></span></a>
-    </div>
   </section>
 </template>
 
@@ -526,9 +584,9 @@ onBeforeUnmount(() => {
 .commercial-building-scene { position: relative; background: radial-gradient(ellipse 75% 36% at 50% 82%, #14503a8c, transparent 78%), linear-gradient(180deg, #061710 0%, #09241a 40%, #0b3022 75%, #0d3524 100%); color: #f5f5ed; }
 .commercial-building-scene__stage { position: relative; min-height: max(760px, 100svh); overflow: hidden; isolation: isolate; container-type: inline-size; }
 .commercial-building-scene.is-exiting .commercial-building-scene__stage { overflow: visible; }
-.commercial-building-scene__heading { position: absolute; z-index: 4; top: clamp(110px, 15svh, 160px); left: clamp(24px, 5.5vw, 104px); }
+.commercial-building-scene__heading { position: absolute; z-index: 4; top: clamp(110px, 15svh, 160px); inset-inline: clamp(24px, 5.5vw, 104px); display: grid; justify-items: center; text-align: center; pointer-events: none; }
 .commercial-building-scene__eyebrow { margin: 0 0 8px; color: #a7d2b5; font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
-.commercial-building-scene__heading h1 { max-width: 26ch; margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(26px, 2.3vw, 40px); font-weight: 400; line-height: 1.12; text-wrap: balance; }
+.commercial-building-scene__heading h1 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(26px, min(2.3vw, 4.4svh), 40px); font-weight: 400; line-height: 1.12; white-space: nowrap; }
 .commercial-building-scene__plate { position: absolute; z-index: 1; left: calc(-100% * .06 / .88); bottom: calc(-100cqw * 149 / 2169 / .88); display: grid; place-items: end center; width: calc(100% / .88); aspect-ratio: 2169 / 725; transform: scale(.88); transform-origin: 50% 79.4483%; filter: brightness(var(--commercial-art-exposure, 1)); transition: transform 1000ms cubic-bezier(.22, 1, .36, 1), opacity 450ms ease, filter 240ms ease; }
 .commercial-building-scene__plate.is-grown { transform: scale(1); }
 .commercial-building-scene__plate.is-dimmed { filter: brightness(calc(var(--commercial-art-exposure, 1) * .35)); }
@@ -548,19 +606,16 @@ onBeforeUnmount(() => {
 .commercial-building-scene__marker:hover, .commercial-building-scene__marker:focus-visible, .commercial-building-scene__marker.is-selected { color: #a0ebbb; }
 .commercial-building-scene__marker strong { font-size: clamp(15px, 1.1vw, 18px); line-height: 1.2; }
 .commercial-building-scene__marker span { max-width: 22ch; color: #cfddd1; font-size: clamp(12px, .8vw, 14px); line-height: 1.35; }
-.commercial-building-scene__next { position: absolute; z-index: 5; left: 50%; bottom: max(18px, 3svh); display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 140px; min-height: 55px; padding: 8px 12px; color: #e4f0e6; font-size: 14px; text-shadow: 0 1px 6px #000; text-decoration: none; transform: translateX(-50%); }
-.commercial-building-scene__next-line { position: relative; display: block; width: 1px; height: 22px; background: #c2d9c8a6; }
-.commercial-building-scene__next-line i { position: absolute; left: -2px; top: -2px; width: 5px; height: 5px; border-radius: 50%; background: #d5e8d9; transform: translateY(22px); }
-.is-cue-active:not(.is-reduced) .commercial-building-scene__next-line i { animation: commercial-scroll-dot 2.2s cubic-bezier(.45, 0, .55, 1) infinite; }
-@keyframes commercial-scroll-dot {
-  0%, 12% { transform: translateY(0); opacity: 0; }
-  20% { transform: translateY(0); opacity: 1; }
-  82% { transform: translateY(22px); opacity: 1; }
-  96%, 100% { transform: translateY(22px); opacity: 0; }
-}
-.commercial-building-scene__next:hover { color: #a0ebbb; }
-.commercial-building-scene__heading, .commercial-building-scene__next, .commercial-building-scene__service-list, .commercial-building-scene__mobile-next { transition: opacity 220ms ease; }
-.commercial-building-scene.is-exiting :is(.commercial-building-scene__heading, .commercial-building-scene__next, .commercial-building-scene__service-list, .commercial-building-scene__mobile-next) { opacity: 0; pointer-events: none; }
+.commercial-building-scene__actions { position: absolute; z-index: 5; inset-inline: 16px; bottom: max(22px, 3.5svh); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; pointer-events: none; }
+.commercial-building-scene__action { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; padding: 12px 22px; border: 1px solid #d5e8d966; border-radius: 100px; color: #f5f5ed; background: #061710a6; font-size: 14px; font-weight: 600; line-height: 1.25; white-space: nowrap; text-decoration: none; pointer-events: auto; transition: background-color .2s ease, border-color .2s ease, transform .2s ease; }
+.commercial-building-scene__action .icon { width: 16px; height: 16px; }
+.commercial-building-scene__action:hover { background: #16513a; border-color: #a0ebbb99; transform: translateY(-1px); }
+.commercial-building-scene__action--next { border-color: transparent; color: var(--stage); background: var(--green); }
+.commercial-building-scene__action--next:hover { background: var(--green-bright); border-color: transparent; }
+.commercial-building-scene__action[aria-disabled='true'] { cursor: wait; }
+.commercial-building-scene__heading, .commercial-building-scene__actions, .commercial-building-scene__service-list { transition: opacity 220ms ease; }
+.commercial-building-scene.is-exiting :is(.commercial-building-scene__heading, .commercial-building-scene__actions, .commercial-building-scene__service-list) { opacity: 0; pointer-events: none; }
+.commercial-building-scene.is-exiting .commercial-building-scene__action { pointer-events: none; }
 .commercial-building-scene__fallback { position: absolute; top: 50%; left: clamp(24px, 5.5vw, 104px); max-width: 28ch; color: #c9dfcf; font-size: 17px; line-height: 1.45; }
 .commercial-building-scene :is(a, button):focus-visible { outline: 2px solid #a0ebbb; outline-offset: 4px; }
 .commercial-building-scene__service-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; padding: 22px clamp(24px, 5.5vw, 104px) 100px; }
@@ -569,11 +624,11 @@ onBeforeUnmount(() => {
 .commercial-building-scene__service-list span { font-size: 16px; font-weight: 600; }
 .commercial-building-scene__service-list small { max-width: 24ch; color: #c1d5c7; font-size: 13px; line-height: 1.4; }
 .commercial-building-scene__service-list.is-visually-hidden { position: absolute; top: 0; left: 0; width: 1px; height: 1px; padding: 0; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.commercial-building-scene__mobile-next { display: none; }
 @media (max-width: 1099px), (max-height: 699px) {
   .commercial-building-scene__stage { min-height: max(620px, 100svh); }
-  .commercial-building-scene__heading { top: 88px; right: 24px; }
-  .commercial-building-scene__heading h1 { max-width: 30ch; font-size: clamp(28px, 3.3vw, 38px); }
+  .commercial-building-scene__heading { top: 88px; inset-inline: 24px; }
+  /* One line at every width: the title is about 16em wide in Georgia, so size it from the stage. */
+  .commercial-building-scene__heading h1 { font-size: clamp(17px, calc((100cqw - 48px) / 17.5), 38px); }
   .commercial-building-scene__marker { width: 28%; padding: 4px; gap: 4px; }
   .commercial-building-scene__marker strong { font-size: 16px; }
   .commercial-building-scene__marker span { font-size: 14px; line-height: 1.35; }
@@ -585,7 +640,6 @@ onBeforeUnmount(() => {
 }
 @media (max-width: 699px) {
   .commercial-building-scene__heading { top: 88px; }
-  .commercial-building-scene__heading h1 { font-size: clamp(28px, 7vw, 34px); }
   .commercial-building-scene__marker { width: 42%; }
   .commercial-building-scene__marker strong { font-size: 16px; }
   .commercial-building-scene__service-list { display: block; padding-bottom: 52px; }
@@ -599,7 +653,7 @@ onBeforeUnmount(() => {
 @media (max-width: 1099px), (max-height: 699px) {
   .commercial-building-scene.is-enhanced { overflow-x: clip; overflow-y: auto; overscroll-behavior: contain; }
   .commercial-building-scene.is-enhanced .commercial-building-scene__stage { height: max(620px, 100svh, var(--commercial-compact-min, 620px)); }
-  .commercial-building-scene__next { bottom: max(12px, env(safe-area-inset-bottom)); }
+  .commercial-building-scene__actions { bottom: max(12px, env(safe-area-inset-bottom)); }
 }
 @media (max-width: 1023px) {
   .commercial-building-scene__stage,
@@ -608,7 +662,8 @@ onBeforeUnmount(() => {
   .commercial-building-scene__image { object-position: center bottom; }
   .commercial-building-scene__marker { justify-content: end; min-height: 44px; padding: 4px 2px; }
   .commercial-building-scene__marker strong { font-size: 12px; line-height: 1.25; text-wrap: balance; }
-  .commercial-building-scene__next { min-height: 48px; font-size: 12px; }
+  .commercial-building-scene__actions { gap: 8px; }
+  .commercial-building-scene__action { min-height: 44px; padding: 10px 16px; font-size: 13px; }
 }
 @media (max-width: 1023px) and (orientation: portrait) {
   .commercial-building-scene { --commercial-art-exposure: .82; --commercial-mobile-art-width: min(max(100cqw, calc(40svh / var(--commercial-mobile-art-ratio))), 120cqw); }
@@ -629,7 +684,7 @@ onBeforeUnmount(() => {
 }
 @media (max-width: 1023px) and (max-height: 450px) {
   .commercial-building-scene__heading { top: 72px; }
-  .commercial-building-scene__heading h1 { max-width: 32ch; font-size: 26px; }
+  .commercial-building-scene__heading h1 { font-size: min(26px, calc((100cqw - 48px) / 17.5)); }
 }
 @media (max-width: 1023px) and (orientation: landscape) {
   .commercial-building-scene__plate {
@@ -648,7 +703,6 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
   .commercial-building-scene__plate, .commercial-building-scene__image--lit, .commercial-building-scene__marker { transition-duration: 100ms; }
   .commercial-building-scene__street, .commercial-building-scene__street::after { transition-duration: 100ms; transition-delay: 0ms; }
-  .is-cue-active .commercial-building-scene__next-line i { animation: none; }
 }
 .commercial-building-scene.is-reduced .commercial-building-scene__plate,
 .commercial-building-scene.is-reduced .commercial-building-scene__image--lit,

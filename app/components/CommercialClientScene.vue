@@ -25,12 +25,13 @@ const emit = defineEmits<{
   ready: []
   'exit-complete': []
   'slide-change': [page: number, firstSlug: string]
+  back: []
   previous: [page: number]
   next: [page: number]
 }>()
 
 // Preserve the same four/five-client groups and page URLs on every screen.
-const groups = computed(() => groupCommercialClients(commercialClients, 5))
+const groups = computed(() => groupCommercialClients(commercialClients, 8))
 const compact = ref(false)
 const mobile = ref(false)
 const activeGroupIndex = ref(0)
@@ -192,6 +193,12 @@ function updateLeaders() {
     { x: .92, y: .65 },
   ]
   const edge = count === 2 ? .28 : count === 3 ? .2 : .18
+  // Two clear rows, alternating up and down, so eight marks share one page:
+  // the upper row clears the heading and the lower row clears the upper marks.
+  const markHeight = Math.max(52, ...Array.from(markerElement.value?.children ?? [], marker => (marker as HTMLElement).offsetHeight))
+  const headingBottom = (headingElement.value?.getBoundingClientRect().bottom ?? sceneRect.top) - sceneRect.top
+  const upperRow = Math.max(sceneRect.height * (sceneRect.height < 700 ? .52 : .44), headingBottom + 24 + markHeight) / sceneRect.height
+  const lowerRow = upperRow + (markHeight + 28) / sceneRect.height
   leaders.value = visibleClients.value.map((client, index) => {
     // Pins are compositional points on ordinary buildings, not location claims.
     const targetX = count === 1 ? .5 : edge + index * (1 - edge * 2) / (count - 1)
@@ -202,9 +209,7 @@ function updateLeaders() {
       targetX,
       targetY: (drawnTop + Math.max(.76, pin.y) * drawnHeight - sceneRect.top) / sceneRect.height,
       labelX: targetX,
-      labelY: sceneRect.height < 700
-        ? (index % 2 ? .57 : .48)
-        : (index % 2 ? .43 : .36),
+      labelY: index % 2 ? lowerRow : upperRow,
     }
   })
 }
@@ -220,17 +225,20 @@ function onSkylineLoad(image: HTMLImageElement) {
   void nextTick(updateLeaders)
 }
 
-function movePage(direction: -1 | 1) {
-  const target = activeGroupIndex.value + direction
-  if (busy.value || props.phase === 'exit' || target < 0 || target >= groups.value.length) return
+function goToPage(target: number) {
+  if (busy.value || props.phase === 'exit' || target === activeGroupIndex.value || target < 0 || target >= groups.value.length) return
+  const direction = target < activeGroupIndex.value ? -1 : 1
+  const announce = () => {
+    emit('slide-change', target + 1, visibleClients.value[0]?.slug ?? '')
+    if (direction === -1) emit('previous', target + 1)
+    else emit('next', target + 1)
+  }
   if (props.reducedMotion || document.hidden) {
     selectedSlug.value = null
     activeGroupIndex.value = target
     visibleLeaders.value = visibleClients.value.length
     displayedLogos.value = visibleClients.value.length
-    emit('slide-change', target + 1, visibleClients.value[0]?.slug ?? '')
-    if (direction === -1) emit('previous', target + 1)
-    else emit('next', target + 1)
+    announce()
     void nextTick(updateLeaders)
     return
   }
@@ -244,9 +252,7 @@ function movePage(direction: -1 | 1) {
   later(() => {
     if (current !== sequence) return
     activeGroupIndex.value = target
-    emit('slide-change', target + 1, visibleClients.value[0]?.slug ?? '')
-    if (direction === -1) emit('previous', target + 1)
-    else emit('next', target + 1)
+    announce()
     void nextTick(updateLeaders)
     later(() => {
       if (current !== sequence) return
@@ -257,6 +263,16 @@ function movePage(direction: -1 | 1) {
       later(() => { if (current === sequence) busy.value = false }, Math.max(0, visibleClients.value.length - 1) * 70 + 520)
     }, 80)
   }, 460)
+}
+
+function movePage(direction: -1 | 1) {
+  goToPage(activeGroupIndex.value + direction)
+}
+
+/** The only way back to the building scene; the view experience plays the camera in reverse. */
+function requestBack() {
+  if (busy.value || props.phase === 'exit') return
+  emit('back')
 }
 
 function guardClientNavigation(event: MouseEvent) {
@@ -377,6 +393,7 @@ onBeforeUnmount(() => {
           :inert="busy || index >= displayedLogos || exiting"
           :aria-disabled="busy || index >= displayedLogos || exiting || undefined"
           :aria-label="`View ${client.displayName}`"
+          :aria-describedby="client.projectIds.length ? `client-summary-${client.slug}` : undefined"
           @click="guardClientNavigation($event)"
         >
           <span class="client-scene__mark-art" aria-hidden="true">
@@ -384,13 +401,20 @@ onBeforeUnmount(() => {
             <strong v-else aria-hidden="true">{{ client.displayName }}</strong>
           </span>
           <span v-if="client.logoSrc" class="client-scene__mark-name">{{ client.displayName }}</span>
+          <span v-if="client.projectIds.length" :id="`client-summary-${client.slug}`" class="client-scene__summary" role="tooltip">{{ client.summary }}</span>
         </NuxtLink>
       </div>
 
       <nav v-if="enhanced && skylineLoaded && !imageUnavailable" class="client-scene__pagination client-scene__pagination--stage" aria-label="Client groups" :aria-busy="busy || undefined">
-        <button type="button" :aria-disabled="busy || activeGroupIndex === 0 || exiting" @click="movePage(-1)"><svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18"><path d="M15 10H5m0 0 4-4m-4 4 4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg><span class="client-scene__page-label">Previous</span></button>
-        <span class="client-scene__page-count" role="status" aria-live="polite" aria-atomic="true"><span aria-hidden="true">{{ activeGroupIndex + 1 }} / {{ groups.length }}</span><span class="sr-only">Client group {{ activeGroupIndex + 1 }} of {{ groups.length }}</span></span>
-        <button type="button" :aria-disabled="busy || activeGroupIndex >= groups.length - 1 || exiting" @click="movePage(1)"><span class="client-scene__page-label">Next</span><svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18"><path d="M5 10h10m0 0-4-4m4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
+        <button v-if="activeGroupIndex > 0" type="button" class="client-scene__arrow" aria-label="Previous client group" :aria-disabled="busy || exiting || undefined" @click="movePage(-1)"><svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18"><path d="M15 10H5m0 0 4-4m-4 4 4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
+        <div class="client-scene__center">
+          <div class="client-scene__dots" role="group" aria-label="Client group pages">
+            <button v-for="(_group, index) in groups" :key="index" type="button" class="client-scene__dot" :aria-label="`Client group ${index + 1} of ${groups.length}`" :aria-current="index === activeGroupIndex ? 'true' : undefined" :aria-disabled="busy || exiting || undefined" @click="goToPage(index)" />
+          </div>
+          <span class="sr-only" role="status" aria-live="polite" aria-atomic="true">Client group {{ activeGroupIndex + 1 }} of {{ groups.length }}</span>
+          <button type="button" class="client-scene__back" :aria-disabled="busy || exiting || undefined" @click="requestBack"><span class="icon icon--factory" aria-hidden="true" />Back to commercial</button>
+        </div>
+        <button v-if="activeGroupIndex < groups.length - 1" type="button" class="client-scene__arrow client-scene__arrow--next" aria-label="Next client group" :aria-disabled="busy || exiting || undefined" @click="movePage(1)"><svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18"><path d="M5 10h10m0 0-4-4m4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
       </nav>
       <p v-if="imageUnavailable" class="client-scene__fallback" role="status">Explore the client portfolio below.</p>
     </div>
@@ -409,7 +433,7 @@ onBeforeUnmount(() => {
 .client-scene { position: relative; color: #f5f5ed; background: radial-gradient(ellipse 85% 40% at 50% 94%, #14503a9c, transparent 77%), linear-gradient(180deg, #061710 0%, #09241a 40%, #0b3022 75%, #0d3524 100%); }
 .client-scene__stage { position: relative; min-height: max(760px, 100svh); overflow: hidden; isolation: isolate; }
 .client-scene.is-enhanced .client-scene__stage { min-height: 0; height: 100svh; }
-.client-scene__heading { position: absolute; z-index: 3; top: clamp(110px, 15svh, 160px); left: clamp(24px, 5.5vw, 104px); }
+.client-scene__heading { position: absolute; z-index: 3; top: clamp(110px, 15svh, 160px); inset-inline: clamp(24px, 5.5vw, 104px); display: grid; justify-items: center; text-align: center; pointer-events: none; }
 .client-scene__eyebrow { margin: 0 0 8px; color: #a7d2b5; font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
 .client-scene__heading h2 { max-width: 25ch; margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(28px, 2.8vw, 46px); font-weight: 400; line-height: 1.12; }
 .client-scene__heading, .client-scene__pagination, .client-scene__below { transition: opacity 200ms ease; }
@@ -422,6 +446,12 @@ onBeforeUnmount(() => {
 .client-scene__mark-art > img { display: block; max-width: 82%; max-height: 48px; object-fit: contain; }
 .client-scene__mark-art > strong { font-size: 17px; line-height: 1.1; }
 .client-scene__mark-name { font-size: 12px; line-height: 1.2; text-align: center; }
+/* Project summary on hover or keyboard focus; it floats above the mark so the leader line stays clear. */
+.client-scene__mark:hover, .client-scene__mark:focus-visible { z-index: 1; }
+.client-scene__summary { position: absolute; left: 50%; bottom: calc(100% + 10px); z-index: 2; width: max(100%, 240px); max-width: 300px; padding: 10px 12px; border: 1px solid #a0ebbb40; border-radius: 10px; color: #e9f1eb; background: #061710f0; font-size: 12.5px; font-weight: 400; line-height: 1.4; text-align: center; text-wrap: pretty; opacity: 0; transform: translate(-50%, 4px); transition: opacity .18s ease, transform .18s ease; pointer-events: none; }
+.client-scene__summary::after { content: ''; position: absolute; left: 50%; top: 100%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-right: 1px solid #a0ebbb40; border-bottom: 1px solid #a0ebbb40; background: #061710f0; transform: rotate(45deg); }
+@media (hover: hover) { .client-scene__mark.is-visible:hover .client-scene__summary { opacity: 1; transform: translate(-50%, 0); } }
+.client-scene__mark.is-visible:focus-visible .client-scene__summary { opacity: 1; transform: translate(-50%, 0); }
 .client-scene__fallback { position: absolute; top: 50%; left: clamp(24px, 5.5vw, 104px); max-width: 28ch; color: #c9dfcf; font-size: 17px; line-height: 1.45; }
 .client-scene__below { padding: 0 clamp(24px, 5.5vw, 104px); }
 .client-scene__below.has-content { padding-bottom: 64px; }
@@ -435,19 +465,29 @@ onBeforeUnmount(() => {
 .client-scene__pagination button svg { flex: 0 0 18px; }
 .client-scene__pagination button:hover:not([aria-disabled="true"]) { color: #a0ebbb; }
 .client-scene__pagination button[aria-disabled="true"] { opacity: .4; cursor: default; }
-.client-scene__page-count { grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-content: center; min-width: 48px; min-height: 44px; padding: 10px 6px; border: 0; color: #d2e2d6; background: transparent; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1; text-align: center; white-space: nowrap; text-shadow: 0 1px 4px #000d; }
-.client-scene__pagination--stage .client-scene__page-count { align-self: end; }
+/* Round controls: icon-only arrows at the sides, one dot per page in the middle. */
+/* White so they read against the skyline; each arrow only appears when there is a page in that direction. */
+.client-scene__pagination .client-scene__arrow { grid-row: 1; justify-content: center; width: 44px; height: 44px; min-width: 0; padding: 0; border: 1px solid transparent; border-radius: 50%; color: var(--service-stage); background: var(--paper); box-shadow: 0 2px 10px #0617104d; text-shadow: none; transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.client-scene__pagination .client-scene__arrow:hover:not([aria-disabled='true']) { color: var(--service-stage); background: #fff; box-shadow: 0 4px 14px #06171066; transform: translateY(-1px); }
+.client-scene__pagination .client-scene__arrow { grid-column: 1; justify-self: start; }
+.client-scene__pagination .client-scene__arrow--next { grid-column: 3; justify-self: end; }
+.client-scene__dots { display: flex; align-items: center; justify-content: center; gap: 2px; }
+.client-scene__pagination .client-scene__dot { display: grid; place-items: center; width: 28px; min-width: 0; min-height: 44px; padding: 0; border: 0; background: transparent; pointer-events: auto; }
+.client-scene__pagination .client-scene__dot::before { content: ''; width: 9px; height: 9px; border: 1px solid #d5e8d9b3; border-radius: 50%; transition: background-color .2s ease, border-color .2s ease, transform .2s ease; }
+.client-scene__pagination .client-scene__dot:hover:not([aria-disabled='true'])::before { border-color: #a0ebbb; }
+.client-scene__pagination .client-scene__dot[aria-current='true']::before { background: #a0ebbb; border-color: #a0ebbb; transform: scale(1.25); }
+.client-scene__center { grid-column: 2; grid-row: 1; align-self: end; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
+/* Same pill as the building scene's actions, so both scenes keep their controls at the bottom centre. */
+.client-scene__pagination .client-scene__back { justify-content: center; width: auto; min-height: 44px; padding: 10px 20px; border: 1px solid #d5e8d966; border-radius: 100px; color: #f5f5ed; background: #061710a6; font-size: 14px; font-weight: 600; line-height: 1.25; white-space: nowrap; text-shadow: none; pointer-events: auto; transition: background-color .2s ease, border-color .2s ease, transform .2s ease; }
+.client-scene__pagination .client-scene__back .icon { width: 16px; height: 16px; }
+.client-scene__pagination .client-scene__back:hover:not([aria-disabled='true']) { color: #f5f5ed; background: #16513a; border-color: #a0ebbb99; transform: translateY(-1px); }
 .client-scene__all { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 24px 0; }
 .client-scene__all > * { color: #d2e2d6; font-size: 14px; }
 .client-scene__all.is-visually-hidden { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .client-scene :is(a, button):focus-visible { outline: 2px solid #a0ebbb; outline-offset: 4px; }
-@media (min-width: 1100px) and (max-width: 1440px) and (min-height: 700px) {
-  .client-scene__pagination--stage button { justify-content: center; width: 44px; }
-  .client-scene__pagination--stage .client-scene__page-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-}
 @media (max-width: 1099px), (max-height: 699px) {
   .client-scene.is-enhanced .client-scene__stage { height: max(620px, 100svh); }
-  .client-scene__heading { top: 88px; right: 24px; }
+  .client-scene__heading { top: 88px; inset-inline: 24px; }
   .client-scene__mark { width: 28%; padding: 6px 4px; }
   .client-scene__mark-art { min-height: 38px; }
   .client-scene__mark-art > img { max-height: 36px; }
@@ -462,9 +502,6 @@ onBeforeUnmount(() => {
   .client-scene__mark-art > img { max-height: 32px; }
   .client-scene__pagination { gap: 12px; }
   .client-scene__pagination button { gap: 6px; font-size: 14px; }
-}
-@media (max-width: 360px) {
-  .client-scene__pagination--stage .client-scene__page-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 @media (max-width: 1023px) {
   .client-scene.is-enhanced .client-scene__stage { min-height: 0; height: 100svh; }

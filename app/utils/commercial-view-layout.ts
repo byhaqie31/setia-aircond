@@ -84,10 +84,10 @@ export interface GroupableClient {
   slug: string
 }
 
-/** Keep the first eight featured clients in the requested two groups of four. */
+/** Keep the first eight featured clients together: as one page of eight, or as the requested two groups of four. */
 export function groupCommercialClients<T extends GroupableClient>(clients: readonly T[], capacity: number): T[][] {
-  const size = Math.max(1, Math.min(5, Math.floor(capacity) || 1))
-  if (size < 4 || clients.length <= 4) {
+  const size = Math.max(1, Math.min(8, Math.floor(capacity) || 1))
+  if (size >= 8 || size < 4 || clients.length <= 4) {
     return chunk(clients, size)
   }
 

@@ -23,19 +23,12 @@ const skylineArrived = ref(false)
 const buildingArrived = ref(false)
 let motionQuery: MediaQueryList | undefined
 let headerTimer: ReturnType<typeof setTimeout> | undefined
-let lastWheelTime = -Infinity
-let lastWheelDirection = 0
-let wheelDistance = 0
 let scrollReleaseUntil = 0
-let touchStart: { x: number; y: number; canAdvance: boolean; canReturn: boolean } | null = null
+let touchStart: { x: number; y: number; panning: boolean } | null = null
 let touchConsumed = false
 let consumedScrollKey: string | null = null
 
 const scrollLocked = computed(() => enhanced.value && (scene.value === 'services' || sceneMoving.value || phase.value !== 'ready'))
-
-function canScrollBack() {
-  return enhanced.value && scene.value === 'clients' && phase.value === 'ready' && !sceneMoving.value && window.scrollY <= 2
-}
 
 function ignoresScroll(target: EventTarget | null) {
   return target instanceof Element && Boolean(target.closest('.floating-contact, .client-scene__summary, input, textarea, select, [contenteditable="true"]'))
@@ -56,38 +49,21 @@ function consumeScroll(event: Event) {
 
 function onWheel(event: WheelEvent) {
   if (event.ctrlKey || ignoresScroll(event.target) || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return
-  const now = performance.now()
-  const direction = Math.sign(event.deltaY)
-  const continuingGesture = direction === lastWheelDirection && now - lastWheelTime < 200
-  const returning = direction < 0 && canScrollBack()
-  if (!scrollLocked.value && !returning) {
+  if (!scrollLocked.value) {
     // Briefly absorb transition inertia, then allow continuous scrolling into
     // the support chapters. A stream of wheel events must never extend the lock.
-    if (now < scrollReleaseUntil) consumeScroll(event)
+    if (performance.now() < scrollReleaseUntil) consumeScroll(event)
     return
   }
+  // The scenes move only by their buttons, so a locked scene just absorbs the
+  // wheel, except where the compact diagram still has room to pan.
   if (scene.value === 'services' && phase.value === 'ready' && !sceneMoving.value && canScrollList(event.target, event.deltaY)) return
   consumeScroll(event)
-  lastWheelTime = now
-  lastWheelDirection = direction
-  if (phase.value !== 'ready' || sceneMoving.value || (scene.value === 'services' ? direction < 0 : !returning)) {
-    wheelDistance = 0
-    return
-  }
-  const distance = Math.abs(event.deltaY) * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1)
-  wheelDistance = (continuingGesture ? wheelDistance : 0) + distance
-  if (wheelDistance >= 40) {
-    wheelDistance = 0
-    if (returning) onClientBack()
-    else onBuildingNext()
-  }
 }
 
 function onTouchStart(event: TouchEvent) {
   const touch = event.touches.length === 1 ? event.touches[0] : undefined
-  touchStart = touch && !ignoresScroll(event.target)
-    ? { x: touch.clientX, y: touch.clientY, canAdvance: !canScrollList(event.target), canReturn: canScrollBack() }
-    : null
+  touchStart = touch && !ignoresScroll(event.target) ? { x: touch.clientX, y: touch.clientY, panning: canScrollList(event.target) } : null
   touchConsumed = false
 }
 
@@ -95,16 +71,14 @@ function onTouchMove(event: TouchEvent) {
   const touch = event.touches.length === 1 ? event.touches[0] : undefined
   if (!touch || !touchStart) return
   const down = touchStart.y - touch.clientY
-  const returning = down < 0 && touchStart.canReturn && canScrollBack()
-  if (!scrollLocked.value && !touchConsumed && !returning) return
+  if (!scrollLocked.value && !touchConsumed) return
   if (Math.abs(touch.clientX - touchStart.x) >= Math.abs(down)) return
+  // The compact diagram pans natively until it reaches its boundary.
   if (!touchConsumed && scene.value === 'services' && phase.value === 'ready') {
-    if (!touchStart.canAdvance || (down < 0 && canScrollList(event.target, -1))) return
+    if (touchStart.panning || (down < 0 && canScrollList(event.target, -1))) return
   }
   consumeScroll(event)
   touchConsumed = true
-  if (down >= 50 && touchStart.canAdvance && scene.value === 'services' && phase.value === 'ready' && !sceneMoving.value) onBuildingNext()
-  else if (down <= -50 && returning) onClientBack()
 }
 
 function onTouchEnd() { touchStart = null; touchConsumed = false }
@@ -114,8 +88,7 @@ function onScrollKey(event: KeyboardEvent) {
   if (event.key === ' ' && event.target instanceof Element && event.target.closest('button, [role="button"]')) return
   const down = ['ArrowDown', 'PageDown', 'End', ' '].includes(event.key) && !event.shiftKey
   const up = ['ArrowUp', 'PageUp', 'Home'].includes(event.key) || (event.key === ' ' && event.shiftKey)
-  const returning = up && canScrollBack()
-  if (!scrollLocked.value && !returning) {
+  if (!scrollLocked.value) {
     if (event.repeat && consumedScrollKey === event.key) consumeScroll(event)
     return
   }
@@ -123,8 +96,6 @@ function onScrollKey(event: KeyboardEvent) {
   if (scene.value === 'services' && phase.value === 'ready' && canScrollList(event.target, down ? 1 : -1)) return
   consumeScroll(event)
   consumedScrollKey = event.key
-  if (down && !event.repeat && scene.value === 'services' && phase.value === 'ready' && !sceneMoving.value) onBuildingNext()
-  else if (returning && !event.repeat) onClientBack()
 }
 
 function onScrollKeyUp(event: KeyboardEvent) {
@@ -316,6 +287,7 @@ onBeforeUnmount(() => {
             @ready="onSceneReady"
             @exit-complete="onClientExit"
             @slide-change="onClientSlideChange"
+            @back="onClientBack"
           />
         </template>
       </CommercialSupportSections>

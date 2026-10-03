@@ -105,6 +105,9 @@ img { display: block; max-width: 100%; }
 .icon--arrow { --icon: url('/icons/arrow-right.svg'); }
 .icon--snowflake { --icon: url('/icons/snowflake.svg'); }
 .icon--lightning { --icon: url('/icons/lightning.svg'); }
+.icon--home { --icon: url('/icons/house.svg'); }
+.icon--factory { --icon: url('/icons/factory.svg'); }
+.icon--people { --icon: url('/icons/people.svg'); }
 .icon--back { transform: rotate(180deg); }
 .hero__copy { position: relative; grid-column: 1; grid-row: 2; align-self: center; min-width: 0; z-index: 2; margin: 0 16px 6svh var(--page-gutter); max-width: 660px; }
 .eyebrow { margin: 0 0 17px; color: var(--green-bright); font-size: clamp(11px, .9vw, 14px); letter-spacing: .28em; font-weight: 700; }
@@ -183,15 +186,16 @@ h1:focus { outline: none; }
 .floor-control--commercial { top: 47.5%; height: 42.5%; }
 .floor-label { position: absolute; left: -4%; right: 50%; top: 50%; display: grid; grid-template-columns: max-content minmax(16px, 1fr) 8px; align-items: center; gap: 12px; min-height: 44px; transform: translateY(-50%); color: var(--paper); }
 .floor-control--commercial .floor-label { top: 24%; }
-.floor-label__text { display: inline-flex; align-items: center; min-height: 44px; font-size: clamp(13px, 1vw, 16px); font-weight: 600; letter-spacing: .01em; white-space: nowrap; text-shadow: 0 2px 6px #061710cc; text-decoration-color: transparent; text-underline-offset: 5px; transition: color .25s ease, text-decoration-color .25s ease; }
+/* Pills so the floor names read against the artwork; the lit floor fills green. */
+.floor-label__text { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border: 1px solid #f8fbf866; border-radius: 100px; color: var(--paper); background: #061710b3; font-size: clamp(13px, 1vw, 16px); font-weight: 600; letter-spacing: .01em; white-space: nowrap; transition: color .25s ease, background-color .25s ease, border-color .25s ease; }
 .floor-label__line { height: 1px; background: currentColor; opacity: .65; transition: opacity .25s ease, background-color .25s ease; }
 .floor-label__dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: currentColor; transition: background-color .25s ease, transform .25s ease; }
 .floor-label__dot::after { content: ''; position: absolute; inset: -4px; border: 1px solid currentColor; border-radius: 50%; opacity: .45; transition: opacity .25s ease; }
 .floor-control.is-active .floor-label { color: var(--green-bright); }
-.floor-control.is-active .floor-label__text { text-decoration: underline; }
+.floor-control.is-active .floor-label__text { color: var(--stage); background: var(--green-bright); border-color: transparent; }
 .floor-control.is-active .floor-label__line, .floor-control.is-active .floor-label__dot::after { opacity: 1; }
 .floor-control.is-active .floor-label__dot { transform: scale(1.15); }
-.floor-control:focus-visible .floor-label__text { outline: 2px solid var(--paper); outline-offset: 5px; }
+.floor-control:focus-visible .floor-label__text { outline: 2px solid var(--paper); outline-offset: 3px; }
 
 .hero__copy { transition: opacity .18s ease, transform .24s cubic-bezier(.4, 0, .2, 1); }
 .hero .site-header, .floor-controls { transition: opacity .18s ease; }
@@ -327,7 +331,7 @@ h1:focus { outline: none; }
   .building-frame { left: 0; right: 0; aspect-ratio: 1458 / 940; width: 100cqw; }
   .building-canvas { left: -8.7106%; width: 108.7106%; }
   .floor-label { left: -48%; gap: 8px; }
-  .floor-label__text { font-size: clamp(12px, 2.2vw, 15px); }
+  .floor-label__text { min-height: 36px; padding: 0 12px; font-size: clamp(12px, 2.2vw, 15px); }
 }
 
 @media (max-width: 680px) {
@@ -373,7 +377,7 @@ h1:focus { outline: none; }
   .building-frame { left: auto; right: 0; aspect-ratio: 1585 / 940; width: 100cqw; }
   .building-canvas { left: 0; width: 100%; }
   .floor-label { left: 0; gap: 8px; }
-  .floor-label__text { font-size: 12px; }
+  .floor-label__text { min-height: 32px; padding: 0 10px; font-size: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
