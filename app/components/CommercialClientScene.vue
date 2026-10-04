@@ -440,10 +440,12 @@ onBeforeUnmount(() => {
 .client-scene__marks { position: absolute; z-index: 3; inset: 0; pointer-events: none; }
 .client-scene__mark { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 6px; width: clamp(120px, 12vw, 205px); min-height: 52px; padding: 8px 4px; border: 0; background: none; color: #eff8f0; opacity: 0; transform: translate(-50%, -100%) translateY(8px); transition: opacity 180ms ease, transform 180ms ease, color 180ms ease; cursor: pointer; pointer-events: none; }
 .client-scene__mark.is-visible { opacity: 1; transform: translate(-50%, -100%); pointer-events: auto; }
-.client-scene__mark:hover, .client-scene__mark:focus-visible, .client-scene__mark.is-selected { color: #a0ebbb; }
+.client-scene__mark:focus-visible, .client-scene__mark.is-selected { color: #a0ebbb; }
+/* Hover styling only where a pointer can hover: touch screens keep :hover on the last tapped spot across a round trip. */
+@media (hover: hover) { .client-scene__mark:hover { color: #a0ebbb; } .client-scene__mark:hover::before { opacity: 1; } }
 /* A soft box frames the hovered, focused or selected mark, like the phone grid, without moving the logo or its line. */
 .client-scene__mark::before { content: ''; position: absolute; inset: -2px -6px; z-index: -1; border: 1px solid #a0ebbb99; border-radius: 12px; background: #a0ebbb14; opacity: 0; transition: opacity 160ms ease; }
-.client-scene__mark:hover::before, .client-scene__mark:focus-visible::before, .client-scene__mark.is-selected::before { opacity: 1; }
+.client-scene__mark:focus-visible::before { opacity: 1; }
 .client-scene__marks.is-grid .client-scene__mark::before { display: none; }
 .client-scene__mark-art { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 46px; }
 .client-scene__mark-art > img { display: block; max-width: 82%; max-height: 48px; object-fit: contain; }
@@ -515,7 +517,8 @@ onBeforeUnmount(() => {
 .client-scene__marks.is-grid { --client-card-columns: 2; --client-card-gap: 10px; bottom: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--client-card-gap); inset-inline: 60px; }
 .client-scene__marks.is-grid .client-scene__mark { position: relative; flex: 0 0 auto; justify-content: center; width: calc((100% - var(--client-card-gap) * (var(--client-card-columns) - 1)) / var(--client-card-columns)); min-height: 56px; padding: 6px; gap: 4px; border: 1px solid #d5e8d94d; border-radius: 12px; background: #0f3a2ab3; transform: translateY(10px); transition: opacity 180ms ease, transform 180ms ease, color 180ms ease, border-color 180ms ease, background-color 180ms ease; }
 .client-scene__marks.is-grid .client-scene__mark.is-visible { transform: none; }
-.client-scene__marks.is-grid .client-scene__mark:hover, .client-scene__marks.is-grid .client-scene__mark:focus-visible, .client-scene__marks.is-grid .client-scene__mark.is-selected { border-color: #a0ebbb; background: #a0ebbb1f; }
+.client-scene__marks.is-grid .client-scene__mark:focus-visible, .client-scene__marks.is-grid .client-scene__mark.is-selected { border-color: #a0ebbb; background: #a0ebbb1f; }
+@media (hover: hover) { .client-scene__marks.is-grid .client-scene__mark:hover { border-color: #a0ebbb; background: #a0ebbb1f; } }
 .client-scene__marks.is-grid .client-scene__mark-art { min-height: 26px; }
 .client-scene__marks.is-grid .client-scene__mark-art > img { max-width: 80%; max-height: 26px; }
 .client-scene__marks.is-grid .client-scene__mark-name { font-size: 11px; }

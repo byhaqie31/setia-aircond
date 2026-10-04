@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { getCommercialParty, getCommercialPartyRecords } from '~/data/commercial-view'
+import { commercialClients, getCommercialParty, getCommercialPartyRecords } from '~/data/commercial-view'
+import { groupCommercialClients, groupForClient } from '~/utils/commercial-view-layout'
 import { computed, onMounted, ref } from 'vue'
 const route = useRoute()
 const router = useRouter()
@@ -10,7 +11,9 @@ const records = getCommercialPartyRecords(party.id)
 const mounted = ref(false)
 onMounted(() => { mounted.value = true })
 const fromProjects = computed(() => mounted.value && router.currentRoute.value.query.from === 'projects')
-const returnTo = computed(() => fromProjects.value ? '/commercial/projects' : `/commercial?scene=clients&client=${party.slug}`)
+// Return to the client's own group of the clientele screen without reselecting its mark, so nothing stays highlighted after the round trip.
+const clientPage = groupForClient(groupCommercialClients(commercialClients, 8), party.slug) + 1
+const returnTo = computed(() => fromProjects.value ? '/commercial/projects' : `/commercial?scene=clients${clientPage > 1 ? `&page=${clientPage}` : ''}`)
 const siteUrl = useRuntimeConfig().public.siteUrl.replace(/\/?$/, '/')
 useHead({
   title: `${party.displayName} | Commercial clients | Setia Air-Cond`,
@@ -22,12 +25,8 @@ useHead({
 
 <template>
   <CommercialDetailLayout class="client-detail-page" scroll-reveals>
+    <CommercialDetailBack :to="returnTo" :label="fromProjects ? 'Back to project records' : 'Back to clientele'" />
     <article class="client-detail">
-      <nav class="client-detail__breadcrumb" aria-label="Breadcrumb">
-        <NuxtLink to="/">Home</NuxtLink><span aria-hidden="true">/</span>
-        <NuxtLink :to="returnTo">{{ fromProjects ? 'Project records' : 'Commercial clients' }}</NuxtLink><span aria-hidden="true">/</span>
-        <span aria-current="page">{{ party.displayName }}</span>
-      </nav>
       <CommercialClientProject v-for="(record, index) in records" :key="record.id" :party="party" :record="record" :first="index === 0" />
       <CommercialClientProject v-if="!records.length" :party="party" :record="null" first />
       <nav v-if="fromProjects" class="client-detail__return" aria-label="Return to project records">
@@ -40,20 +39,11 @@ useHead({
 
 <style scoped>
 .client-detail { --client-gutter: clamp(20px, 4vw, 64px); width: min(100% - 2 * var(--client-gutter), 1440px); margin: auto; padding-bottom: 24px; }
-.client-detail__breadcrumb { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; min-height: 72px; padding-block: 12px; color: #bed0c3; font-size: 13px; line-height: 1.5; }
-.client-detail__breadcrumb a { display: inline-flex; align-items: center; min-height: 44px; text-underline-offset: 4px; }
-.client-detail__breadcrumb a:hover { text-decoration: underline; }
+/* The same header measure as the service pages, outranking the layout's own phone rule, so the back button shares the logo's left edge at every width. */
+.client-detail-page :deep(.commercial-detail__header .commercial-detail__header-inner) { width: min(100% - 2 * clamp(24px, 5.5vw, 80px), 1680px); min-height: clamp(48px, 5vw, 72px); }
 .client-detail__return { display: flex; justify-content: end; padding-bottom: 24px; }
 .client-detail__return a { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; color: #bed0c3; font-size: 15px; text-underline-offset: 5px; }
 .client-detail__return a:hover { text-decoration: underline; }
-@media (min-width: 900px) {
-  .client-detail-page :deep(.commercial-detail__header-inner) { min-height: clamp(48px, 5vw, 72px); }
-  .client-detail__breadcrumb { min-height: clamp(40px, 4vw, 60px); padding-block: 0; }
-}
 @media (max-width: 899px) { .client-detail { width: min(100% - 2 * clamp(20px, 4vw, 64px), 680px); } }
-@media (max-width: 550px) { .client-detail__breadcrumb { min-height: 64px; font-size: 12px; } }
-@media (max-width: 360px) {
-  .client-detail__breadcrumb > span:last-child,
-  .client-detail__breadcrumb > span:nth-last-child(2) { display: none; }
-}
+@media (max-width: 360px) { .client-detail-page :deep(.commercial-detail__header .commercial-detail__header-inner) { width: calc(100% - 40px); } }
 </style>

@@ -18,11 +18,7 @@ onMounted(() => {
 
 <template>
   <section class="equipment-hero" :class="{ 'equipment-hero--arrived': arrived, 'equipment-hero--fallback': cutoutFailed }" aria-labelledby="equipment-title">
-    <nav class="equipment-hero__breadcrumb" aria-label="Breadcrumb">
-      <NuxtLink to="/">Home</NuxtLink><span aria-hidden="true">/</span>
-      <NuxtLink to="/commercial?scene=services">Commercial services</NuxtLink><span aria-hidden="true">/</span>
-      <span aria-current="page">{{ service.title }}</span>
-    </nav>
+    <CommercialDetailBack to="/commercial?scene=services" />
     <div class="equipment-hero__stage">
       <div class="equipment-hero__copy">
         <h1 id="equipment-title">{{ service.title }}</h1>
@@ -41,9 +37,6 @@ onMounted(() => {
 
 <style scoped>
 .equipment-hero { --equipment-gutter: clamp(24px, 5.5vw, 80px); position: relative; overflow: hidden; background: radial-gradient(ellipse at 70% 75%, #0b3022, #062319 66%); color: #f8fbf8; }
-.equipment-hero__breadcrumb { position: relative; z-index: 2; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; min-height: 44px; padding: 4px var(--equipment-gutter) 12px; color: #bed0c3; font-size: 12px; line-height: 1.5; }
-.equipment-hero__breadcrumb a { color: inherit; text-decoration: none; }
-.equipment-hero__breadcrumb a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .equipment-hero__stage { position: relative; width: min(100%, 1840px); aspect-ratio: 16 / 9; margin: auto; }
 .equipment-hero__copy { position: absolute; z-index: 2; top: 8%; left: var(--equipment-gutter); width: 26%; max-width: 380px; }
 .equipment-hero h1 { width: max-content; max-width: 145%; margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(44px, 6.2vw, 80px); font-weight: 400; line-height: 1.04; letter-spacing: -.035em; text-wrap: balance; }

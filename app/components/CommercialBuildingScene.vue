@@ -728,10 +728,12 @@ onBeforeUnmount(() => {
 .commercial-building-scene__markers { position: absolute; z-index: 3; inset: 0; pointer-events: none; }
 .commercial-building-scene__marker { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 5px; width: clamp(116px, 11.3vw, 220px); min-height: 48px; padding: 9px 0; color: #f6fbf7; opacity: 0; pointer-events: none; transform: translate(-50%, 8px); transition: opacity 200ms ease, transform 200ms ease, color 180ms ease; text-align: center; text-decoration: none; }
 .commercial-building-scene__marker.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%); transition-delay: 180ms; }
-.commercial-building-scene__marker:hover, .commercial-building-scene__marker:focus-visible, .commercial-building-scene__marker.is-selected { color: #a0ebbb; }
+.commercial-building-scene__marker:focus-visible, .commercial-building-scene__marker.is-selected { color: #a0ebbb; }
+/* Hover styling only where a pointer can hover: touch screens keep :hover on the last tapped spot across a round trip. */
+@media (hover: hover) { .commercial-building-scene__marker:hover { color: #a0ebbb; } .commercial-building-scene__marker:hover::before { opacity: 1; } }
 /* A soft box frames the hovered, focused or selected label, like the phone cards, without moving the label or its line. */
 .commercial-building-scene__marker::before { content: ''; position: absolute; inset: -3px -10px; z-index: -1; border: 1px solid #a0ebbb99; border-radius: 12px; background: #a0ebbb14; opacity: 0; transition: opacity 160ms ease; }
-.commercial-building-scene__marker:hover::before, .commercial-building-scene__marker:focus-visible::before, .commercial-building-scene__marker.is-selected::before { opacity: 1; }
+.commercial-building-scene__marker:focus-visible::before { opacity: 1; }
 .commercial-building-scene__markers.is-cards .commercial-building-scene__marker::before { display: none; }
 .commercial-building-scene__marker strong { font-size: clamp(15px, 1.1vw, 18px); line-height: 1.2; }
 .commercial-building-scene__marker span { max-width: 22ch; color: #cfddd1; font-size: clamp(12px, .8vw, 14px); line-height: 1.35; }
@@ -798,9 +800,9 @@ onBeforeUnmount(() => {
 .commercial-building-scene__markers.is-cards .commercial-building-scene__marker { position: relative; flex: 0 0 auto; justify-content: center; appearance: none; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; width: calc((100% - var(--commercial-card-gap) * (var(--commercial-card-columns) - 1)) / var(--commercial-card-columns)); min-height: 60px; padding: 10px 6px; border: 1px solid #d5e8d94d; border-radius: 14px; background: #ffffff14; transform: translateY(10px); transition: opacity 200ms ease, transform 200ms ease, color 180ms ease, border-color 180ms ease, background-color 180ms ease; }
 .commercial-building-scene__markers.is-cards .commercial-building-scene__marker.is-visible { transform: none; }
 .commercial-building-scene__markers.is-cards .commercial-building-scene__marker strong { font-size: 13px; line-height: 1.25; }
-.commercial-building-scene__markers.is-cards .commercial-building-scene__marker:hover,
 .commercial-building-scene__markers.is-cards .commercial-building-scene__marker:focus-visible,
 .commercial-building-scene__markers.is-cards .commercial-building-scene__marker.is-selected { border-color: #a0ebbb; background: #a0ebbb1f; }
+@media (hover: hover) { .commercial-building-scene__markers.is-cards .commercial-building-scene__marker:hover { border-color: #a0ebbb; background: #a0ebbb1f; } }
 /* Tapping a card hides the row; its preview takes the same sky, with a line down to that equipment. */
 .commercial-building-scene__markers.is-cards.has-preview .commercial-building-scene__marker { opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-6px); transition: opacity 160ms ease, transform 160ms ease, visibility 0s linear 160ms; }
 .commercial-building-scene__preview { position: absolute; z-index: 3; inset-inline: clamp(16px, 5vw, 24px); display: grid; gap: 10px; padding: 12px; border: 1px solid #a0ebbb66; border-radius: 18px; background: #0f3a2ae6; box-shadow: 0 12px 32px #04120b73; color: #f6fbf7; text-align: left; opacity: 0; transform: translateY(8px); transition: opacity 200ms ease, transform 240ms cubic-bezier(.22, 1, .36, 1); }

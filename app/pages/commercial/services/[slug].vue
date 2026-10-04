@@ -27,5 +27,7 @@ useHead({
 <style scoped>
 .equipment-detail-page { background: #062319; }
 .equipment-detail-page :deep(.commercial-detail__header) { background: #062319; }
-.equipment-detail-page :deep(.commercial-detail__header-inner) { width: min(100% - 2 * clamp(24px, 5.5vw, 80px), 1680px); min-height: clamp(48px, 5vw, 72px); }
+/* Outranks the layout's own phone rule, so the header measure and the hero's back button share one left edge at every width. */
+.equipment-detail-page :deep(.commercial-detail__header .commercial-detail__header-inner) { width: min(100% - 2 * clamp(24px, 5.5vw, 80px), 1680px); min-height: clamp(48px, 5vw, 72px); }
+@media (max-width: 360px) { .equipment-detail-page :deep(.commercial-detail__header .commercial-detail__header-inner) { width: calc(100% - 40px); } }
 </style>
