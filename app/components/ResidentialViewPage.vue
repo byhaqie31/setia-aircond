@@ -130,10 +130,8 @@ onBeforeUnmount(() => observer?.disconnect())
 .residential-view__brand-list .residential-view__brand-image--carrier { filter: grayscale(1) brightness(1.15); }
 .residential-view__brand-list img[alt='Midea'] { width: 180px; }
 .residential-view__ending { display: flex; flex-direction: column; min-height: 100svh; background: #0b3022; }
-.residential-view__ending :deep(.company-enquiry) { flex: 1; padding-block: clamp(22px, 3svh, 38px); gap: 18px; }
-.residential-view__ending :deep(.company-enquiry__team) { max-width: 400px; }
-.residential-view__ending :deep(.company-contact--compact) { padding-top: 18px; }
-.residential-view__ending :deep(.company-footer) { padding-bottom: clamp(18px, 3svh, 32px); }
+/* The enquiry section and footer use their shared layout, as on About Us and Commercial. */
+.residential-view__ending :deep(.company-enquiry) { flex: 1; }
 
 @media (prefers-reduced-motion: no-preference) {
   .residential-view.has-reveals .residential-view__brands-heading[data-reveal] { transition: opacity .65s cubic-bezier(.22, 1, .36, 1), transform .65s cubic-bezier(.22, 1, .36, 1); }
@@ -180,50 +178,11 @@ onBeforeUnmount(() => observer?.disconnect())
   .residential-view__brand-list li:nth-last-child(-n + 4) { border-bottom: 0; }
   .residential-view__brand-list li:nth-last-child(-n + 2) { border-bottom: 1px solid #bed0c333; }
   .residential-view__brand-list img { max-width: min(82%, 150px); max-height: 58px; }
-  .residential-view__ending :deep(.company-enquiry) { gap: 12px; padding-block: 22px; }
-  .residential-view__ending :deep(.company-enquiry__hero) { grid-template-columns: minmax(0, 1fr) minmax(82px, .4fr); gap: 12px; }
-  .residential-view__ending :deep(.company-enquiry__team) { width: 100%; max-width: 180px; align-self: end; }
-  .residential-view__ending :deep(.company-enquiry h2) { margin-bottom: 12px; font-size: clamp(29px, 7.5vw, 38px); }
-  .residential-view__ending :deep(.company-enquiry__description) { margin-bottom: 12px; font-size: 14px; }
-  .residential-view__ending :deep(.company-contact--compact) { grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr); gap: 12px; padding-top: 14px; }
-  .residential-view__ending :deep(.company-contact--compact .company-contact__intro p) { font-size: 13px; line-height: 1.4; }
-  .residential-view__ending :deep(.company-contact__office) { margin-top: 8px; font-size: 13px; line-height: 1.4; }
-  .residential-view__ending :deep(.company-contact--compact .company-contact__details) { grid-template-columns: 1fr; gap: 6px; }
-  .residential-view__ending :deep(.company-contact--compact dt) { margin-bottom: 1px; font-size: 11px; }
-  .residential-view__ending :deep(.company-contact--compact dd) { font-size: 13px; line-height: 1.3; }
-  .residential-view__ending :deep(.company-footer) { padding-block: 10px 18px; }
-}
-@media (min-width: 681px) and (max-width: 850px) {
-  .residential-view__ending :deep(.company-enquiry) { gap: 12px; padding-block: 18px; }
-  .residential-view__ending :deep(.company-enquiry__hero) { grid-template-columns: minmax(0, 1fr) minmax(160px, .6fr); gap: 20px; }
-  .residential-view__ending :deep(.company-enquiry__team) { max-width: 220px; }
-  .residential-view__ending :deep(.company-enquiry h2) { margin-bottom: 12px; font-size: clamp(34px, 4.4vw, 40px); }
-  .residential-view__ending :deep(.company-enquiry__description) { margin-bottom: 12px; font-size: 14px; }
-  .residential-view__ending :deep(.company-contact--compact) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding-top: 14px; }
-  .residential-view__ending :deep(.company-contact--compact .company-contact__details) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; }
-  .residential-view__ending :deep(.company-contact__details > div:nth-child(n + 3)) { grid-column: 1 / -1; }
-  .residential-view__ending :deep(.company-contact--compact .company-contact__intro p) { font-size: 14px; }
-  .residential-view__ending :deep(.company-contact__office) { margin-top: 10px; font-size: 14px; }
-  .residential-view__ending :deep(.company-contact--compact dt) { margin-bottom: 1px; font-size: 11px; }
-  .residential-view__ending :deep(.company-contact--compact dd) { font-size: 13px; line-height: 1.3; }
-  .residential-view__ending :deep(.company-footer) { padding-block: 8px 16px; }
 }
 @media (max-height: 620px) and (min-aspect-ratio: 3/2) {
   .residential-view__hero-copy { bottom: 205px; }
   .residential-view__hero h1 { font-size: clamp(38px, 6vw, 62px); }
   .residential-view__service { min-height: 60px; }
-}
-@media (max-width: 680px) and (max-height: 700px) {
-  .residential-view__ending :deep(.company-enquiry) { gap: 8px; padding-block: 12px; }
-  .residential-view__ending :deep(.company-enquiry__hero) { grid-template-columns: 1fr; }
-  .residential-view__ending :deep(.company-enquiry__team) { display: none; }
-  .residential-view__ending :deep(.company-enquiry h2) { margin-bottom: 8px; }
-  .residential-view__ending :deep(.company-enquiry__description) { margin-bottom: 8px; }
-  .residential-view__ending :deep(.company-contact--compact) { gap: 8px; padding-top: 10px; }
-  .residential-view__ending :deep(.company-footer) { padding-block: 8px; }
-}
-@media (max-width: 360px) {
-  .residential-view__ending :deep(.company-contact--compact) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
   .residential-view.is-arriving .residential-view__header, .residential-view.is-arriving .residential-view__hero-copy, .residential-view.is-arriving .residential-view__services, .residential-view.is-arriving .residential-view__next { animation: none; }
