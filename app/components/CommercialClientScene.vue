@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import CommercialSkylinePlate from '~/components/CommercialSkylinePlate.vue'
 import { commercialClients } from '~/data/commercial-view'
-import { compactRowLabels, compactSceneLabels, groupCommercialClients, groupForClient, type CommercialLeader, type CommercialLabelBounds, type ScenePhase } from '~/utils/commercial-view-layout'
+import { compactSceneLabels, groupCommercialClients, groupForClient, type CommercialLeader, type CommercialLabelBounds, type ScenePhase } from '~/utils/commercial-view-layout'
 
 const props = withDefaults(defineProps<{
   phase: ScenePhase
@@ -54,6 +54,11 @@ const skylineElement = ref<HTMLImageElement | null>(null)
 const skylinePlate = ref<InstanceType<typeof CommercialSkylinePlate> | null>(null)
 const leaders = ref<CommercialLeader[]>([])
 const labelBounds = ref<CommercialLabelBounds[]>([])
+/** Phones: the page is a two-column grid of logo cards in the sky; the page arrows sit beside its middle. */
+const gridTop = ref(160)
+const gridMiddle = ref(240)
+/** Logos follow their leader lines on larger screens; phones have no lines to wait for. */
+const logoLag = computed(() => mobile.value ? 0 : 420)
 
 let layoutQuery: MediaQueryList | null = null
 let resizeObserver: ResizeObserver | null = null
@@ -98,9 +103,9 @@ function beginIntro() {
     updateLeaders()
     visibleClients.value.forEach((_, index) => {
       later(() => { if (current === sequence) visibleLeaders.value = index + 1 }, index * 100)
-      later(() => { if (current === sequence) displayedLogos.value = index + 1 }, index * 100 + 420)
+      later(() => { if (current === sequence) displayedLogos.value = index + 1 }, index * 100 + logoLag.value)
     })
-    later(() => { if (current === sequence) setReady() }, Math.max(0, visibleClients.value.length - 1) * 100 + 600)
+    later(() => { if (current === sequence) setReady() }, Math.max(0, visibleClients.value.length - 1) * 100 + 180 + logoLag.value)
   }, 700)
 }
 
@@ -155,21 +160,23 @@ function updateLeaders() {
     markers.forEach(marker => resizeObserver?.observe(marker))
     const heights = markers.map(marker => marker.offsetHeight)
     const headingBottom = (headingElement.value?.getBoundingClientRect().bottom ?? sceneRect.top + 180) - sceneRect.top
-    const visibleArtworkTop = mobile.value
-      ? (image.closest('.commercial-skyline-plate')?.getBoundingClientRect().top ?? drawnTop) - sceneRect.top
-      : drawnTop - sceneRect.top
-    const anchors = Array.from({ length: count }, (_, index) => count === 1 ? .5 : .12 + index * .76 / (count - 1))
-    const stagger = Math.min(96, sceneRect.height * .1)
-    const labels = mobile.value
-      ? compactRowLabels(anchors, headingBottom, visibleArtworkTop, heights).map((label, index) => ({
-        ...label,
-        top: index % 2
-          ? Math.max(label.top, headingBottom + 24 + stagger)
-          : Math.max(headingBottom + 24, label.top - stagger),
-      }))
-      : compactSceneLabels(count, sceneRect.width, headingBottom, heights)
+    if (mobile.value) {
+      // The grid floats midway between the heading and the city; nothing points at the skyline.
+      // The plate's upper part is sky and thin tower tips, so centre on where the building mass begins.
+      const grid = markerElement.value
+      if (grid) resizeObserver?.observe(grid)
+      const gridHeight = grid?.offsetHeight ?? 0
+      const plate = image.closest('.commercial-skyline-plate')?.getBoundingClientRect()
+      const skylineTop = (plate ? plate.top + plate.height * .4 : drawnTop) - sceneRect.top
+      gridTop.value = Math.max(headingBottom + 24, Math.round((headingBottom + skylineTop - gridHeight) / 2))
+      gridMiddle.value = gridTop.value + Math.round(gridHeight / 2)
+      labelBounds.value = []
+      leaders.value = []
+      return
+    }
+    const labels = compactSceneLabels(count, sceneRect.width, headingBottom, heights)
     const rows = Array.from(new Set(labels.map(label => label.top)))
-    labelBounds.value = mobile.value ? [] : labels.map((label, index) => ({
+    labelBounds.value = labels.map((label, index) => ({
       x: label.x - (markers[index]?.offsetWidth ?? 120) / sceneRect.width / 2 - .01,
       y: label.top / sceneRect.height - .006,
       width: (markers[index]?.offsetWidth ?? 120) / sceneRect.width + .02,
@@ -178,7 +185,7 @@ function updateLeaders() {
     leaders.value = visibleClients.value.map((client, index) => ({
       id: client.slug,
       targetX: labels[index]?.x ?? .5,
-      targetY: (drawnTop + (mobile.value ? .72 : [.72, .89, .82][rows.indexOf(labels[index]?.top ?? 0)] ?? .76) * drawnHeight - sceneRect.top) / sceneRect.height,
+      targetY: (drawnTop + ([.72, .89, .82][rows.indexOf(labels[index]?.top ?? 0)] ?? .76) * drawnHeight - sceneRect.top) / sceneRect.height,
       labelX: labels[index]?.x ?? .5,
       labelY: ((labels[index]?.top ?? headingBottom) + (heights[index] ?? 80) + 6) / sceneRect.height,
     }))
@@ -258,9 +265,9 @@ function goToPage(target: number) {
       if (current !== sequence) return
       visibleClients.value.forEach((_, index) => {
         later(() => { if (current === sequence) visibleLeaders.value = index + 1 }, index * 70)
-        later(() => { if (current === sequence) displayedLogos.value = index + 1 }, index * 70 + 420)
+        later(() => { if (current === sequence) displayedLogos.value = index + 1 }, index * 70 + logoLag.value)
       })
-      later(() => { if (current === sequence) busy.value = false }, Math.max(0, visibleClients.value.length - 1) * 70 + 520)
+      later(() => { if (current === sequence) busy.value = false }, Math.max(0, visibleClients.value.length - 1) * 70 + 100 + logoLag.value)
     }, 80)
   }, 460)
 }
@@ -359,8 +366,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="commercial-clients" class="client-scene" :class="{ 'is-enhanced': enhanced, 'is-exiting': exiting, 'is-reduced': reducedMotion, 'is-pinned': pinned, 'is-compact': compact }" aria-labelledby="commercial-clients-heading">
-    <div ref="stageElement" class="client-scene__stage">
+  <section id="commercial-clients" class="client-scene" :class="{ 'is-enhanced': enhanced, 'is-exiting': exiting, 'is-reduced': reducedMotion, 'is-pinned': pinned, 'is-compact': compact, 'is-mobile': mobile }" aria-labelledby="commercial-clients-heading">
+    <div ref="stageElement" class="client-scene__stage" :style="mobile ? { '--client-grid-arrow': `${gridMiddle}px` } : undefined">
       <div ref="headingElement" class="client-scene__heading">
         <p class="client-scene__eyebrow">Our work</p>
         <h2 id="commercial-clients-heading">Clients we have worked with</h2>
@@ -372,7 +379,7 @@ onBeforeUnmount(() => {
         @load="onSkylineLoad" @error="skylineFailed = true" />
 
       <CommercialLeaderLayer
-        v-if="enhanced && skylineLoaded && !imageUnavailable && leaders.length"
+        v-if="enhanced && skylineLoaded && !imageUnavailable && leaders.length && !mobile"
         :leaders="leaders"
         :visible-count="visibleLeaders"
         :retracting="exiting || (busy && visibleLeaders === 0)"
@@ -381,14 +388,14 @@ onBeforeUnmount(() => {
         :label-bounds="compact ? labelBounds : undefined"
       />
 
-      <div v-if="enhanced && skylineLoaded && !imageUnavailable" ref="markerElement" class="client-scene__marks" :aria-busy="busy || undefined">
+      <div v-if="enhanced && skylineLoaded && !imageUnavailable" ref="markerElement" class="client-scene__marks" :class="{ 'is-grid': mobile }" :style="mobile ? { top: `${gridTop}px` } : undefined" :aria-busy="busy || undefined">
         <NuxtLink
           v-for="(client, index) in visibleClients"
           :key="client.slug"
           :to="`/commercial/clients/${client.slug}`"
           class="client-scene__mark"
           :class="{ 'is-visible': index < displayedLogos && !exiting, 'is-selected': selectedSlug === client.slug }"
-          :style="{ left: `${(leaderFor(client.slug)?.labelX ?? .5) * 100}%`, top: `${(leaderFor(client.slug)?.labelY ?? .32) * 100}%`, width: mobile ? `${visibleClients.length === 5 ? 17 : 21}%` : undefined }"
+          :style="mobile ? undefined : { left: `${(leaderFor(client.slug)?.labelX ?? .5) * 100}%`, top: `${(leaderFor(client.slug)?.labelY ?? .32) * 100}%` }"
           :data-client-slug="client.slug"
           :inert="busy || index >= displayedLogos || exiting"
           :aria-disabled="busy || index >= displayedLogos || exiting || undefined"
@@ -510,6 +517,21 @@ onBeforeUnmount(() => {
   .client-scene__mark-art > img { max-width: 96%; max-height: 24px; }
   .client-scene__mark-art > strong { font-size: 12px; text-wrap: balance; }
   .client-scene__mark-name { font-size: 10px; line-height: 1.25; text-wrap: balance; }
+}
+/* Phones: two columns by four rows of logo cards in the sky, no leader lines; the page arrows sit beside the grid's middle. */
+.client-scene__marks.is-grid { --client-card-columns: 2; --client-card-gap: 10px; bottom: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--client-card-gap); inset-inline: 60px; }
+.client-scene__marks.is-grid .client-scene__mark { position: relative; flex: 0 0 auto; justify-content: center; width: calc((100% - var(--client-card-gap) * (var(--client-card-columns) - 1)) / var(--client-card-columns)); min-height: 56px; padding: 6px; gap: 4px; border: 1px solid #d5e8d94d; border-radius: 12px; background: #0f3a2ab3; transform: translateY(10px); transition: opacity 180ms ease, transform 180ms ease, color 180ms ease, border-color 180ms ease, background-color 180ms ease; }
+.client-scene__marks.is-grid .client-scene__mark.is-visible { transform: none; }
+.client-scene__marks.is-grid .client-scene__mark:hover, .client-scene__marks.is-grid .client-scene__mark:focus-visible, .client-scene__marks.is-grid .client-scene__mark.is-selected { border-color: #a0ebbb; background: #a0ebbb1f; }
+.client-scene__marks.is-grid .client-scene__mark-art { min-height: 26px; }
+.client-scene__marks.is-grid .client-scene__mark-art > img { max-width: 80%; max-height: 26px; }
+.client-scene__marks.is-grid .client-scene__mark-name { font-size: 11px; }
+/* grid-area: auto so the arrows position against the stage edges rather than the pagination's padded columns. */
+.client-scene.is-mobile .client-scene__pagination .client-scene__arrow { grid-area: auto; position: absolute; top: var(--client-grid-arrow, 50%); left: 6px; width: 40px; height: 40px; min-width: 0; transform: translateY(-50%); }
+.client-scene.is-mobile .client-scene__pagination .client-scene__arrow--next { left: auto; right: 6px; }
+.client-scene.is-mobile .client-scene__pagination .client-scene__arrow:hover:not([aria-disabled='true']) { transform: translateY(calc(-50% - 1px)); }
+@media (max-width: 1023px) and (orientation: landscape) {
+  .client-scene__marks.is-grid { --client-card-columns: 4; }
 }
 @media (max-width: 1023px) and (max-height: 450px) {
   .client-scene__heading { top: 72px; }

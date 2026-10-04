@@ -317,15 +317,16 @@ h1:focus { outline: none; }
   .brand { gap: 12px; }
   .button--header { min-width: 0; min-height: 44px; padding: 11px 16px; font-size: 13px; gap: 12px; }
   .button--header .icon { width: 18px; height: 18px; }
-  .hero__copy { align-self: center; width: auto; max-width: none; margin: 0; padding: 8px var(--page-gutter) 16px; }
+  .hero__copy { align-self: center; width: auto; max-width: none; margin: 0; padding: 8px var(--page-gutter) 16px; text-align: center; }
   .eyebrow { font-size: 10px; margin-bottom: 12px; }
   .hero h1 { font-size: clamp(24px, min(6vw, 4.5svh), 40px); }
-  .hero__description { max-width: 50ch; margin-top: 14px; font-size: 13px; line-height: 1.5; }
-  .hero__actions { margin-top: 16px; gap: 8px 18px; }
+  .hero__description { max-width: 50ch; margin-top: 14px; margin-inline: auto; font-size: 13px; line-height: 1.5; }
+  .hero__actions { margin-top: 16px; gap: 8px 18px; justify-content: center; }
   .button { font-size: 15px; min-height: 50px; padding: 14px 19px; gap: 20px; }
   .hero__actions .button { min-height: 44px; padding: 11px 16px; gap: 12px; font-size: 14px; }
   .hero__actions .button .icon { width: 18px; height: 18px; }
-  .hero-explore { --explore-height: 44px; }
+  /* 158px Explore + 16px gap + 158px About us = 332px, so the pair sits centered. */
+  .hero-explore { --explore-height: 44px; width: min(100%, 332px); }
   .hero-explore__choice { padding-inline: 10px; font-size: 14px; }
   .building-scene { position: absolute; inset: 0; min-height: 0; overflow: clip; }
   /* Trim the far-left margin, retaining the twin towers and the entire main building. */
@@ -367,13 +368,13 @@ h1:focus { outline: none; }
   .hero { height: 100svh; min-height: 360px; grid-template-columns: 48% minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); overflow: clip; }
   .site-header { padding-block: 12px; }
   .brand__name { font-size: 28px; }
-  .hero__copy { align-self: center; grid-row: 2; max-width: 580px; margin: 0 20px 16px var(--page-gutter); padding: 0; }
+  .hero__copy { align-self: center; grid-row: 2; max-width: 580px; margin: 0 20px 16px var(--page-gutter); padding: 0; text-align: left; }
   .eyebrow { margin-bottom: 8px; font-size: 10px; }
   .hero h1 { font-size: clamp(22px, min(2.9vw, 5.2svh), 28px); }
-  .hero__description { margin-top: 10px; font-size: 13px; line-height: 1.4; }
-  .hero__actions { margin-top: 12px; gap: 8px 16px; }
+  .hero__description { margin-top: 10px; margin-inline: 0; font-size: 13px; line-height: 1.4; }
+  .hero__actions { margin-top: 12px; gap: 8px 16px; justify-content: flex-start; }
   .hero__actions .button { min-height: 44px; padding: 11px 16px; gap: 12px; font-size: 14px; }
-  .hero-explore { --explore-height: 44px; }
+  .hero-explore { --explore-height: 44px; width: min(100%, 350px); }
   .building-scene { position: absolute; inset: 0; min-height: 0; }
   .building-frame { left: auto; right: 0; aspect-ratio: 1585 / 940; width: 100cqw; }
   .building-canvas { left: 0; width: 100%; }

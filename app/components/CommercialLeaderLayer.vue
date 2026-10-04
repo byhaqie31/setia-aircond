@@ -36,7 +36,7 @@ const maskId = `commercial-labels-${useId()}`
       >
         <path
           class="commercial-leaders__path"
-          :class="{ 'commercial-leaders__path--elbow': leader.elbow }"
+          :class="{ 'commercial-leaders__path--elbow': leader.elbow && leader.elbow !== 'direct' }"
           :d="commercialLeaderPath(leader)"
           pathLength="1"
         />

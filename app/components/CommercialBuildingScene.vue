@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, resolveComponent, useId, watch } from 'vue'
 import CommercialSkylinePlate from '~/components/CommercialSkylinePlate.vue'
 import { commercialServices } from '~/data/commercial-view'
 import { easeCamera, samples, smoothstep } from '~/utils/building-zoom'
-import { compactEquipmentLabels, compactRowLabels, compactRowWidths, type CommercialLeader, type CommercialLabelBounds, type ScenePhase } from '~/utils/commercial-view-layout'
+import { compactEquipmentLabels, compactRowWidths, type CommercialLeader, type CommercialLabelBounds, type ScenePhase } from '~/utils/commercial-view-layout'
 import type { ArrivalMode } from '~/utils/navigation'
 
 const props = withDefaults(defineProps<{
@@ -65,6 +65,57 @@ const markerWidths = ref<Record<string, number>>({})
 const labelBounds = ref<CommercialLabelBounds[]>([])
 const compactMinimum = ref('620px')
 const compactOverflow = ref('0px')
+/** Phones: the service cards sit this far down the stage, centred in the sky between the heading and the roofline. */
+const cardsTop = ref(160)
+/** Phones: tapping a card hides the row and opens one preview in its place; 'View more' is the actual navigation. */
+const previewSlug = ref<string | null>(null)
+const previewElement = ref<HTMLElement | null>(null)
+const previewTop = ref(160)
+const previewShown = ref(false)
+const previewLineVisible = ref(false)
+/** Where the preview's line may end (its bottom edge, in stage fractions) and where each equipment dot sits. */
+const previewLine = ref<{ y: number, minX: number, maxX: number } | null>(null)
+const previewTargets = ref<Record<string, { x: number, y: number }>>({})
+const previewId = `commercial-service-preview-${useId()}`
+const NuxtLink = resolveComponent('NuxtLink')
+const previewIndex = computed(() => commercialServices.findIndex(service => service.slug === previewSlug.value))
+const previewService = computed(() => commercialServices[previewIndex.value] ?? null)
+/** One straight line from the open preview down to that equipment on the building. */
+const previewLeaders = computed<CommercialLeader[]>(() => {
+  const slug = previewSlug.value
+  const target = slug ? previewTargets.value[slug] : undefined
+  const line = previewLine.value
+  if (!slug || !target || !line) return []
+  return [{ id: slug, targetX: target.x, targetY: target.y, labelX: Math.max(line.minX, Math.min(line.maxX, target.x)), labelY: line.y, elbow: 'direct' }]
+})
+const sceneLeaders = computed(() => mobile.value ? previewLeaders.value : leaders.value)
+
+function openPreview(slug: string) {
+  previewSlug.value = slug
+}
+
+function closePreview(refocus = false) {
+  const slug = previewSlug.value
+  previewSlug.value = null
+  if (refocus && slug) void nextTick(() => markerElement.value?.querySelector<HTMLElement>(`[data-slug="${slug}"]`)?.focus({ preventScroll: true }))
+}
+
+function stepPreview(delta: number) {
+  if (previewIndex.value < 0) return
+  const count = commercialServices.length
+  previewSlug.value = commercialServices[(previewIndex.value + delta + count) % count]!.slug
+}
+
+function onPreviewKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    event.stopPropagation()
+    closePreview(true)
+  } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+    event.preventDefault()
+    stepPreview(event.key === 'ArrowLeft' ? -1 : 1)
+  }
+}
 const compactDescriptions: Record<string, string> = {
   'cooling-tower': 'Install & maintain',
   pump: 'Flow enquiries',
@@ -347,15 +398,34 @@ function updateLeaders() {
     const headingBottom = (headingElement.value ? measure(headingElement.value).bottom : sceneRect.top + 180) - sceneRect.top
     const artworkPositions = naturalHeight / naturalWidth > .5 ? mobileEquipmentPositions : equipmentPositions
     const anchors = artworkPositions.map(item => (drawnLeft + item.x * drawnWidth - sceneRect.left) / sceneRect.width)
-    const stagger = Math.max(Math.min(96, sceneRect.height * .1), Math.max(44, ...markerHeights.filter((_, index) => index % 2 === 0)) + 14)
-    const labels = mobile.value
-      ? compactRowLabels(anchors, headingBottom, drawnTop - sceneRect.top, markerHeights).map((label, index) => ({
-        ...label,
-        top: index % 2
-          ? Math.max(label.top, headingBottom + 24 + stagger)
-          : Math.max(headingBottom + 24, label.top - stagger),
-      }))
-      : compactEquipmentLabels(anchors, headingBottom, markerHeights)
+    if (mobile.value) {
+      // Phones: a wrapped row of cards replaces the leader map, floated midway between the heading and the artwork.
+      const cards = markerElement.value
+      if (cards) resizeObserver?.observe(cards)
+      const artworkTop = drawnTop - sceneRect.top
+      const cardsHeight = cards?.offsetHeight ?? 0
+      cardsTop.value = Math.max(headingBottom + 20, Math.round((headingBottom + artworkTop - cardsHeight) / 2))
+      // An open preview takes the same sky, kept high enough to leave room for its line down to the equipment.
+      const preview = previewElement.value
+      if (preview) {
+        resizeObserver?.observe(preview)
+        const previewHeight = preview.offsetHeight
+        previewTop.value = Math.max(headingBottom + 20, Math.min(Math.round((headingBottom + artworkTop - previewHeight) / 2), Math.round(artworkTop - previewHeight - 48)))
+        const edge = ((sceneRect.width - preview.offsetWidth) / 2 + 24) / sceneRect.width
+        previewLine.value = { y: (previewTop.value + previewHeight + 6) / sceneRect.height, minX: edge, maxX: 1 - edge }
+      }
+      previewTargets.value = Object.fromEntries(artworkPositions.map((item, index) => [item.id, {
+        x: anchors[index] ?? .5,
+        y: (drawnTop + item.y * drawnHeight - sceneRect.top) / sceneRect.height,
+      }]))
+      markerTops.value = {}
+      markerWidths.value = {}
+      labelBounds.value = []
+      compactMinimum.value = '0px'
+      leaders.value = []
+      return
+    }
+    const labels = compactEquipmentLabels(anchors, headingBottom, markerHeights)
     // Adjacent labels alternate rows, so size against neighbours in the same row.
     const rowWidths = [0, 1].map(row => compactRowWidths(anchors.filter((_, index) => index % 2 === row), sceneRect.width))
     const widths = anchors.map((_, index) => rowWidths[index % 2]?.[Math.floor(index / 2)] ?? 44)
@@ -372,14 +442,14 @@ function updateLeaders() {
     }
     markerTops.value = Object.fromEntries(artworkPositions.map((item, index) => [item.id, labels[index]?.top ?? headingBottom + 22]))
     markerWidths.value = Object.fromEntries(artworkPositions.map((item, index) => [item.id, widths[index] ?? 100]))
-    labelBounds.value = mobile.value ? [] : labels.map((label, index) => ({
+    labelBounds.value = labels.map((label, index) => ({
       x: label.x - (widths[index] ?? 100) / sceneRect.width / 2 - .01,
       y: label.top / sceneRect.height - .006,
       width: (widths[index] ?? 100) / sceneRect.width + .02,
       height: (markerHeights[index] ?? 70) / sceneRect.height + .012,
     }))
     // The diagram remains one scene; very short views can pan its complete height.
-    compactMinimum.value = mobile.value ? '0px' : `${Math.max(620, Math.max(...labels.map((label, index) => label.top + (markerHeights[index] ?? 70))) + drawnHeight + 24)}px`
+    compactMinimum.value = `${Math.max(620, Math.max(...labels.map((label, index) => label.top + (markerHeights[index] ?? 70))) + drawnHeight + 24)}px`
     leaders.value = artworkPositions.map((item, index) => ({
       id: item.id,
       targetX: anchors[index] ?? .5,
@@ -443,6 +513,24 @@ watch(imageUnavailable, failed => {
 })
 
 watch([desktop, usableImage], () => { void nextTick(updateLeaders) })
+watch(previewSlug, (slug, previous) => {
+  previewLineVisible.value = false
+  if (!slug) {
+    previewShown.value = false
+    return
+  }
+  // Let the preview mount and measure, then fade it in and draw its line on the next frame.
+  void nextTick(() => {
+    updateLeaders()
+    if (!previous) previewElement.value?.focus({ preventScroll: true })
+    requestAnimationFrame(() => {
+      if (previewSlug.value !== slug) return
+      previewShown.value = true
+      previewLineVisible.value = true
+    })
+  })
+})
+watch([isExiting, mobile], ([exiting, isMobile]) => { if (exiting || !isMobile) previewSlug.value = null })
 
 onMounted(() => {
   enhanced.value = true
@@ -539,30 +627,66 @@ onBeforeUnmount(() => {
       </div>
 
       <CommercialLeaderLayer
-        v-if="leaders.length && enhanced && usableImage && !imageUnavailable"
-        :leaders="leaders"
-        :visible-count="revealed"
+        v-if="sceneLeaders.length && enhanced && usableImage && !imageUnavailable"
+        :leaders="sceneLeaders"
+        :visible-count="mobile ? (previewLineVisible ? 1 : 0) : revealed"
         :retracting="isExiting"
-        :selected-id="selectedServiceSlug"
+        :selected-id="mobile ? previewSlug : selectedServiceSlug"
         :reduced-motion="reducedMotion"
         :label-bounds="desktop ? undefined : labelBounds"
       />
 
-      <div v-if="enhanced && usableImage && !imageUnavailable" ref="markerElement" class="commercial-building-scene__markers">
-        <NuxtLink
+      <div v-if="enhanced && usableImage && !imageUnavailable" ref="markerElement" class="commercial-building-scene__markers" :class="{ 'is-cards': mobile, 'has-preview': mobile && Boolean(previewSlug) }" :style="mobile ? { top: `${cardsTop}px` } : undefined">
+        <component
+          :is="mobile ? 'button' : NuxtLink"
           v-for="(service, index) in commercialServices"
           :key="service.slug"
           class="commercial-building-scene__marker"
           :class="{ 'is-visible': index < revealed && !isExiting, 'is-selected': selectedServiceSlug === service.slug }"
-          :style="{ left: `${(leaderFor(service.slug)?.labelX ?? .5) * 100}%`, top: `${markerTops[service.slug] ?? 0}px`, width: desktop ? undefined : `${markerWidths[service.slug] ?? 100}px` }"
-          :to="`/commercial/services/${service.slug}`"
-          :inert="!markersAvailable"
-          :aria-hidden="!markersAvailable || undefined"
-          @click="emit('service-select', service.slug)"
+          :style="mobile ? undefined : { left: `${(leaderFor(service.slug)?.labelX ?? .5) * 100}%`, top: `${markerTops[service.slug] ?? 0}px`, width: desktop ? undefined : `${markerWidths[service.slug] ?? 100}px` }"
+          :to="mobile ? undefined : `/commercial/services/${service.slug}`"
+          :type="mobile ? 'button' : undefined"
+          :data-slug="service.slug"
+          :inert="!markersAvailable || (mobile && Boolean(previewSlug))"
+          :aria-hidden="!markersAvailable || (mobile && Boolean(previewSlug)) || undefined"
+          @click="mobile ? openPreview(service.slug) : emit('service-select', service.slug)"
         >
           <strong>{{ service.title }}</strong>
           <span v-if="!mobile">{{ desktop ? service.shortLine : compactDescriptions[service.slug] }}</span>
-        </NuxtLink>
+        </component>
+      </div>
+
+      <div
+        v-if="mobile && previewService"
+        :id="previewId"
+        ref="previewElement"
+        class="commercial-building-scene__preview"
+        :class="{ 'is-visible': previewShown }"
+        :style="{ top: `${previewTop}px` }"
+        role="group"
+        :aria-label="`${previewService.title}, service ${previewIndex + 1} of ${commercialServices.length}`"
+        tabindex="-1"
+        :inert="!markersAvailable"
+        @keydown="onPreviewKeydown"
+      >
+        <button class="commercial-building-scene__preview-close" type="button" aria-label="Close preview" @click="closePreview(true)">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M3.5 3.5l9 9m0-9l-9 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        </button>
+        <div class="commercial-building-scene__preview-body">
+          <div v-if="previewService.primaryImage" class="commercial-building-scene__preview-media">
+            <img :src="$sitePath(previewService.primaryImage)" width="1536" height="1024" :alt="previewService.imageAlt" loading="lazy" decoding="async">
+          </div>
+          <div class="commercial-building-scene__preview-copy">
+            <strong>{{ previewService.title }}</strong>
+            <p>{{ previewService.shortLine }}</p>
+            <NuxtLink class="commercial-building-scene__preview-more" :to="`/commercial/services/${previewService.slug}`" @click="emit('service-select', previewService.slug)">View more<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
+          </div>
+        </div>
+        <div class="commercial-building-scene__preview-nav">
+          <button class="commercial-building-scene__preview-step" type="button" aria-label="Previous service" @click="stepPreview(-1)"><span class="icon icon--arrow icon--back" aria-hidden="true" /></button>
+          <span class="commercial-building-scene__preview-count" aria-hidden="true">{{ previewIndex + 1 }} / {{ commercialServices.length }}</span>
+          <button class="commercial-building-scene__preview-step" type="button" aria-label="Next service" @click="stepPreview(1)"><span class="icon icon--arrow" aria-hidden="true" /></button>
+        </div>
       </div>
 
       <div class="commercial-building-scene__actions">
@@ -665,6 +789,53 @@ onBeforeUnmount(() => {
   .commercial-building-scene__marker strong { font-size: 12px; line-height: 1.25; text-wrap: balance; }
   .commercial-building-scene__actions { gap: 8px; }
   .commercial-building-scene__action { min-height: 44px; padding: 10px 16px; font-size: 13px; }
+}
+/* Phones: tappable service cards in a wrapped row instead of the leader map. The seventh card wraps alone and centres itself. */
+.commercial-building-scene__markers.is-cards { --commercial-card-columns: 3; --commercial-card-gap: 10px; bottom: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--commercial-card-gap); inset-inline: clamp(16px, 5vw, 24px); }
+.commercial-building-scene__markers.is-cards .commercial-building-scene__marker { position: relative; flex: 0 0 auto; justify-content: center; appearance: none; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; width: calc((100% - var(--commercial-card-gap) * (var(--commercial-card-columns) - 1)) / var(--commercial-card-columns)); min-height: 60px; padding: 10px 6px; border: 1px solid #d5e8d94d; border-radius: 14px; background: #ffffff14; transform: translateY(10px); transition: opacity 200ms ease, transform 200ms ease, color 180ms ease, border-color 180ms ease, background-color 180ms ease; }
+.commercial-building-scene__markers.is-cards .commercial-building-scene__marker.is-visible { transform: none; }
+.commercial-building-scene__markers.is-cards .commercial-building-scene__marker strong { font-size: 13px; line-height: 1.25; }
+.commercial-building-scene__markers.is-cards .commercial-building-scene__marker:hover,
+.commercial-building-scene__markers.is-cards .commercial-building-scene__marker:focus-visible,
+.commercial-building-scene__markers.is-cards .commercial-building-scene__marker.is-selected { border-color: #a0ebbb; background: #a0ebbb1f; }
+/* Tapping a card hides the row; its preview takes the same sky, with a line down to that equipment. */
+.commercial-building-scene__markers.is-cards.has-preview .commercial-building-scene__marker { opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-6px); transition: opacity 160ms ease, transform 160ms ease, visibility 0s linear 160ms; }
+.commercial-building-scene__preview { position: absolute; z-index: 3; inset-inline: clamp(16px, 5vw, 24px); display: grid; gap: 10px; padding: 12px; border: 1px solid #a0ebbb66; border-radius: 18px; background: #0f3a2ae6; box-shadow: 0 12px 32px #04120b73; color: #f6fbf7; text-align: left; opacity: 0; transform: translateY(8px); transition: opacity 200ms ease, transform 240ms cubic-bezier(.22, 1, .36, 1); }
+.commercial-building-scene__preview.is-visible { opacity: 1; transform: none; }
+.commercial-building-scene__preview:focus { outline: none; }
+.commercial-building-scene__preview-close { position: absolute; top: 8px; right: 8px; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid #d5e8d94d; border-radius: 50%; background: #ffffff14; color: inherit; cursor: pointer; transition: background-color .2s ease, border-color .2s ease; }
+.commercial-building-scene__preview-close:hover { border-color: #a0ebbb; background: #ffffff26; }
+.commercial-building-scene__preview-body { display: grid; grid-template-columns: 108px minmax(0, 1fr); gap: 12px; padding-right: 36px; }
+.commercial-building-scene__preview-media { position: relative; min-height: 84px; overflow: hidden; border-radius: 10px; background: #062319; }
+.commercial-building-scene__preview-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.commercial-building-scene__preview-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.commercial-building-scene__preview-copy strong { font-size: 15px; line-height: 1.25; }
+.commercial-building-scene__preview-copy p { margin: 0; color: #cfddd1; font-size: 12px; line-height: 1.4; }
+.commercial-building-scene__preview-more { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; margin-top: 6px; padding: 6px 14px; border-radius: 100px; background: var(--green); color: var(--stage); font-size: 13px; font-weight: 600; line-height: 1.25; text-decoration: none; transition: background-color .2s ease; }
+.commercial-building-scene__preview-more .icon { width: 14px; height: 14px; }
+.commercial-building-scene__preview-more:hover { background: var(--green-bright); }
+.commercial-building-scene__preview-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid #d5e8d933; }
+.commercial-building-scene__preview-step { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 40px; padding: 0; border: 1px solid #d5e8d94d; border-radius: 100px; background: #ffffff14; color: inherit; cursor: pointer; transition: background-color .2s ease, border-color .2s ease; }
+.commercial-building-scene__preview-step:hover { border-color: #a0ebbb; background: #ffffff26; }
+.commercial-building-scene__preview-step .icon { width: 16px; height: 16px; }
+.commercial-building-scene__preview-count { color: #cfddd1; font-size: 12px; font-weight: 600; letter-spacing: .08em; }
+@media (max-width: 374px) {
+  .commercial-building-scene__preview { padding: 10px; }
+  .commercial-building-scene__preview-body { grid-template-columns: 92px minmax(0, 1fr); gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .commercial-building-scene__markers.is-cards.has-preview .commercial-building-scene__marker, .commercial-building-scene__preview { transition-duration: 100ms; }
+}
+.commercial-building-scene.is-reduced .commercial-building-scene__markers.is-cards.has-preview .commercial-building-scene__marker,
+.commercial-building-scene.is-reduced .commercial-building-scene__preview { transition-duration: 100ms; }
+@media (max-width: 1023px) and (orientation: landscape) {
+  .commercial-building-scene__markers.is-cards { --commercial-card-columns: 4; --commercial-card-gap: 8px; }
+  .commercial-building-scene__markers.is-cards .commercial-building-scene__marker { min-height: 48px; padding: 6px 8px; }
+}
+@media (max-width: 374px) {
+  .commercial-building-scene__markers.is-cards { --commercial-card-gap: 8px; }
+  .commercial-building-scene__markers.is-cards .commercial-building-scene__marker { min-height: 52px; padding: 8px 6px; }
+  .commercial-building-scene__markers.is-cards .commercial-building-scene__marker strong { font-size: 12px; }
 }
 @media (max-width: 1023px) and (orientation: portrait) {
   .commercial-building-scene { --commercial-art-exposure: .82; --commercial-mobile-art-width: min(max(100cqw, calc(40svh / var(--commercial-mobile-art-ratio))), 120cqw); }

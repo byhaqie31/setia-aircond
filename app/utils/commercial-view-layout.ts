@@ -6,7 +6,8 @@ export interface CommercialLeader {
   targetY: number
   labelX: number
   labelY: number
-  elbow?: 'at-target-height' | 'at-label-height'
+  /** 'direct' draws one straight segment from the dot to the label point. */
+  elbow?: 'at-target-height' | 'at-label-height' | 'direct'
 }
 
 export interface CommercialLabelBounds {
@@ -19,13 +20,6 @@ export interface CommercialLabelBounds {
 export interface CompactSceneLabel {
   x: number
   top: number
-}
-
-/** Keep a full mobile group on one row directly above the artwork. */
-export function compactRowLabels(anchors: readonly number[], headingBottom: number, artworkTop: number, heights: readonly number[]): CompactSceneLabel[] {
-  const rowHeight = Math.max(44, ...heights)
-  const top = Math.max(headingBottom + 24, artworkTop - rowHeight - 32)
-  return anchors.map(x => ({ x, top }))
 }
 
 /** Fit non-overlapping touch targets around the exact vertical leader anchors. */
@@ -71,6 +65,7 @@ export function compactEquipmentLabels(anchors: readonly number[], headingBottom
 /** Lines grow from the equipment/city dot towards the label in both layouts. */
 export function commercialLeaderPath(leader: CommercialLeader): string {
   const point = (x: number, y: number) => `${x * 1000} ${y * 1000}`
+  if (leader.elbow === 'direct') return `M ${point(leader.targetX, leader.targetY)} L ${point(leader.labelX, leader.labelY)}`
   if (leader.elbow) {
     const corner = leader.elbow === 'at-target-height'
       ? point(leader.labelX, leader.targetY)
