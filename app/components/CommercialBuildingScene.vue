@@ -117,6 +117,7 @@ function onPreviewKeydown(event: KeyboardEvent) {
   }
 }
 const compactDescriptions: Record<string, string> = {
+  'cassette-ceiling-ducted': 'Install & service',
   'cooling-tower': 'Install & maintain',
   pump: 'Flow enquiries',
   chiller: 'Service & repair',
@@ -127,6 +128,7 @@ const compactDescriptions: Record<string, string> = {
 }
 
 const equipmentPositions = [
+  { id: 'cassette-ceiling-ducted', x: .120, y: .550 },
   { id: 'cooling-tower', x: .300, y: .245 },
   { id: 'pump', x: .425, y: .350 },
   { id: 'chilled-water-piping', x: .470, y: .325 },
@@ -136,6 +138,7 @@ const equipmentPositions = [
   { id: 'duct-services', x: .903, y: .365 },
 ] as const
 const mobileEquipmentPositions = [
+  { id: 'cassette-ceiling-ducted', x: .190, y: .400 },
   { id: 'cooling-tower', x: .220, y: .130 },
   { id: 'pump', x: .400, y: .280 },
   { id: 'chilled-water-piping', x: .463, y: .240 },
@@ -460,7 +463,7 @@ function updateLeaders() {
     return
   }
   labelBounds.value = []
-  const raise = (index: number) => ['chilled-water-piping', 'duct-services'].includes(equipmentPositions[index]?.id ?? '') ? (markerHeights[index] ?? 100) + 24 : 0
+  const raise = (index: number) => ['cassette-ceiling-ducted', 'chilled-water-piping', 'duct-services'].includes(equipmentPositions[index]?.id ?? '') ? (markerHeights[index] ?? 100) + 24 : 0
   // Leader lines keep at least this much height between a label and its equipment.
   const roofClearance = (leader: number) => Math.min(...equipmentPositions.map((item, index) =>
     drawnTop + item.y * drawnHeight - sceneRect.top - (markerHeights[index] ?? 100) - leader,
@@ -471,7 +474,8 @@ function updateLeaders() {
   let rowTop = Math.min(sceneRect.height * .38, roofClearance(48))
   if (rowTop < clearHeading) rowTop = Math.min(clearHeading, roofClearance(24))
   markerTops.value = Object.fromEntries(equipmentPositions.map((item, index) => [item.id, rowTop - raise(index)]))
-  // Follow the client's two square-corner routes into the empty left side.
+  // Follow the client's two square-corner routes into the empty left side. The indoor-unit label rises above them nearer the edge,
+  // so its straight line passes left of the cooling tower label and never crosses that route.
   leaders.value = equipmentPositions.map((item, index) => {
     const targetX = (drawnLeft + item.x * drawnWidth - sceneRect.left) / sceneRect.width
     const targetY = (drawnTop + item.y * drawnHeight - sceneRect.top) / sceneRect.height
@@ -481,7 +485,7 @@ function updateLeaders() {
       id: item.id,
       targetX,
       targetY,
-      labelX: item.id === 'cooling-tower' ? .10 : item.id === 'pump' ? .29 : Math.max(inset, Math.min(1 - inset, targetX)),
+      labelX: item.id === 'cooling-tower' ? .15 : item.id === 'pump' ? .29 : Math.max(inset, Math.min(1 - inset, targetX)),
       labelY: ((markerTops.value[item.id] ?? 0) + (markerHeights[index] ?? 100)) / sceneRect.height,
       elbow: item.id === 'cooling-tower' ? 'at-target-height' : item.id === 'pump' ? 'at-label-height' : undefined,
     }
@@ -689,10 +693,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div class="commercial-building-scene__actions">
-        <NuxtLink class="commercial-building-scene__action" to="/"><span class="icon icon--home" aria-hidden="true" />Back home</NuxtLink>
-        <a class="commercial-building-scene__action commercial-building-scene__action--next" :href="$sitePath('/commercial?scene=clients')" :aria-disabled="phase === 'exit' || undefined" @click.prevent="requestNext"><span class="icon icon--people" aria-hidden="true" />Show clientele</a>
-      </div>
+      <a class="commercial-building-scene__cue" :class="{ 'is-ready': stage === 'ready' }" :href="$sitePath('/commercial?scene=clients')" :aria-disabled="phase === 'exit' || undefined" @click.prevent="requestNext">Scroll to explore<span class="commercial-building-scene__cue-line" aria-hidden="true"><i /></span></a>
       <p v-if="imageUnavailable" class="commercial-building-scene__fallback" role="status">Explore the commercial services below.</p>
     </div>
 
@@ -730,17 +731,16 @@ onBeforeUnmount(() => {
 .commercial-building-scene__marker:hover, .commercial-building-scene__marker:focus-visible, .commercial-building-scene__marker.is-selected { color: #a0ebbb; }
 .commercial-building-scene__marker strong { font-size: clamp(15px, 1.1vw, 18px); line-height: 1.2; }
 .commercial-building-scene__marker span { max-width: 22ch; color: #cfddd1; font-size: clamp(12px, .8vw, 14px); line-height: 1.35; }
-.commercial-building-scene__actions { position: absolute; z-index: 5; inset-inline: 16px; bottom: max(22px, 3.5svh); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; pointer-events: none; }
-/* Secondary pill is white, like the client scene arrows; --next is the green primary. */
-.commercial-building-scene__action { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; padding: 12px 22px; border: 1px solid transparent; border-radius: 100px; color: var(--service-stage); background: var(--paper); box-shadow: 0 2px 10px #0617104d; font-size: 14px; font-weight: 600; line-height: 1.25; white-space: nowrap; text-decoration: none; pointer-events: auto; transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease; }
-.commercial-building-scene__action .icon { width: 16px; height: 16px; }
-.commercial-building-scene__action:hover { background: #fff; box-shadow: 0 4px 14px #06171066; transform: translateY(-1px); }
-.commercial-building-scene__action--next { color: var(--stage); background: var(--green); box-shadow: none; }
-.commercial-building-scene__action--next:hover { background: var(--green-bright); box-shadow: none; }
-.commercial-building-scene__action[aria-disabled='true'] { cursor: wait; }
-.commercial-building-scene__heading, .commercial-building-scene__actions, .commercial-building-scene__service-list { transition: opacity 220ms ease; }
-.commercial-building-scene.is-exiting :is(.commercial-building-scene__heading, .commercial-building-scene__actions, .commercial-building-scene__service-list) { opacity: 0; pointer-events: none; }
-.commercial-building-scene.is-exiting .commercial-building-scene__action { pointer-events: none; }
+/* The only way on is to scroll: a quiet cue where the buttons were, its dot travelling down the line like the residential cue. */
+.commercial-building-scene__cue { position: absolute; z-index: 5; left: 50%; bottom: max(22px, 3.5svh); display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 140px; min-height: 52px; padding: 6px 12px; color: #e4f0e6; font-size: 13px; font-weight: 600; letter-spacing: .02em; text-decoration: none; opacity: 0; pointer-events: none; transform: translateX(-50%); transition: opacity 320ms ease, color 180ms ease; }
+.commercial-building-scene__cue.is-ready { opacity: 1; pointer-events: auto; transition-delay: 240ms, 0ms; }
+.commercial-building-scene__cue:hover, .commercial-building-scene__cue:focus-visible { color: #a0ebbb; }
+.commercial-building-scene__cue[aria-disabled='true'] { cursor: wait; }
+.commercial-building-scene__cue-line { position: relative; width: 1px; height: 22px; background: #c2d9c8a6; }
+.commercial-building-scene__cue-line i { position: absolute; left: -2px; top: -2px; width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: commercial-scroll-dot 2.2s cubic-bezier(.45, 0, .55, 1) infinite; }
+@keyframes commercial-scroll-dot { 0%, 12% { transform: translateY(0); opacity: 0; } 20% { transform: translateY(0); opacity: 1; } 82% { transform: translateY(22px); opacity: 1; } 96%, 100% { transform: translateY(22px); opacity: 0; } }
+.commercial-building-scene__heading, .commercial-building-scene__service-list { transition: opacity 220ms ease; }
+.commercial-building-scene.is-exiting :is(.commercial-building-scene__heading, .commercial-building-scene__cue, .commercial-building-scene__service-list) { opacity: 0; pointer-events: none; transition-delay: 0ms; }
 .commercial-building-scene__fallback { position: absolute; top: 50%; left: clamp(24px, 5.5vw, 104px); max-width: 28ch; color: #c9dfcf; font-size: 17px; line-height: 1.45; }
 .commercial-building-scene :is(a, button):focus-visible { outline: 2px solid #a0ebbb; outline-offset: 4px; }
 .commercial-building-scene__service-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; padding: 22px clamp(24px, 5.5vw, 104px) 100px; }
@@ -778,7 +778,7 @@ onBeforeUnmount(() => {
 @media (max-width: 1099px), (max-height: 699px) {
   .commercial-building-scene.is-enhanced { overflow-x: clip; overflow-y: auto; overscroll-behavior: contain; }
   .commercial-building-scene.is-enhanced .commercial-building-scene__stage { height: max(620px, 100svh, var(--commercial-compact-min, 620px)); }
-  .commercial-building-scene__actions { bottom: max(12px, env(safe-area-inset-bottom)); }
+  .commercial-building-scene__cue { bottom: max(12px, env(safe-area-inset-bottom)); }
 }
 @media (max-width: 1023px) {
   .commercial-building-scene__stage,
@@ -787,10 +787,9 @@ onBeforeUnmount(() => {
   .commercial-building-scene__image { object-position: center bottom; }
   .commercial-building-scene__marker { justify-content: end; min-height: 44px; padding: 4px 2px; }
   .commercial-building-scene__marker strong { font-size: 12px; line-height: 1.25; text-wrap: balance; }
-  .commercial-building-scene__actions { gap: 8px; }
-  .commercial-building-scene__action { min-height: 44px; padding: 10px 16px; font-size: 13px; }
+  .commercial-building-scene__cue { min-height: 44px; font-size: 12px; }
 }
-/* Phones: tappable service cards in a wrapped row instead of the leader map. The seventh card wraps alone and centres itself. */
+/* Phones: tappable service cards in a wrapped row instead of the leader map. Eight cards wrap 3 / 3 / 2 and the short last row centres itself. */
 .commercial-building-scene__markers.is-cards { --commercial-card-columns: 3; --commercial-card-gap: 10px; bottom: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--commercial-card-gap); inset-inline: clamp(16px, 5vw, 24px); }
 .commercial-building-scene__markers.is-cards .commercial-building-scene__marker { position: relative; flex: 0 0 auto; justify-content: center; appearance: none; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; width: calc((100% - var(--commercial-card-gap) * (var(--commercial-card-columns) - 1)) / var(--commercial-card-columns)); min-height: 60px; padding: 10px 6px; border: 1px solid #d5e8d94d; border-radius: 14px; background: #ffffff14; transform: translateY(10px); transition: opacity 200ms ease, transform 200ms ease, color 180ms ease, border-color 180ms ease, background-color 180ms ease; }
 .commercial-building-scene__markers.is-cards .commercial-building-scene__marker.is-visible { transform: none; }
@@ -875,7 +874,9 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
   .commercial-building-scene__plate, .commercial-building-scene__image--lit, .commercial-building-scene__marker { transition-duration: 100ms; }
   .commercial-building-scene__street, .commercial-building-scene__street::after { transition-duration: 100ms; transition-delay: 0ms; }
+  .commercial-building-scene__cue-line i { animation: none; transform: translateY(11px); opacity: .65; }
 }
+.commercial-building-scene.is-reduced .commercial-building-scene__cue-line i { animation: none; transform: translateY(11px); opacity: .65; }
 .commercial-building-scene.is-reduced .commercial-building-scene__plate,
 .commercial-building-scene.is-reduced .commercial-building-scene__image--lit,
 .commercial-building-scene.is-reduced .commercial-building-scene__marker { transition-duration: 100ms; }

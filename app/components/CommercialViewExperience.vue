@@ -7,7 +7,6 @@ type Scene = 'services' | 'clients'
 const props = defineProps<{ arrival?: ArrivalMode | null }>()
 const route = useRoute()
 const router = useRouter()
-const { $scrollTo } = useNuxtApp()
 const supportHashes = ['#certifications', '#capability', '#commercial-brands', '#tender', '#commercial-contacts', '#brands']
 const sceneFromRoute = (): Scene => route.query.scene === 'clients' || supportHashes.includes(route.hash) || (!route.query.scene && route.hash === '#commercial-clients') ? 'clients' : 'services'
 const scene = ref<Scene>(sceneFromRoute())
@@ -25,9 +24,14 @@ const buildingArrived = ref(false)
 let motionQuery: MediaQueryList | undefined
 let headerTimer: ReturnType<typeof setTimeout> | undefined
 let scrollReleaseUntil = 0
-let touchStart: { x: number; y: number; panning: boolean } | null = null
+let touchStart: { x: number; y: number; panning: boolean; atTop: boolean } | null = null
 let touchConsumed = false
 let consumedScrollKey: string | null = null
+/** Scroll input moves the scenes. This much wheel travel or finger travel is a deliberate gesture rather than a nudge. */
+const WHEEL_INTENT = 40
+const TOUCH_INTENT = 48
+let wheelGesture: { sum: number; atTop: boolean } | null = null
+let lastWheelAt = 0
 
 const scrollLocked = computed(() => enhanced.value && (scene.value === 'services' || sceneMoving.value || phase.value !== 'ready'))
 
@@ -48,23 +52,45 @@ function consumeScroll(event: Event) {
   event.stopPropagation()
 }
 
+/** A gesture is one stream of wheel events; a quiet gap starts the next, remembering where the page stood when it began. */
+function wheelGestureFor(event: WheelEvent) {
+  const now = performance.now()
+  if (!wheelGesture || now - lastWheelAt > 350) wheelGesture = { sum: 0, atTop: window.scrollY <= 2 }
+  lastWheelAt = now
+  wheelGesture.sum += event.deltaY
+  return wheelGesture
+}
+
 function onWheel(event: WheelEvent) {
   if (event.ctrlKey || ignoresScroll(event.target) || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return
+  const gesture = wheelGestureFor(event)
   if (!scrollLocked.value) {
     // Briefly absorb transition inertia, then allow continuous scrolling into
     // the support chapters. A stream of wheel events must never extend the lock.
     if (performance.now() < scrollReleaseUntil) consumeScroll(event)
+    // At the top of the clients screen a fresh upward gesture climbs back into the building.
+    // Inertia left over from scrolling up to the top began lower down, so it never counts.
+    else if (scene.value === 'clients' && gesture.atTop && gesture.sum <= -WHEEL_INTENT && window.scrollY <= 2) {
+      consumeScroll(event)
+      onClientBack()
+    }
     return
   }
-  // The scenes move only by their buttons, so a locked scene just absorbs the
-  // wheel, except where the compact diagram still has room to pan.
-  if (scene.value === 'services' && phase.value === 'ready' && !sceneMoving.value && canScrollList(event.target, event.deltaY)) return
+  // A locked scene absorbs the wheel. Where the compact diagram still has room to pan it pans
+  // natively instead, and the next gesture after the pan is the one that moves the scene on.
+  if (scene.value === 'services' && phase.value === 'ready' && !sceneMoving.value) {
+    if (canScrollList(event.target, event.deltaY)) {
+      wheelGesture = null
+      return
+    }
+    if (gesture.sum >= WHEEL_INTENT) onBuildingNext()
+  }
   consumeScroll(event)
 }
 
 function onTouchStart(event: TouchEvent) {
   const touch = event.touches.length === 1 ? event.touches[0] : undefined
-  touchStart = touch && !ignoresScroll(event.target) ? { x: touch.clientX, y: touch.clientY, panning: canScrollList(event.target) } : null
+  touchStart = touch && !ignoresScroll(event.target) ? { x: touch.clientX, y: touch.clientY, panning: canScrollList(event.target), atTop: window.scrollY <= 2 } : null
   touchConsumed = false
 }
 
@@ -72,14 +98,24 @@ function onTouchMove(event: TouchEvent) {
   const touch = event.touches.length === 1 ? event.touches[0] : undefined
   if (!touch || !touchStart) return
   const down = touchStart.y - touch.clientY
-  if (!scrollLocked.value && !touchConsumed) return
   if (Math.abs(touch.clientX - touchStart.x) >= Math.abs(down)) return
+  if (!scrollLocked.value && !touchConsumed) {
+    // At the top of the clients screen, pulling down past the slack climbs back into the building.
+    if (scene.value === 'clients' && touchStart.atTop && down <= -TOUCH_INTENT) {
+      consumeScroll(event)
+      touchConsumed = true
+      onClientBack()
+    }
+    return
+  }
   // The compact diagram pans natively until it reaches its boundary.
   if (!touchConsumed && scene.value === 'services' && phase.value === 'ready') {
     if (touchStart.panning || (down < 0 && canScrollList(event.target, -1))) return
   }
   consumeScroll(event)
   touchConsumed = true
+  // Past the slack, an upward swipe on the settled building moves on to the clients.
+  if (scene.value === 'services' && phase.value === 'ready' && !sceneMoving.value && down >= TOUCH_INTENT) onBuildingNext()
 }
 
 function onTouchEnd() { touchStart = null; touchConsumed = false }
@@ -91,12 +127,20 @@ function onScrollKey(event: KeyboardEvent) {
   const up = ['ArrowUp', 'PageUp', 'Home'].includes(event.key) || (event.key === ' ' && event.shiftKey)
   if (!scrollLocked.value) {
     if (event.repeat && consumedScrollKey === event.key) consumeScroll(event)
+    // At the top of the clients screen, Arrow Up or Page Up climbs back into the building.
+    else if (scene.value === 'clients' && !event.repeat && ['ArrowUp', 'PageUp'].includes(event.key) && window.scrollY <= 2) {
+      consumeScroll(event)
+      consumedScrollKey = event.key
+      onClientBack()
+    }
     return
   }
   if (!down && !up) return
   if (scene.value === 'services' && phase.value === 'ready' && canScrollList(event.target, down ? 1 : -1)) return
   consumeScroll(event)
   consumedScrollKey = event.key
+  // A downward key on the settled building moves on to the clients.
+  if (down && !event.repeat && scene.value === 'services' && phase.value === 'ready' && !sceneMoving.value) onBuildingNext()
 }
 
 function onScrollKeyUp(event: KeyboardEvent) {
@@ -149,12 +193,6 @@ function onClientBack() {
   goingBack.value = true
   sceneMoving.value = true
   phase.value = 'exit'
-}
-
-// The floating control climbs back through the clients screen first, then plays its usual exit into the building.
-function returnToBuilding() {
-  if (scene.value !== 'clients' || phase.value !== 'ready' || sceneMoving.value) return
-  $scrollTo(0, { immediate: reducedMotion.value, onComplete: onClientBack })
 }
 
 function onClientExit() {
@@ -310,7 +348,8 @@ onBeforeUnmount(() => {
     </section>
 
     <CommercialSupportSections v-if="scene !== 'clients' && !enhanced" :scene-ready="!scrollLocked" />
-    <FloatingReturn v-if="enhanced" :threshold="1" focus-target="#commercial-clients" :home-to="null" home-label="Back to commercial" home-icon="icon--factory" @home="returnToBuilding" />
+    <!-- Home floats only once the building section is behind the visitor: from the first pixel of the clients screen on. -->
+    <FloatingReturn v-if="enhanced && scene === 'clients'" shown focus-target="#commercial-clients" />
   </main>
 </template>
 

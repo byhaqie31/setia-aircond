@@ -1,9 +1,10 @@
 <script setup lang="ts">
 // `threshold` is how many viewport heights the page must have scrolled before the control
-// appears; `focusTarget` receives focus once a back-to-top journey lands. The home action
-// links to `homeTo`, or with `homeTo` null it emits `home` for the page to handle in place.
-const props = withDefaults(defineProps<{ threshold?: number; focusTarget?: string; homeTo?: string | null; homeLabel?: string; homeIcon?: string }>(), {
-  threshold: .6, focusTarget: '#page-content', homeTo: '/', homeLabel: 'Back to home', homeIcon: 'icon--home',
+// appears, or `shown` keeps it on screen from the start; `focusTarget` receives focus once a
+// back-to-top journey lands. The home action links to `homeTo`, or with `homeTo` null it emits
+// `home` for the page to handle in place.
+const props = withDefaults(defineProps<{ threshold?: number; shown?: boolean; focusTarget?: string; homeTo?: string | null; homeLabel?: string; homeIcon?: string }>(), {
+  threshold: .6, shown: false, focusTarget: '#page-content', homeTo: '/', homeLabel: 'Back to home', homeIcon: 'icon--home',
 })
 const emit = defineEmits<{ home: [] }>()
 const { $scrollTo } = useNuxtApp()
@@ -23,7 +24,9 @@ function measure() {
     mode.value = delta < 0 ? 'top' : 'home'
     lastY = y
   }
-  visible.value = y > window.innerHeight * props.threshold
+  // Near the top there is nowhere further up to go, so a control shown from the start offers home.
+  if (y <= window.innerHeight * .5) mode.value = 'home'
+  visible.value = props.shown || y > window.innerHeight * props.threshold
 }
 
 function onScroll() {
@@ -39,6 +42,8 @@ function toTop() {
     onComplete: () => requestAnimationFrame(() => document.querySelector<HTMLElement>(props.focusTarget)?.focus({ preventScroll: true })),
   })
 }
+
+watch(() => props.shown, measure)
 
 onMounted(() => {
   lastY = window.scrollY

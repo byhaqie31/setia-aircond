@@ -27,6 +27,11 @@ function equipmentViews(slug: string, overview: string, system: EquipmentDetail,
 // Add approved client photos here. Use placement: 'gallery' for extra images;
 // the page grows automatically. Mark genuine project photos as non-illustrative.
 export const commercialServicePhotos: Record<string, CommercialServicePhoto[]> = {
+  'cassette-ceiling-ducted': [
+    { id: 'cassette-unit', placement: 'scope', src: '/images/commercial/details/project-cassette-detail-v1.webp', width: 1536, height: 1024, isIllustrative: true, alt: 'Representative ceiling cassette air conditioner installed flush below a concrete office ceiling', caption: 'Ceiling cassette unit and nearby pipework.' },
+    { id: 'indoor-units-office', placement: 'gallery', src: '/images/commercial/details/project-air-conditioning.webp', width: 1536, height: 1024, isIllustrative: true, alt: 'Illustrative commercial office with ceiling cassette, wall-mounted air conditioner and ducts', caption: 'Indoor units and ductwork in a commercial office.' },
+    { id: 'ducted-unit', placement: 'gallery', src: '/images/commercial/details/project-ac-detail.webp', width: 1536, height: 1024, isIllustrative: true, alt: 'Illustrative ducted indoor unit with refrigerant connections and ductwork above a ceiling', caption: 'Ducted unit, connections and supply duct.' },
+  ],
   'chilled-water-piping': [
     { id: 'piping-connections', placement: 'scope', src: '/images/commercial/details/pump.webp', width: 1536, height: 1024, isIllustrative: true, alt: 'Illustrative pump and connected cooling-system pipework', caption: 'Pipework and equipment connections.' },
     { id: 'piping-chiller', placement: 'gallery', src: '/images/commercial/details/chiller.webp', width: 1536, height: 1024, isIllustrative: true, alt: 'Illustrative water connections at a chiller', caption: 'Water connections at the cooling plant.' },

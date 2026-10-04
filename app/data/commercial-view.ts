@@ -35,6 +35,20 @@ export interface CommercialService {
 
 export const commercialServices: CommercialService[] = [
   {
+    id: 'cassette-ceiling-ducted', slug: 'cassette-ceiling-ducted', title: 'Cassette, ceiling exposed and ducted',
+    shortLine: 'Indoor unit supply, installation and servicing',
+    explanation: 'Cassette, ceiling-exposed and ducted units are the indoor air conditioners that cool offices, shops and other occupied areas. Setia supplies, installs and services all three types in commercial buildings.',
+    systemDetails: [
+      'A cassette unit sits flush in the ceiling and blows air out on four sides. A ceiling-exposed unit hangs below the ceiling where there is no ceiling void. A ducted unit is concealed above the ceiling and delivers air through ductwork and grilles.',
+      'The right type depends on ceiling height, the space above the ceiling and how each area is used. Share your floor plan or room list when requesting a quote so the unit mix can be matched to the space.',
+    ],
+    serviceItems: ['Cassette unit supply and installation', 'Ceiling-exposed unit supply and installation', 'Ducted unit supply and installation', 'Servicing and preventive maintenance'],
+    scopeStatus: 'client-confirmed', sourceRefs: ['clientServiceAdditions', 'projects'],
+    primaryImage: '/images/commercial/details/project-cassette-detail-v1.webp', secondaryImage: '/images/commercial/details/project-ac-detail.webp',
+    imageAlt: 'Representative ceiling cassette air conditioner installed flush below a concrete office ceiling',
+    detailAlt: 'Illustrative ducted indoor unit with refrigerant connections and ductwork above a ceiling',
+  },
+  {
     id: 'cooling-tower', slug: 'cooling-tower', title: 'Cooling tower',
     shortLine: 'Installation, repair and preventive maintenance',
     explanation: 'A cooling tower rejects heat from circulating water to the outside air. In a water-cooled building system, it helps the cooling plant release heat collected indoors.',
