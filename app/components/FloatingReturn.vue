@@ -1,32 +1,34 @@
 <script setup lang="ts">
-// `threshold` is how many viewport heights the page must have scrolled before the control
-// appears, or `shown` keeps it on screen from the start; `focusTarget` receives focus once a
-// back-to-top journey lands. The home action links to `homeTo`, or with `homeTo` null it emits
-// `home` for the page to handle in place.
+// `threshold` is how many viewport heights count as having scrolled: a threshold control appears
+// there, while a control kept on screen from the start with `shown` switches there from home to
+// back to top. `focusTarget` receives focus once a back-to-top journey lands. The home action
+// links to `homeTo`, or with `homeTo` null it emits `home` for the page to handle in place.
 const props = withDefaults(defineProps<{ threshold?: number; shown?: boolean; focusTarget?: string; homeTo?: string | null; homeLabel?: string; homeIcon?: string }>(), {
   threshold: .6, shown: false, focusTarget: '#page-content', homeTo: '/', homeLabel: 'Back to home', homeIcon: 'icon--home',
 })
-const emit = defineEmits<{ home: [] }>()
+// `top` fires once a back-to-top journey has landed, for pages whose first section lies beyond the scroll.
+const emit = defineEmits<{ home: []; top: [] }>()
 const { $scrollTo } = useNuxtApp()
 const visible = ref(false)
 const mode = ref<'home' | 'top'>('home')
 let lastY = 0
 let frame: number | undefined
 
-// Past the threshold the control reads the scroll direction with a little slack so a
-// slow or jittery wheel does not flicker it: moving down offers home, moving back up
-// offers the top of the page.
+// A control shown from the start reads position alone: home while the first screen is on view,
+// back to top once the page has scrolled past it. A threshold control appears past the threshold
+// and reads the scroll direction with a little slack so a slow or jittery wheel does not flicker
+// it: moving down offers home, moving back up offers the top of the page.
 function measure() {
   frame = undefined
   const y = window.scrollY
-  const delta = y - lastY
-  if (Math.abs(delta) > 8) {
-    mode.value = delta < 0 ? 'top' : 'home'
+  const scrolled = y > window.innerHeight * props.threshold
+  if (props.shown) {
+    mode.value = scrolled ? 'top' : 'home'
+  } else if (Math.abs(y - lastY) > 8) {
+    mode.value = y < lastY ? 'top' : 'home'
     lastY = y
   }
-  // Near the top there is nowhere further up to go, so a control shown from the start offers home.
-  if (y <= window.innerHeight * .5) mode.value = 'home'
-  visible.value = props.shown || y > window.innerHeight * props.threshold
+  visible.value = props.shown || scrolled
 }
 
 function onScroll() {
@@ -39,7 +41,10 @@ function toTop() {
     immediate: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     // Focus follows the journey so keyboard users do not stay on an off-screen button; the
     // frame's delay lets a scroll-driven scene lift any inert state first.
-    onComplete: () => requestAnimationFrame(() => document.querySelector<HTMLElement>(props.focusTarget)?.focus({ preventScroll: true })),
+    onComplete: () => requestAnimationFrame(() => {
+      document.querySelector<HTMLElement>(props.focusTarget)?.focus({ preventScroll: true })
+      emit('top')
+    }),
   })
 }
 

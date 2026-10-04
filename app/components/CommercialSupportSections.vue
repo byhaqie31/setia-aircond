@@ -210,8 +210,8 @@ async function initialize() {
           renderSupplierHeading(state.brandTitle)
           brandMarks.forEach((mark, i) => mark.style.setProperty('--brand-reveal', String(state.brandReveals[i] ?? 0)))
         }
-        // Leave a short reading gap, then reveal the heading's two lines while
-        // it is onscreen. Keep the existing supplier folds and enquiry clock.
+        // Leave a short reading gap, then reveal the heading and its description
+        // while they are onscreen. Keep the existing supplier folds and enquiry clock.
         gsap.fromTo(endingEntry, { progress: 0 }, {
           progress: 1, ease: 'none', onUpdate: () => renderEnding(endingClock.progress),
           scrollTrigger: {
@@ -371,9 +371,9 @@ onBeforeUnmount(() => { alive = false; motion?.revert(); motion = undefined })
       <div ref="endingStage" class="support-ending__stage">
         <section id="commercial-brands" class="service-brands" aria-labelledby="commercial-brands-heading" tabindex="-1" :inert="endingPinned && endingState.brandsOpacity < .05" :aria-hidden="endingPinned && endingState.brandsOpacity < .05 || undefined">
           <h2 id="commercial-brands-heading" data-support-reveal>
-            <span class="supplier-heading-line"><span>Supplying</span></span>
-            <span class="supplier-heading-line"><span>and supporting.</span></span>
+            <span class="supplier-heading-line"><span>Supplying and supporting.</span></span>
           </h2>
+          <p class="supplier-intro">Air-conditioning brands we work with.</p>
           <ul aria-label="Commercial air-conditioning brands">
             <li v-for="(brand, index) in commercialBrandLogos" :key="brand.name" data-commercial-brand :aria-hidden="endingPinned && (endingState.brandReveals[index] ?? 0) < .05 || undefined">
               <div class="service-brand-mark" data-brand-word>
@@ -444,10 +444,22 @@ onBeforeUnmount(() => { alive = false; motion?.revert(); motion = undefined })
 .support--pinned .service-brands { padding-top:80px; }
 .commercial-support .service-brands { background:#0b3022; }
 .support-ending--pinned .service-brands { justify-content:flex-start; padding-top:80px; }
-.commercial-support .service-brands h2 { opacity:1; transform:none; text-align:center; }
-.supplier-heading-line { --supplier-line:var(--supplier-first,1); display:block; overflow:clip; }
-.supplier-heading-line + .supplier-heading-line { --supplier-line:var(--supplier-second,1); }
-.supplier-heading-line > span { display:block; transform:translate3d(0,calc((1 - var(--supplier-line)) * 105%),0); }
+.commercial-support .service-brands h2 { margin-bottom:18px; opacity:1; transform:none; text-align:center; }
+/* Georgia's descenders reach below the tight line box, so padding keeps them inside the clip and the negative margin hands the space back; the hidden line then has to travel further to stay out of view. */
+.supplier-heading-line { --supplier-line:var(--supplier-first,1); display:block; overflow:clip; padding-bottom:.14em; margin-bottom:-.14em; }
+.supplier-heading-line > span { display:block; transform:translate3d(0,calc((1 - var(--supplier-line)) * 125%),0); }
+/* The description takes over the heading's gap to the logo grid at every size, and rises in on the reveal's second step. */
+.supplier-intro { --supplier-gap:64px; max-width:38ch; margin:0 auto var(--supplier-gap); color:#bed0c3; font-size:17px; line-height:1.65; text-align:center; opacity:var(--supplier-second,1); transform:translate3d(0,calc((1 - var(--supplier-second,1)) * 16px),0); }
+.support-ending--pinned .supplier-intro { --supplier-gap:clamp(32px,7svh,72px); }
+@media (max-width:700px) {
+  .supplier-intro { --supplier-gap:36px; font-size:15px; }
+  .support-ending--pinned .supplier-intro { --supplier-gap:32px; }
+}
+@media (min-width:701px) and (max-height:750px) { .support-ending--pinned .supplier-intro { --supplier-gap:32px; } }
+@media (max-aspect-ratio:1/1) and (max-height:700px) {
+  .commercial-support .support-ending--pinned .service-brands h2 { margin-bottom:12px; }
+  .support-ending--pinned .supplier-intro { --supplier-gap:24px; font-size:15px; }
+}
 .commercial-support .service-brand-image--light { filter:none; }
 .commercial-support .service-brand-image--solid { filter:brightness(0) invert(1); }
 .commercial-support .service-brand-image--reverse { filter:grayscale(1) invert(1) brightness(1.4); }

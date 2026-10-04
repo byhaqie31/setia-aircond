@@ -61,16 +61,21 @@ onBeforeUnmount(() => observer?.disconnect())
       <a class="residential-view__next" href="#residential-brands">Scroll to explore<span class="residential-view__next-line" aria-hidden="true"><i /></span></a>
     </section>
 
-    <section id="residential-brands" class="residential-view__brands" aria-labelledby="residential-brands-heading">
+    <!-- The brand strip is the shared service-brands design from Commercial and About; only the list is residential. -->
+    <section id="residential-brands" class="residential-view__brands service-brands" aria-labelledby="residential-brands-heading">
       <div class="residential-view__brands-heading" data-reveal>
         <h2 id="residential-brands-heading">Supplying and supporting.</h2>
         <p>Air-conditioning brands we work with.</p>
       </div>
-      <ul class="residential-view__brand-list" aria-label="Air-conditioning brands we supply and support">
-        <li v-for="(brand, index) in residentialBrandLogos" :key="brand.name" data-reveal :style="{ '--brand-delay': `${index * 130}ms` }">
-          <img :src="$sitePath(brand.src)" :alt="brand.name" :width="brand.width" :height="brand.height" :class="{ 'residential-view__brand-image--carrier': brand.name === 'Carrier' }" loading="lazy" decoding="async">
+      <ul aria-label="Air-conditioning brands we supply and support">
+        <li v-for="(brand, index) in residentialBrandLogos" :key="brand.name" data-reveal :style="{ '--brand-delay': `${index * 110}ms` }">
+          <div class="service-brand-mark" data-brand-word>
+            <div class="service-brand-image"><img :src="$sitePath(brand.src)" :alt="brand.name" :width="brand.width" :height="brand.height" :class="`service-brand-image--${brand.treatment}`" loading="lazy" decoding="async"></div>
+            <span class="service-brand-caption" aria-hidden="true">{{ brand.name }}</span>
+          </div>
         </li>
       </ul>
+      <p class="residential-view__brands-more" data-reveal>and many more</p>
     </section>
 
     <div class="residential-view__ending">
@@ -116,19 +121,19 @@ onBeforeUnmount(() => observer?.disconnect())
 .residential-view__next-line i { position: absolute; left: -2px; top: -2px; width: 5px; height: 5px; border-radius: 50%; background: #d5e8d9; animation: residential-scroll-dot 2.2s cubic-bezier(.45, 0, .55, 1) infinite; }
 @keyframes residential-scroll-dot { 0%, 12% { transform: translateY(0); opacity: 0; } 20% { transform: translateY(0); opacity: 1; } 82% { transform: translateY(22px); opacity: 1; } 96%, 100% { transform: translateY(22px); opacity: 0; } }
 .residential-view__next:hover { color: #a0ebbb; }
-.residential-view__brands h2 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(42px, 5vw, 74px); font-weight: 400; line-height: 1.05; letter-spacing: -.035em; text-wrap: balance; }
+/* The heading keeps its own block; the strip below takes the shared service-brands rules with the dark-ground treatments Commercial and About use. */
+.residential-view__brands h2 { margin: 0; text-wrap: balance; }
 .residential-view__brands-heading p { max-width: 38ch; margin: 0; color: #bed0c3; font-size: 17px; line-height: 1.65; }
 .residential-view__brands { padding: clamp(96px, 10vw, 150px) var(--page-gutter) clamp(110px, 11vw, 170px); background: #08271b; }
 .residential-view__brands-heading { width: min(100%, 1240px); margin: 0 auto 72px; text-align: center; }
 .residential-view__brands-heading p { margin: 18px auto 0; }
-.residential-view__brand-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 1240px); padding: 0; margin: auto; list-style: none; }
-.residential-view__brand-list li { display: flex; align-items: center; justify-content: center; min-height: 160px; padding: 30px; border-top: 1px solid #bed0c333; }
-.residential-view__brand-list li:nth-child(4n + 1) { border-left: 1px solid #bed0c333; }
-.residential-view__brand-list li { border-right: 1px solid #bed0c333; }
-.residential-view__brand-list li:nth-last-child(-n + 4) { border-bottom: 1px solid #bed0c333; }
-.residential-view__brand-list img { width: auto; height: auto; max-width: min(85%, 190px); max-height: 70px; object-fit: contain; filter: grayscale(1) brightness(0) invert(1); }
-.residential-view__brand-list .residential-view__brand-image--carrier { filter: grayscale(1) brightness(1.15); }
-.residential-view__brand-list img[alt='Midea'] { width: 180px; }
+.residential-view__brands ul { width: min(100%, 1240px); margin: 0 auto; }
+.residential-view__brands li::after { background: #bed0c34d; }
+.residential-view__brands .service-brand-caption { color: #bed0c3; }
+.residential-view__brands .service-brand-image--light { filter: none; }
+.residential-view__brands .service-brand-image--solid { filter: brightness(0) invert(1); }
+.residential-view__brands .service-brand-image--reverse { filter: grayscale(1) invert(1) brightness(1.4); }
+.residential-view__brands-more { margin: 24px 0 0; color: #bed0c3; font-size: 14px; line-height: 1.5; text-align: center; }
 .residential-view__ending { display: flex; flex-direction: column; min-height: 100svh; background: #0b3022; }
 /* The enquiry section and footer use their shared layout, as on About Us and Commercial. */
 .residential-view__ending :deep(.company-enquiry) { flex: 1; }
@@ -136,8 +141,13 @@ onBeforeUnmount(() => observer?.disconnect())
 @media (prefers-reduced-motion: no-preference) {
   .residential-view.has-reveals .residential-view__brands-heading[data-reveal] { transition: opacity .65s cubic-bezier(.22, 1, .36, 1), transform .65s cubic-bezier(.22, 1, .36, 1); }
   .residential-view.has-reveals .residential-view__brands-heading[data-reveal]:not(.is-visible) { opacity: .58; transform: translateY(18px); }
-  .residential-view.has-reveals .residential-view__brand-list li:not(.is-visible) { opacity: 0; transform: translateY(24px); transition: none; }
-  .residential-view.has-reveals .residential-view__brand-list li.is-visible { opacity: 1; transform: translateY(0); transition: opacity .65s cubic-bezier(.22, 1, .36, 1) var(--brand-delay, 0ms), transform .65s cubic-bezier(.22, 1, .36, 1) var(--brand-delay, 0ms); }
+  /* Each mark folds up as Commercial's do and its rule draws from the left, staggered along the row. */
+  .residential-view.has-reveals .residential-view__brands li [data-brand-word] { transform-origin: 50% 100%; transition: opacity .7s cubic-bezier(.22, 1, .36, 1) var(--brand-delay, 0ms), transform .7s cubic-bezier(.22, 1, .36, 1) var(--brand-delay, 0ms); }
+  .residential-view.has-reveals .residential-view__brands li::after { transition: transform .7s cubic-bezier(.22, 1, .36, 1) var(--brand-delay, 0ms); }
+  .residential-view.has-reveals .residential-view__brands li:not(.is-visible) [data-brand-word] { opacity: 0; transform: translate3d(0, 115%, 0) rotateX(65deg); }
+  .residential-view.has-reveals .residential-view__brands li:not(.is-visible)::after { transform: scaleX(0); }
+  .residential-view.has-reveals .residential-view__brands-more[data-reveal] { transition: opacity .6s ease .25s, transform .6s cubic-bezier(.22, 1, .36, 1) .25s; }
+  .residential-view.has-reveals .residential-view__brands-more[data-reveal]:not(.is-visible) { opacity: 0; transform: translateY(14px); }
 }
 @media (max-width: 900px) {
   .residential-view__brands-heading { margin-bottom: 48px; }
@@ -171,13 +181,6 @@ onBeforeUnmount(() => observer?.disconnect())
   .residential-view__service h3 { font-size: clamp(13px, 3.3vw, 16px); }
   .residential-view__next { bottom: max(11px, env(safe-area-inset-bottom)); }
   .residential-view__brands { padding-block: 90px 110px; }
-  .residential-view__brand-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .residential-view__brand-list li { min-height: 128px; padding: 22px 14px; }
-  .residential-view__brand-list li:nth-child(4n + 1) { border-left: 0; }
-  .residential-view__brand-list li:nth-child(2n + 1) { border-left: 1px solid #bed0c333; }
-  .residential-view__brand-list li:nth-last-child(-n + 4) { border-bottom: 0; }
-  .residential-view__brand-list li:nth-last-child(-n + 2) { border-bottom: 1px solid #bed0c333; }
-  .residential-view__brand-list img { max-width: min(82%, 150px); max-height: 58px; }
 }
 @media (max-height: 620px) and (min-aspect-ratio: 3/2) {
   .residential-view__hero-copy { bottom: 205px; }

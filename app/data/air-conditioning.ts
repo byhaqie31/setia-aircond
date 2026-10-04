@@ -35,11 +35,13 @@ export const airConditioningServices = [
 export const airConditioningBrands = ['Daikin', 'Acson', 'Panasonic', 'York', 'Carrier', 'Fujiaire', 'Samsung', 'Toshiba'] as const
 // Manufacturer assets and the YORK distributor artwork; provenance is archived
 // in references/brands/2026-09-10. The source list and order stay unchanged.
+// York swapped on 2026-10-04 for the wordmark without its tagline, cut to a
+// transparent background from references/brands/york-download-2026-10-04.webp.
 export const airConditioningBrandLogos = [
   { name: 'Daikin', src: '/images/brands/daikin.svg', width: 183, height: 39, treatment: 'light' },
   { name: 'Acson', src: '/images/brands/acson.png', width: 160, height: 50, treatment: 'light' },
   { name: 'Panasonic', src: '/images/brands/panasonic.svg', width: 600, height: 92, treatment: 'solid' },
-  { name: 'York', src: '/images/brands/york.svg', width: 382, height: 136, treatment: 'reverse' },
+  { name: 'York', src: '/images/brands/york-v2.webp', width: 905, height: 197, treatment: 'reverse' },
   { name: 'Carrier', src: '/images/brands/carrier.png', width: 800, height: 320, treatment: 'reverse' },
   { name: 'Fujiaire', src: '/images/brands/fujiaire.png', width: 233, height: 62, treatment: 'reverse' },
   { name: 'Samsung', src: '/images/brands/samsung.svg', width: 130, height: 29, treatment: 'solid' },

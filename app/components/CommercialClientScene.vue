@@ -25,7 +25,6 @@ const emit = defineEmits<{
   ready: []
   'exit-complete': []
   'slide-change': [page: number, firstSlug: string]
-  back: []
   previous: [page: number]
   next: [page: number]
 }>()
@@ -276,12 +275,6 @@ function movePage(direction: -1 | 1) {
   goToPage(activeGroupIndex.value + direction)
 }
 
-/** The only way back to the building scene; the view experience plays the camera in reverse. */
-function requestBack() {
-  if (busy.value || props.phase === 'exit') return
-  emit('back')
-}
-
 function guardClientNavigation(event: MouseEvent) {
   if (busy.value || props.phase === 'exit') event.preventDefault()
 }
@@ -419,7 +412,6 @@ onBeforeUnmount(() => {
             <button v-for="(_group, index) in groups" :key="index" type="button" class="client-scene__dot" :aria-label="`Client group ${index + 1} of ${groups.length}`" :aria-current="index === activeGroupIndex ? 'true' : undefined" :aria-disabled="busy || exiting || undefined" @click="goToPage(index)" />
           </div>
           <span class="sr-only" role="status" aria-live="polite" aria-atomic="true">Client group {{ activeGroupIndex + 1 }} of {{ groups.length }}</span>
-          <button type="button" class="client-scene__back" :aria-disabled="busy || exiting || undefined" @click="requestBack"><span class="icon icon--factory" aria-hidden="true" />Back to commercial</button>
         </div>
         <button v-if="activeGroupIndex < groups.length - 1" type="button" class="client-scene__arrow client-scene__arrow--next" aria-label="Next client group" :aria-disabled="busy || exiting || undefined" @click="movePage(1)"><svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18"><path d="M5 10h10m0 0-4-4m4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
       </nav>
@@ -449,6 +441,10 @@ onBeforeUnmount(() => {
 .client-scene__mark { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 6px; width: clamp(120px, 12vw, 205px); min-height: 52px; padding: 8px 4px; border: 0; background: none; color: #eff8f0; opacity: 0; transform: translate(-50%, -100%) translateY(8px); transition: opacity 180ms ease, transform 180ms ease, color 180ms ease; cursor: pointer; pointer-events: none; }
 .client-scene__mark.is-visible { opacity: 1; transform: translate(-50%, -100%); pointer-events: auto; }
 .client-scene__mark:hover, .client-scene__mark:focus-visible, .client-scene__mark.is-selected { color: #a0ebbb; }
+/* A soft box frames the hovered, focused or selected mark, like the phone grid, without moving the logo or its line. */
+.client-scene__mark::before { content: ''; position: absolute; inset: -2px -6px; z-index: -1; border: 1px solid #a0ebbb99; border-radius: 12px; background: #a0ebbb14; opacity: 0; transition: opacity 160ms ease; }
+.client-scene__mark:hover::before, .client-scene__mark:focus-visible::before, .client-scene__mark.is-selected::before { opacity: 1; }
+.client-scene__marks.is-grid .client-scene__mark::before { display: none; }
 .client-scene__mark-art { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 46px; }
 .client-scene__mark-art > img { display: block; max-width: 82%; max-height: 48px; object-fit: contain; }
 .client-scene__mark-art > strong { font-size: 17px; line-height: 1.1; }
@@ -485,9 +481,6 @@ onBeforeUnmount(() => {
 .client-scene__pagination .client-scene__dot[aria-current='true']::before { background: #a0ebbb; border-color: #a0ebbb; transform: scale(1.25); }
 .client-scene__center { grid-column: 2; grid-row: 1; align-self: end; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
 /* Same white pill as the building scene's secondary action (and the arrows above), so both scenes keep their controls at the bottom centre. */
-.client-scene__pagination .client-scene__back { justify-content: center; width: auto; min-height: 44px; padding: 10px 20px; border: 1px solid transparent; border-radius: 100px; color: var(--service-stage); background: var(--paper); box-shadow: 0 2px 10px #0617104d; font-size: 14px; font-weight: 600; line-height: 1.25; white-space: nowrap; text-shadow: none; pointer-events: auto; transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease; }
-.client-scene__pagination .client-scene__back .icon { width: 16px; height: 16px; }
-.client-scene__pagination .client-scene__back:hover:not([aria-disabled='true']) { color: var(--service-stage); background: #fff; box-shadow: 0 4px 14px #06171066; transform: translateY(-1px); }
 .client-scene__all { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 24px 0; }
 .client-scene__all > * { color: #d2e2d6; font-size: 14px; }
 .client-scene__all.is-visually-hidden { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

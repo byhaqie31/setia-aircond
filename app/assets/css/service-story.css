@@ -13,7 +13,6 @@
 .service-brand-image { display: flex; align-items: center; justify-content: center; width: 100%; height: 70px; }
 .service-brand-image img { display: block; width: auto; height: auto; max-width: min(85%, 180px); max-height: 100%; object-fit: contain; }
 .service-brand-image img[alt='Acson'] { max-width: min(78%, 145px); }
-.service-brand-image img[alt='York'] { max-width: min(78%, 158px); }
 .service-brand-image img[alt='Carrier'] { max-width: min(78%, 155px); }
 .service-brand-image img[alt='Midea'] { width: 180px; }
 .service-brand-caption { color: var(--ink-soft); font-size: 12px; line-height: 1.2; font-weight: 400; letter-spacing: .02em; }

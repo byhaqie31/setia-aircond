@@ -195,6 +195,12 @@ function onClientBack() {
   phase.value = 'exit'
 }
 
+// Back to top on this page means its first section: once the journey lands on the clients screen, the reverse camera carries on into the building.
+function returnToBuilding() {
+  if (scene.value !== 'clients' || phase.value !== 'ready' || sceneMoving.value) return
+  onClientBack()
+}
+
 function onClientExit() {
   if (scene.value !== 'clients') return
   buildingArrived.value = true
@@ -332,7 +338,6 @@ onBeforeUnmount(() => {
             @ready="onSceneReady"
             @exit-complete="onClientExit"
             @slide-change="onClientSlideChange"
-            @back="onClientBack"
           />
         </template>
       </CommercialSupportSections>
@@ -348,8 +353,8 @@ onBeforeUnmount(() => {
     </section>
 
     <CommercialSupportSections v-if="scene !== 'clients' && !enhanced" :scene-ready="!scrollLocked" />
-    <!-- Home floats only once the building section is behind the visitor: from the first pixel of the clients screen on. -->
-    <FloatingReturn v-if="enhanced && scene === 'clients'" shown focus-target="#commercial-clients" />
+    <!-- Home floats only once the building section is behind the visitor; once the clients screen has scrolled away it offers back to top, which climbs all the way back into the building. -->
+    <FloatingReturn v-if="enhanced && scene === 'clients'" shown :threshold=".8" focus-target="#commercial-clients" @top="returnToBuilding" />
   </main>
 </template>
 

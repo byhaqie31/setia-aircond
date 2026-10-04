@@ -729,6 +729,10 @@ onBeforeUnmount(() => {
 .commercial-building-scene__marker { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 5px; width: clamp(116px, 11.3vw, 220px); min-height: 48px; padding: 9px 0; color: #f6fbf7; opacity: 0; pointer-events: none; transform: translate(-50%, 8px); transition: opacity 200ms ease, transform 200ms ease, color 180ms ease; text-align: center; text-decoration: none; }
 .commercial-building-scene__marker.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%); transition-delay: 180ms; }
 .commercial-building-scene__marker:hover, .commercial-building-scene__marker:focus-visible, .commercial-building-scene__marker.is-selected { color: #a0ebbb; }
+/* A soft box frames the hovered, focused or selected label, like the phone cards, without moving the label or its line. */
+.commercial-building-scene__marker::before { content: ''; position: absolute; inset: -3px -10px; z-index: -1; border: 1px solid #a0ebbb99; border-radius: 12px; background: #a0ebbb14; opacity: 0; transition: opacity 160ms ease; }
+.commercial-building-scene__marker:hover::before, .commercial-building-scene__marker:focus-visible::before, .commercial-building-scene__marker.is-selected::before { opacity: 1; }
+.commercial-building-scene__markers.is-cards .commercial-building-scene__marker::before { display: none; }
 .commercial-building-scene__marker strong { font-size: clamp(15px, 1.1vw, 18px); line-height: 1.2; }
 .commercial-building-scene__marker span { max-width: 22ch; color: #cfddd1; font-size: clamp(12px, .8vw, 14px); line-height: 1.35; }
 /* The only way on is to scroll: a quiet cue where the buttons were, its dot travelling down the line like the residential cue. */
