@@ -63,3 +63,35 @@ export const commercialPlantBrandLogos = [
 
 // About us shows every brand carried: the shared list, the plant-room makers and Midea.
 export const aboutBrandLogos = [...airConditioningBrandLogos, ...commercialPlantBrandLogos, mideaBrandLogo]
+
+// Featured Daikin range and copy carried over verbatim from the original homepage; each links to its article in ~/data/daikin-articles.
+export const featuredDaikinProducts = [
+  {
+    title: 'Energy Efficiency and Advanced Features',
+    body: 'Daikin Malaysia air conditioners are renowned for high energy efficiency, helping users reduce electricity bills while minimising environmental impact. Many units feature advanced air purification systems, removing dust, allergens, and bacteria to create healthier indoor environments. With smart sensors, automatic operation modes, and Wi-Fi-enabled control options, Daikin air cond Malaysia provides intelligent cooling solutions tailored to both residential and commercial spaces.',
+    link: 'Read more about Daikin Air Conditioners',
+    href: '/blog/7-reasons-to-choose-daikin-air-conditioner-for-your-malaysia-home',
+    src: '/images/daikin/wall-split.jpg', alt: 'Daikin Air Conditioners', width: 350, height: 215,
+  },
+  {
+    title: 'Reliable Cooling for Every Space',
+    body: 'Whether you need a Daikin air cond Malaysia for a compact apartment, large office, retail outlet, or industrial facility, Daikin offers dependable solutions with long-lasting performance. Multi-split systems allow one outdoor unit to connect multiple indoor units, while ducted systems provide seamless climate control for larger spaces. All units are designed to maintain consistent cooling, minimise noise, and deliver precise temperature control.',
+    link: 'Read more about the Benefits of Daikin VRV Systems Air Conditioners',
+    href: '/blog/reasons-to-choose-daikin-vrv-system-for-your-air-conditioning',
+    src: '/images/daikin/vrv-outdoor.jpg', alt: 'Daikin VRV Systems (Multi-Split Type Air Conditioners)', width: 350, height: 227,
+  },
+  {
+    title: 'Why Choose Daikin in Malaysia',
+    body: 'With decades of innovation and a strong commitment to durability and sustainability, Daikin remains a preferred choice for Malaysians seeking reliable and energy-efficient air conditioning. From residential homes to large commercial projects, Daikin Malaysia air conditioners combine cutting-edge technology, low maintenance, and excellent after-sales service. Investing in Daikin means choosing a trusted brand that delivers comfort, performance, and efficiency throughout Malaysia.',
+    link: 'Read more about Why Should You Choose Daikin Air Conditioner?',
+    href: '/blog/why-should-you-choose-daikin-air-conditioner',
+    src: '/images/daikin/ceiling-cassette.jpg', alt: 'Daikin Air Conditioners', width: 350, height: 215,
+  },
+  {
+    title: 'Reasons to Choose Daikin Air Conditioners for Your Malaysia Home',
+    body: 'Living in Malaysia’s hot and humid climate means having a dependable cooling solution is essential all year round. For homeowners seeking quality and performance, Daikin air conditioners Malaysia offer exceptional energy efficiency, long-lasting durability, and whisper-quiet operation. Choosing the right unit requires understanding your home’s layout, room size, and cooling requirements. By assessing your specific needs first, you can select the ideal Daikin air conditioner to keep your living spaces comfortable and refreshing. Trust in a brand renowned across Malaysia for reliable cooling and advanced technology, ensuring your home remains a haven from the heat.',
+    link: 'Read more about Reasons to Choose Daikin Air Conditioning for Your Malaysia Home',
+    href: '/blog/reasons-to-choose-daikin-air-conditioning-for-your-malaysia-home',
+    src: '/images/daikin/ceiling-suspended.jpg', alt: 'inverter series', width: 350, height: 227,
+  },
+] as const

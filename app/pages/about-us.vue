@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { aboutBrandLogos } from '~/data/air-conditioning'
+import { aboutBrandLogos, featuredDaikinProducts } from '~/data/air-conditioning'
 
 const story = useTemplateRef<HTMLElement>('story')
 const { $scrollTo } = useNuxtApp()
@@ -125,6 +125,15 @@ onMounted(async () => {
         brands.fromTo(root.querySelector('[data-about-brand-more]'), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: .4 }, '>-.15')
         brands.to({}, { duration: .55 })
 
+        const daikin = chapter('.about-daikin-band', 1.6, 'bottom 90%')
+        daikin.fromTo(root.querySelectorAll('[data-about-daikin-intro]'), { opacity: .2, y: 32 }, {
+          opacity: 1, y: 0, duration: .5, stagger: .15,
+        }, 0)
+        daikin.fromTo(root.querySelectorAll('[data-about-daikin-card]'), { opacity: .15, y: 48 }, {
+          opacity: 1, y: 0, duration: .55, stagger: .2,
+        }, .3)
+        daikin.to({}, { duration: .45 })
+
         const enquiry = chapter('.about-enquiry', 1.1, 'top 35%')
         // Reveal the heading, action and portrait together, with no faded preview.
         enquiry.fromTo(root.querySelector('.company-enquiry__hero'), { autoAlpha: 0, y: 36 }, {
@@ -157,6 +166,8 @@ onMounted(async () => {
     rebuild()
     // Pin spacing changes document positions; restore explicit direct contact entry.
     if (window.location.hash === '#company-contact') followContact(pendingOfficeClick, pendingOfficeClick)
+    // Returning from a Daikin article: pin spacing has moved the section since the router's hash scroll.
+    else if (window.location.hash === '#featured-daikin') $scrollTo(root.querySelector<HTMLElement>('#featured-daikin')!, { immediate: true })
     pendingOfficeClick = false
     window.addEventListener('resize', onResize)
     window.addEventListener('hashchange', onHashChange)
@@ -259,6 +270,26 @@ onBeforeUnmount(() => {
     </div>
     </section>
 
+    <section id="featured-daikin" class="about-daikin-band" aria-labelledby="about-daikin-title">
+    <div class="about-daikin company-width">
+      <div class="about-daikin__intro">
+        <h2 id="about-daikin-title" data-about-daikin-intro>Featured Daikin air conditioners products</h2>
+        <p data-about-daikin-intro>Daikin is a global leader in air conditioning technology, and Daikin air cond Malaysia are recognised as some of the most reliable and high-performance cooling solutions in the market. Trusted by homeowners, businesses, and industrial facilities, Daikin Malaysia air conditioners are engineered to handle Malaysia’s hot and humid tropical climate efficiently, offering superior comfort while optimising energy usage.</p>
+        <p data-about-daikin-intro>Our comprehensive range of Daikin air conditioners in Malaysia includes energy-efficient inverter split units, multi-split systems, VRV/VRF commercial solutions, and ducted air conditioning systems, providing versatile options for any indoor environment. Each Daikin Malaysia air cond system is designed with advanced climate control features, including intelligent temperature regulation, precise cooling, and quiet operation, ensuring comfort without compromising on energy savings.</p>
+      </div>
+      <ul class="about-daikin__grid" aria-label="Featured Daikin air conditioners">
+        <li v-for="item in featuredDaikinProducts" :key="item.href" class="about-daikin-card" data-about-daikin-card>
+          <NuxtLink class="about-daikin-card__media" :to="item.href" tabindex="-1" aria-hidden="true">
+            <img :src="$sitePath(item.src)" :alt="item.alt" :width="item.width" :height="item.height" loading="lazy" decoding="async">
+          </NuxtLink>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.body }}</p>
+          <NuxtLink class="company-link about-daikin-card__link" :to="item.href">{{ item.link }}<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
+        </li>
+      </ul>
+    </div>
+    </section>
+
     <CompanyEnquirySection class="about-enquiry" heading-id="about-enquiry-title" />
     </div>
     <FloatingReturn />
@@ -308,6 +339,20 @@ onBeforeUnmount(() => {
 .about-brand--reverse { filter: grayscale(1) invert(1) brightness(1.4); }
 .about-brand-caption { color: var(--company-muted); font-size: 12px; }
 .about-brands__more { margin: 28px 0 0; color: var(--company-muted); font-size: 14px; line-height: 1.5; text-align: center; }
+.about-daikin-band { background: #d1e4d7; color: #0b3022; --company-muted: #365b46; --company-line: #365b4640; }
+.about-daikin { padding-block: clamp(64px, 8vw, 120px); }
+.about-daikin__intro { max-width: 1000px; margin-inline: auto; text-align: center; }
+.about-daikin h2 { margin: 0 0 28px; font-size: clamp(28px, 3.3vw, 48px); white-space: nowrap; }
+.about-daikin__intro p { margin: 0; color: var(--company-muted); }
+.about-daikin__intro p + p { margin-top: 20px; }
+.about-daikin__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 2vw, 28px); margin: clamp(40px, 5vw, 64px) 0 0; padding: 0; list-style: none; }
+.about-daikin-card { display: flex; flex-direction: column; padding: clamp(24px, 2.4vw, 36px); background: #fff; }
+.about-daikin-card__media { display: flex; justify-content: center; height: clamp(180px, 16vw, 220px); margin: 0 0 28px; }
+.about-daikin-card__media img { width: 100%; max-width: 340px; height: 100%; object-fit: contain; transition: transform .3s ease; }
+.about-daikin-card__media:hover img { transform: scale(1.04); }
+.about-daikin-card h3 { margin: 0 0 12px; font-size: 20px; font-weight: 600; }
+.about-daikin-card p { margin: 0; color: var(--company-muted); line-height: 1.7; }
+.about-daikin-card__link { align-self: flex-start; margin-top: auto; padding-top: 20px; color: #16513a; font-weight: 600; }
 [data-about-pinned] { min-height: 100svh; align-content: center; }
 .about-purpose-band[data-about-pinned], .about-brands-band[data-about-pinned] { display: flex; align-items: center; }
 @media (max-width: 850px) {
@@ -319,6 +364,9 @@ onBeforeUnmount(() => {
   .about-purpose__heading { gap: 24px; }
   .about-purpose__cards { margin-top: 28px; gap: 16px; }
   .about-standards__art { width: 170px; margin-top: 16px; }
+  .about-daikin h2 { white-space: normal; }
+  .about-daikin__grid { grid-template-columns: minmax(0, 1fr); }
+  .about-daikin-card__media { height: 180px; margin-bottom: 20px; }
 }
 @media (max-width: 380px) {
   .about-intro h1 { font-size: clamp(36px, 11vw, 48px); }

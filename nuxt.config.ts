@@ -1,5 +1,6 @@
 import { resolve } from 'node:path'
 import { allCommercialParties, commercialServices } from './app/data/commercial-view'
+import { daikinArticlePath, daikinArticles } from './app/data/daikin-articles'
 
 const cloudflareBuild = process.env.SETIA_CLOUDFLARE_BUILD === '1'
 const siteBaseURL = '/'
@@ -7,6 +8,7 @@ const commercialDetailRoutes = [
   '/commercial/projects',
   ...commercialServices.map(service => `/commercial/services/${service.slug}`),
   ...allCommercialParties.map(party => `/commercial/clients/${party.slug}`),
+  ...daikinArticles.map(article => daikinArticlePath(article.slug)),
 ]
 
 export default defineNuxtConfig({
