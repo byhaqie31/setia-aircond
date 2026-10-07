@@ -76,8 +76,24 @@ onBeforeUnmount(() => {
     </section>
 
     <div class="blog-body">
-      <div ref="body" class="company-width blog-grid">
-        <article class="blog-article">
+      <div class="company-width blog-layout">
+        <div v-if="article.intro.length" class="blog-lead">
+          <DaikinArticleBlocks :blocks="article.intro" />
+        </div>
+
+        <aside class="blog-toc" aria-label="On this page">
+          <div class="blog-toc__panel" data-lenis-prevent>
+            <p class="blog-toc__title">On this page</p>
+            <ol class="blog-toc__list" :style="{ '--blog-progress': progress }">
+              <li v-for="section in article.sections" :key="section.id" :class="{ 'is-active': activeId === section.id }">
+                <a :href="`#${section.id}`" :aria-current="activeId === section.id ? 'location' : undefined" @click="goTo(section.id, $event)">{{ section.title }}</a>
+              </li>
+            </ol>
+            <NuxtLink class="blog-toc__quote" to="/get-a-quote">Get a quote<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
+          </div>
+        </aside>
+
+        <article ref="body" class="blog-article">
           <details class="blog-toc-mobile">
             <summary>On this page<span class="icon icon--arrow" aria-hidden="true" /></summary>
             <ol>
@@ -86,10 +102,6 @@ onBeforeUnmount(() => {
               </li>
             </ol>
           </details>
-
-          <div v-if="article.intro.length" class="blog-lead">
-            <DaikinArticleBlocks :blocks="article.intro" />
-          </div>
 
           <section
             v-for="section in article.sections"
@@ -106,18 +118,6 @@ onBeforeUnmount(() => {
             <NuxtLink v-if="section.callout" class="blog-callout__action" to="/get-a-quote">Get a quote<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
           </section>
         </article>
-
-        <aside class="blog-toc" aria-label="On this page">
-          <div class="blog-toc__panel" data-lenis-prevent>
-            <p class="blog-toc__title">On this page</p>
-            <ol class="blog-toc__list" :style="{ '--blog-progress': progress }">
-              <li v-for="section in article.sections" :key="section.id" :class="{ 'is-active': activeId === section.id }">
-                <a :href="`#${section.id}`" :aria-current="activeId === section.id ? 'location' : undefined" @click="goTo(section.id, $event)">{{ section.title }}</a>
-              </li>
-            </ol>
-            <NuxtLink class="blog-toc__quote" to="/get-a-quote">Get a quote<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
-          </div>
-        </aside>
       </div>
     </div>
 
@@ -140,7 +140,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* Hero and body share one grid so the article starts on the title's edge and the contents sit under the image. */
 .blog-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: clamp(32px, 6vw, 96px); }
 .blog-intro { align-items: center; }
 .blog-intro h1 { font-size: clamp(36px, 4.4vw, 64px); }
@@ -151,14 +150,17 @@ onBeforeUnmount(() => {
 
 .blog-body { background: var(--paper); color: var(--ink-soft); }
 .blog-body ::selection { background: #d1e4d7; color: #0b3022; }
-.blog-body .blog-grid { align-items: start; padding-block: clamp(56px, 7vw, 104px) clamp(64px, 8vw, 120px); }
-.blog-article { min-width: 0; max-width: 72ch; font-size: 17px; line-height: 1.75; }
-.blog-lead { margin-bottom: clamp(16px, 2vw, 24px); }
-.blog-lead :deep(.daikin-p:first-child) { color: var(--ink); font-size: clamp(19px, 1.6vw, 22px); line-height: 1.6; }
+/* The intro spans the full width under the hero; below it the contents rail sits left of the article,
+   its first entry level with the first section heading. */
+.blog-layout { display: grid; grid-template-columns: minmax(200px, 280px) minmax(0, 1fr); gap: 0 clamp(40px, 6vw, 96px); align-items: start; padding-block: clamp(56px, 7vw, 104px) clamp(64px, 8vw, 120px); }
+.blog-article { grid-area: 2 / 2; min-width: 0; max-width: 780px; font-size: 17px; line-height: 1.75; }
+.blog-lead { grid-column: 1 / -1; margin-bottom: clamp(48px, 6vw, 88px); padding-bottom: clamp(40px, 5vw, 64px); border-bottom: 1px solid var(--line); font-size: 17px; line-height: 1.75; }
+.blog-lead :deep(.daikin-p:first-child) { color: var(--ink); font-size: clamp(20px, 1.8vw, 26px); line-height: 1.55; }
+.blog-lead :deep(.daikin-p:last-child) { margin-bottom: 0; }
 .blog-section { padding-top: clamp(48px, 5vw, 72px); scroll-margin-top: 16px; }
 .blog-section:focus { outline: none; }
 .blog-section > h2 { margin: 0 0 24px; color: var(--ink); font-size: clamp(30px, 3vw, 42px); }
-.blog-toc-mobile + .blog-section { padding-top: 0; }
+.blog-article > .blog-section:first-of-type { padding-top: 0; }
 
 .blog-section--callout { margin-top: clamp(48px, 5vw, 72px); padding: clamp(32px, 4vw, 52px); background: var(--pine-700); color: #d1e4d7; }
 .blog-section--callout > h2 { color: var(--paper); }
@@ -171,7 +173,7 @@ onBeforeUnmount(() => {
 .blog-callout__action:focus-visible { outline: 2px solid var(--paper); outline-offset: 4px; }
 
 /* Contents rail: the track fills with reading progress and the current section lights up. */
-.blog-toc { position: sticky; top: 24px; min-width: 0; }
+.blog-toc { grid-area: 2 / 1; position: sticky; top: 24px; min-width: 0; }
 .blog-toc__panel { max-height: calc(100svh - 48px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #16513a40 transparent; }
 .blog-toc__title { margin: 0 0 16px; color: var(--ink); font-size: 14px; font-weight: 600; }
 .blog-toc__list { position: relative; margin: 0; padding: 0 0 0 20px; list-style: none; }
@@ -195,9 +197,9 @@ onBeforeUnmount(() => {
 .blog-related a:hover span { text-decoration: underline; text-underline-offset: 4px; }
 
 @media (max-width: 1000px) {
-  .blog-body .blog-grid { grid-template-columns: minmax(0, 1fr); }
+  .blog-layout { grid-template-columns: minmax(0, 1fr); }
   .blog-toc { display: none; }
-  .blog-article { max-width: none; }
+  .blog-article { grid-column: 1; max-width: none; }
   .blog-toc-mobile { display: block; margin-bottom: 40px; border-block: 1px solid var(--line); }
   .blog-toc-mobile summary { display: flex; align-items: center; justify-content: space-between; min-height: 52px; color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; list-style: none; }
   .blog-toc-mobile summary::-webkit-details-marker { display: none; }
