@@ -63,6 +63,10 @@ const leaders = ref<CommercialLeader[]>([])
 const markerTops = ref<Record<string, number>>({})
 const markerWidths = ref<Record<string, number>>({})
 const labelBounds = ref<CommercialLabelBounds[]>([])
+/** Pointer hover or keyboard focus extends that label's line into a frame around it. */
+const framedSlug = ref<string | null>(null)
+const labelFrames = ref<Record<string, CommercialLabelBounds>>({})
+const stageSize = ref<{ width: number, height: number } | null>(null)
 const compactMinimum = ref('620px')
 const compactOverflow = ref('0px')
 /** Phones: the service cards sit this far down the stage, centred in the sky between the heading and the roofline. */
@@ -89,6 +93,14 @@ const previewLeaders = computed<CommercialLeader[]>(() => {
   return [{ id: slug, targetX: target.x, targetY: target.y, labelX: Math.max(line.minX, Math.min(line.maxX, target.x)), labelY: line.y, elbow: 'direct' }]
 })
 const sceneLeaders = computed(() => mobile.value ? previewLeaders.value : leaders.value)
+
+function frameLabel(slug: string, event: PointerEvent | FocusEvent) {
+  if (event instanceof PointerEvent ? event.pointerType !== 'touch' : (event.target as HTMLElement).matches(':focus-visible')) framedSlug.value = slug
+}
+
+function unframeLabel(slug: string) {
+  if (framedSlug.value === slug) framedSlug.value = null
+}
 
 function openPreview(slug: string) {
   previewSlug.value = slug
@@ -132,10 +144,10 @@ const equipmentPositions = [
   { id: 'cooling-tower', x: .300, y: .245 },
   { id: 'pump', x: .425, y: .350 },
   { id: 'chilled-water-piping', x: .470, y: .325 },
-  { id: 'chiller', x: .552, y: .332 },
-  { id: 'vrf-vrv', x: .709, y: .403 },
-  { id: 'ahu', x: .847, y: .402 },
-  { id: 'duct-services', x: .903, y: .365 },
+  { id: 'chiller', x: .552, y: .332, span: [.52, .59] },
+  { id: 'vrf-vrv', x: .709, y: .403, span: [.68, .755] },
+  { id: 'ahu', x: .847, y: .402, span: [.795, .85] },
+  { id: 'duct-services', x: .903, y: .365, span: [.87, .915] },
 ] as const
 const mobileEquipmentPositions = [
   { id: 'cassette-ceiling-ducted', x: .190, y: .400 },
@@ -384,6 +396,7 @@ function updateLeaders() {
   const sceneRect = measure(scene)
   const imageRect = measure(image)
   if (!sceneRect.width || !sceneRect.height || !imageRect.width || !imageRect.height) return
+  stageSize.value = { width: sceneRect.width, height: sceneRect.height }
   const naturalWidth = image.naturalWidth || 2169
   const naturalHeight = image.naturalHeight || 725
   mobileArtworkRatio.value = naturalHeight / naturalWidth
@@ -424,6 +437,7 @@ function updateLeaders() {
       markerTops.value = {}
       markerWidths.value = {}
       labelBounds.value = []
+      labelFrames.value = {}
       compactMinimum.value = '0px'
       leaders.value = []
       return
@@ -460,6 +474,10 @@ function updateLeaders() {
       labelX: labels[index]?.x ?? .5,
       labelY: ((labels[index]?.top ?? headingBottom) + (markerHeights[index] ?? 70) + 6) / sceneRect.height,
     }))
+    labelFrames.value = Object.fromEntries(leaders.value.flatMap((leader, index) => {
+      const bounds = labelBounds.value[index]
+      return bounds ? [[leader.id, { ...bounds, height: leader.labelY - bounds.y }]] : []
+    }))
     return
   }
   labelBounds.value = []
@@ -474,22 +492,45 @@ function updateLeaders() {
   let rowTop = Math.min(sceneRect.height * .38, roofClearance(48))
   if (rowTop < clearHeading) rowTop = Math.min(clearHeading, roofClearance(24))
   markerTops.value = Object.fromEntries(equipmentPositions.map((item, index) => [item.id, rowTop - raise(index)]))
+  // Half of each label's hover box (the marker plus its 10px frame), and the clear space kept around it.
+  const boxHalf = (index: number) => (((markerElement.value?.children[index] as HTMLElement | undefined)?.offsetWidth ?? 220) / 2 + 10) / sceneRect.width
+  const gap = 12 / sceneRect.width
+  const targetXs = equipmentPositions.map(item => (drawnLeft + item.x * drawnWidth - sceneRect.left) / sceneRect.width)
+  const labelXs = equipmentPositions.map((item, index) => item.id === 'cooling-tower' ? .15 : item.id === 'pump' ? .29
+    : Math.max(boxHalf(index) + gap, Math.min(1 - boxHalf(index) - gap, targetXs[index]!)))
+  // Duct services holds the right edge; AHU, VRF and the chiller step left in turn so no hover box meets its neighbour.
+  let right = equipmentPositions.findIndex(item => item.id === 'duct-services')
+  for (const id of ['ahu', 'vrf-vrv', 'chiller']) {
+    const index = equipmentPositions.findIndex(item => item.id === id)
+    labelXs[index] = Math.min(labelXs[index]!, labelXs[right]! - boxHalf(right) - gap - boxHalf(index))
+    right = index
+  }
   // Follow the client's two square-corner routes into the empty left side. The indoor-unit label rises above them nearer the edge,
-  // so its straight line passes left of the cooling tower label and never crosses that route.
+  // so its straight line passes left of the cooling tower label and never crosses that route. On the wide right-hand units the dot slides
+  // along the equipment to sit under its label, so those lines run straight up; only a label beyond its unit's span still turns a corner.
+  const toScene = (x: number) => (drawnLeft + x * drawnWidth - sceneRect.left) / sceneRect.width
   leaders.value = equipmentPositions.map((item, index) => {
-    const targetX = (drawnLeft + item.x * drawnWidth - sceneRect.left) / sceneRect.width
-    const targetY = (drawnTop + item.y * drawnHeight - sceneRect.top) / sceneRect.height
-    const markerWidth = (markerElement.value?.children[index] as HTMLElement | undefined)?.offsetWidth ?? 220
-    const inset = (markerWidth / 2 + 8) / sceneRect.width
+    const labelX = labelXs[index]!
+    const span = 'span' in item ? item.span : null
+    const targetX = span ? Math.max(toScene(span[0]), Math.min(toScene(span[1]), labelX)) : targetXs[index]!
+    const stepped = span && Math.abs(labelX - targetX) > boxHalf(index) - 40 / sceneRect.width
     return {
       id: item.id,
       targetX,
-      targetY,
-      labelX: item.id === 'cooling-tower' ? .15 : item.id === 'pump' ? .29 : Math.max(inset, Math.min(1 - inset, targetX)),
+      targetY: (drawnTop + item.y * drawnHeight - sceneRect.top) / sceneRect.height,
+      labelX,
       labelY: ((markerTops.value[item.id] ?? 0) + (markerHeights[index] ?? 100)) / sceneRect.height,
-      elbow: item.id === 'cooling-tower' ? 'at-target-height' : item.id === 'pump' ? 'at-label-height' : undefined,
+      elbow: item.id === 'cooling-tower' ? 'at-target-height' : item.id === 'pump' || stepped ? 'at-label-height' : undefined,
     }
   })
+  // Each frame hugs the label's text, 10px clear above it and closing on the line's end below.
+  labelFrames.value = Object.fromEntries(leaders.value.map((leader, index) => {
+    const marker = markerElement.value?.children[index] as HTMLElement | undefined
+    const content = Math.max(0, ...Array.from(marker?.children ?? [], child => (child as HTMLElement).offsetWidth))
+    const half = ((content || 180) / 2 + 14) / sceneRect.width
+    const top = ((markerTops.value[leader.id] ?? 0) - 1) / sceneRect.height
+    return [leader.id, { x: leader.labelX - half, y: top, width: half * 2, height: leader.labelY - top }]
+  }))
 }
 
 function leaderFor(slug: string) {
@@ -638,6 +679,9 @@ onBeforeUnmount(() => {
         :selected-id="mobile ? previewSlug : selectedServiceSlug"
         :reduced-motion="reducedMotion"
         :label-bounds="desktop ? undefined : labelBounds"
+        :frames="mobile ? undefined : labelFrames"
+        :framed-id="framedSlug"
+        :size="stageSize"
       />
 
       <div v-if="enhanced && usableImage && !imageUnavailable" ref="markerElement" class="commercial-building-scene__markers" :class="{ 'is-cards': mobile, 'has-preview': mobile && Boolean(previewSlug) }" :style="mobile ? { top: `${cardsTop}px` } : undefined">
@@ -654,6 +698,10 @@ onBeforeUnmount(() => {
           :inert="!markersAvailable || (mobile && Boolean(previewSlug))"
           :aria-hidden="!markersAvailable || (mobile && Boolean(previewSlug)) || undefined"
           @click="mobile ? openPreview(service.slug) : emit('service-select', service.slug)"
+          @pointerenter="frameLabel(service.slug, $event)"
+          @pointerleave="unframeLabel(service.slug)"
+          @focus="frameLabel(service.slug, $event)"
+          @blur="unframeLabel(service.slug)"
         >
           <strong>{{ service.title }}</strong>
           <span v-if="!mobile">{{ desktop ? service.shortLine : compactDescriptions[service.slug] }}</span>
@@ -730,11 +778,9 @@ onBeforeUnmount(() => {
 .commercial-building-scene__marker.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%); transition-delay: 180ms; }
 .commercial-building-scene__marker:focus-visible, .commercial-building-scene__marker.is-selected { color: #a0ebbb; }
 /* Hover styling only where a pointer can hover: touch screens keep :hover on the last tapped spot across a round trip. */
-@media (hover: hover) { .commercial-building-scene__marker:hover { color: #a0ebbb; } .commercial-building-scene__marker:hover::before { opacity: 1; } }
-/* A soft box frames the hovered, focused or selected label, like the phone cards, without moving the label or its line. */
-.commercial-building-scene__marker::before { content: ''; position: absolute; inset: -3px -10px; z-index: -1; border: 1px solid #a0ebbb99; border-radius: 12px; background: #a0ebbb14; opacity: 0; transition: opacity 160ms ease; }
-.commercial-building-scene__marker:focus-visible::before { opacity: 1; }
-.commercial-building-scene__markers.is-cards .commercial-building-scene__marker::before { display: none; }
+@media (hover: hover) { .commercial-building-scene__marker:hover { color: #a0ebbb; } }
+/* The hovered or focused label is framed by its own leader line, drawn in CommercialLeaderLayer; the frame replaces the focus ring. */
+.commercial-building-scene__markers:not(.is-cards) .commercial-building-scene__marker:focus-visible { outline: none; }
 .commercial-building-scene__marker strong { font-size: clamp(15px, 1.1vw, 18px); line-height: 1.2; }
 .commercial-building-scene__marker span { max-width: 22ch; color: #cfddd1; font-size: clamp(12px, .8vw, 14px); line-height: 1.35; }
 /* The only way on is to scroll: a quiet cue where the buttons were, its dot travelling down the line like the residential cue. */

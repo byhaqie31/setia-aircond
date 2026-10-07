@@ -53,6 +53,10 @@ const skylineElement = ref<HTMLImageElement | null>(null)
 const skylinePlate = ref<InstanceType<typeof CommercialSkylinePlate> | null>(null)
 const leaders = ref<CommercialLeader[]>([])
 const labelBounds = ref<CommercialLabelBounds[]>([])
+/** Pointer hover or keyboard focus extends that client's line into a frame and lets the other clients step back. */
+const framedSlug = ref<string | null>(null)
+const labelFrames = ref<Record<string, CommercialLabelBounds>>({})
+const stageSize = ref<{ width: number, height: number } | null>(null)
 /** Phones: the page is a two-column grid of logo cards in the sky; the page arrows sit beside its middle. */
 const gridTop = ref(160)
 const gridMiddle = ref(240)
@@ -144,6 +148,7 @@ function updateLeaders() {
   const sceneRect = scene.getBoundingClientRect()
   const imageRect = image.getBoundingClientRect()
   if (!sceneRect.width || !sceneRect.height || !imageRect.width || !imageRect.height) return
+  stageSize.value = { width: sceneRect.width, height: sceneRect.height }
   const naturalWidth = image.naturalWidth || 2172
   const naturalHeight = image.naturalHeight || 724
   const scale = getComputedStyle(image).objectFit === 'cover'
@@ -170,6 +175,7 @@ function updateLeaders() {
       gridTop.value = Math.max(headingBottom + 24, Math.round((headingBottom + skylineTop - gridHeight) / 2))
       gridMiddle.value = gridTop.value + Math.round(gridHeight / 2)
       labelBounds.value = []
+      labelFrames.value = {}
       leaders.value = []
       return
     }
@@ -187,6 +193,10 @@ function updateLeaders() {
       targetY: (drawnTop + ([.72, .89, .82][rows.indexOf(labels[index]?.top ?? 0)] ?? .76) * drawnHeight - sceneRect.top) / sceneRect.height,
       labelX: labels[index]?.x ?? .5,
       labelY: ((labels[index]?.top ?? headingBottom) + (heights[index] ?? 80) + 6) / sceneRect.height,
+    }))
+    labelFrames.value = Object.fromEntries(leaders.value.flatMap((leader, index) => {
+      const bounds = labelBounds.value[index]
+      return bounds ? [[leader.id, { ...bounds, height: leader.labelY - bounds.y }]] : []
     }))
     return
   }
@@ -218,6 +228,23 @@ function updateLeaders() {
       labelY: index % 2 ? lowerRow : upperRow,
     }
   })
+  // Each frame hugs the logo and name, 10px clear above them and closing on the line's end below.
+  const marks = Array.from(markerElement.value?.children ?? []) as HTMLElement[]
+  labelFrames.value = Object.fromEntries(leaders.value.map((leader, index) => {
+    const mark = marks[index]
+    const content = Math.max(0, ...Array.from(mark?.querySelectorAll<HTMLElement>('.client-scene__mark-art > *, .client-scene__mark-name') ?? [], part => part.offsetWidth))
+    const half = ((content || 140) / 2 + 14) / sceneRect.width
+    const top = leader.labelY - ((mark?.offsetHeight ?? 80) + 2) / sceneRect.height
+    return [leader.id, { x: leader.labelX - half, y: top, width: half * 2, height: leader.labelY - top }]
+  }))
+}
+
+function frameClient(slug: string, event: PointerEvent | FocusEvent) {
+  if (event instanceof PointerEvent ? event.pointerType !== 'touch' : (event.target as HTMLElement).matches(':focus-visible')) framedSlug.value = slug
+}
+
+function unframeClient(slug: string) {
+  if (framedSlug.value === slug) framedSlug.value = null
 }
 
 function leaderFor(slug: string) {
@@ -283,6 +310,9 @@ function onVisibilityChange() {
   if (document.hidden && props.phase === 'intro' && displayedLogos.value < visibleClients.value.length) setReady()
   else if (document.hidden && busy.value) setReady(false)
 }
+
+// A page change or exit removes the hovered mark before it can report the pointer leaving.
+watch([activeGroupIndex, exiting, busy], () => { framedSlug.value = null })
 
 watch(() => props.phase, phase => {
   if (!enhanced.value) return
@@ -379,15 +409,19 @@ onBeforeUnmount(() => {
         :selected-id="selectedSlug"
         :reduced-motion="reducedMotion"
         :label-bounds="compact ? labelBounds : undefined"
+        :frames="labelFrames"
+        :framed-id="framedSlug"
+        :size="stageSize"
+        dim-others
       />
 
-      <div v-if="enhanced && skylineLoaded && !imageUnavailable" ref="markerElement" class="client-scene__marks" :class="{ 'is-grid': mobile }" :style="mobile ? { top: `${gridTop}px` } : undefined" :aria-busy="busy || undefined">
+      <div v-if="enhanced && skylineLoaded && !imageUnavailable" ref="markerElement" class="client-scene__marks" :class="{ 'is-grid': mobile, 'has-framed': !mobile && framedSlug }" :style="mobile ? { top: `${gridTop}px` } : undefined" :aria-busy="busy || undefined">
         <NuxtLink
           v-for="(client, index) in visibleClients"
           :key="client.slug"
           :to="`/commercial/clients/${client.slug}`"
           class="client-scene__mark"
-          :class="{ 'is-visible': index < displayedLogos && !exiting, 'is-selected': selectedSlug === client.slug }"
+          :class="{ 'is-visible': index < displayedLogos && !exiting, 'is-selected': selectedSlug === client.slug, 'is-framed': framedSlug === client.slug }"
           :style="mobile ? undefined : { left: `${(leaderFor(client.slug)?.labelX ?? .5) * 100}%`, top: `${(leaderFor(client.slug)?.labelY ?? .32) * 100}%` }"
           :data-client-slug="client.slug"
           :inert="busy || index >= displayedLogos || exiting"
@@ -395,6 +429,10 @@ onBeforeUnmount(() => {
           :aria-label="`View ${client.displayName}`"
           :aria-describedby="client.projectIds.length ? `client-summary-${client.slug}` : undefined"
           @click="guardClientNavigation($event)"
+          @pointerenter="frameClient(client.slug, $event)"
+          @pointerleave="unframeClient(client.slug)"
+          @focus="frameClient(client.slug, $event)"
+          @blur="unframeClient(client.slug)"
         >
           <span class="client-scene__mark-art" aria-hidden="true">
             <img v-if="client.logoSrc" :src="$sitePath(client.logoSrc)" alt="" decoding="async" @error="($event.target as HTMLImageElement).style.visibility = 'hidden'">
@@ -442,11 +480,11 @@ onBeforeUnmount(() => {
 .client-scene__mark.is-visible { opacity: 1; transform: translate(-50%, -100%); pointer-events: auto; }
 .client-scene__mark:focus-visible, .client-scene__mark.is-selected { color: #a0ebbb; }
 /* Hover styling only where a pointer can hover: touch screens keep :hover on the last tapped spot across a round trip. */
-@media (hover: hover) { .client-scene__mark:hover { color: #a0ebbb; } .client-scene__mark:hover::before { opacity: 1; } }
-/* A soft box frames the hovered, focused or selected mark, like the phone grid, without moving the logo or its line. */
-.client-scene__mark::before { content: ''; position: absolute; inset: -2px -6px; z-index: -1; border: 1px solid #a0ebbb99; border-radius: 12px; background: #a0ebbb14; opacity: 0; transition: opacity 160ms ease; }
-.client-scene__mark:focus-visible::before { opacity: 1; }
-.client-scene__marks.is-grid .client-scene__mark::before { display: none; }
+@media (hover: hover) { .client-scene__mark:hover { color: #a0ebbb; } }
+/* The hovered or focused mark is framed by its own leader line, drawn in CommercialLeaderLayer; the frame replaces the focus ring. */
+.client-scene__marks:not(.is-grid) .client-scene__mark:focus-visible { outline: none; }
+/* The other clients step back so the framed mark and its brief read on their own. */
+.client-scene__marks.has-framed .client-scene__mark.is-visible:not(.is-framed) { opacity: .22; }
 .client-scene__mark-art { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 46px; }
 .client-scene__mark-art > img { display: block; max-width: 82%; max-height: 48px; object-fit: contain; }
 .client-scene__mark-art > strong { font-size: 17px; line-height: 1.1; }

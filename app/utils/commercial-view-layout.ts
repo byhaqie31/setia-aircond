@@ -63,8 +63,8 @@ export function compactEquipmentLabels(anchors: readonly number[], headingBottom
 }
 
 /** Lines grow from the equipment/city dot towards the label in both layouts. */
-export function commercialLeaderPath(leader: CommercialLeader): string {
-  const point = (x: number, y: number) => `${x * 1000} ${y * 1000}`
+export function commercialLeaderPath(leader: CommercialLeader, width = 1000, height = 1000): string {
+  const point = (x: number, y: number) => `${x * width} ${y * height}`
   if (leader.elbow === 'direct') return `M ${point(leader.targetX, leader.targetY)} L ${point(leader.labelX, leader.labelY)}`
   if (leader.elbow) {
     const corner = leader.elbow === 'at-target-height'
@@ -73,6 +73,24 @@ export function commercialLeaderPath(leader: CommercialLeader): string {
     return `M ${point(leader.targetX, leader.targetY)} L ${corner} L ${point(leader.labelX, leader.labelY)}`
   }
   return `M ${point(leader.targetX, leader.targetY)} L ${point(leader.targetX, leader.labelY)}`
+}
+
+/**
+ * The hover frame grows out of the end of the leader: two halves leave the
+ * point where the line meets the label, run along the bottom and up the sides,
+ * and meet across the top. Both halves are the same length so they close together.
+ */
+export function commercialFramePaths(leader: CommercialLeader, frame: CommercialLabelBounds, width: number, height: number): [string, string] {
+  const left = frame.x * width
+  const right = (frame.x + frame.width) * width
+  const top = frame.y * height
+  const bottom = (frame.y + frame.height) * height
+  const join = Math.max(left, Math.min(right, (leader.elbow ? leader.labelX : leader.targetX) * width))
+  const meet = left + right - join
+  return [
+    `M ${join} ${bottom} H ${left} V ${top} H ${meet}`,
+    `M ${join} ${bottom} H ${right} V ${top} H ${meet}`,
+  ]
 }
 
 export interface GroupableClient {
