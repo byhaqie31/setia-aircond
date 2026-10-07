@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import corporate from '~/data/corporate.json'
+import { certificateDetailParts } from '~/utils/certificate-detail'
 import { commercialCredentialLogos } from '~/data/commercial-logos'
 import { commercialBrandLogos, commercialEnquiry } from '~/data/commercial-motion'
 import { COMMERCIAL_SUPPORT_SCREENS, COMMERCIAL_CREDENTIALS_STOP, COMMERCIAL_MAINTENANCE_STOP, commercialSupportAt } from '~/utils/commercial-support-journey'
@@ -341,7 +342,7 @@ onBeforeUnmount(() => { alive = false; motion?.revert(); motion = undefined })
               </div>
               <h3>{{ certificate.title }}</h3>
               <p class="records-issuer">{{ certificate.issuer }}</p>
-              <p class="records-certificate-detail">{{ certificate.detail }}</p>
+              <p class="records-certificate-detail"><template v-for="(part, partIndex) in certificateDetailParts(certificate.detail, certificate.highlight)" :key="partIndex"><mark v-if="part.highlight" class="certificate-highlight">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
             </article>
           </div>
         </section>
@@ -418,6 +419,7 @@ onBeforeUnmount(() => { alive = false; motion?.revert(); motion = undefined })
 .records-standard { font-size:clamp(24px,2.4vw,34px); font-weight:600; letter-spacing:-.03em; }
 .records-issuer { margin:8px 0 0; color:var(--ink-soft); font-size:12px; line-height:1.4; }
 .records-certificate-detail { max-width:38ch; margin:16px auto 0; font-size:14px; line-height:1.5; text-wrap:pretty; }
+.records-certificate-detail .certificate-highlight { padding:0 2px; color:inherit; font-weight:700; background:linear-gradient(transparent 58%,color-mix(in srgb,var(--green-bright) 38%,transparent) 58%); }
 .capability-boards { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); align-items:center; gap:clamp(40px,6vw,100px); width:min(100%,1200px); margin:64px auto 0; }
 .capability-illustration img { display:block; width:100%; max-width:460px; height:auto; margin-inline:auto; }
 .capability-column { min-width:0; }

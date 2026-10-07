@@ -72,13 +72,15 @@
       "code": "G7",
       "title": "CIDB Certification",
       "issuer": "Construction Industry Development Board",
-      "detail": "Grade G7 — Categories B (B04), CE (CE21) & ME (M01, M15)."
+      "detail": "Grade G7 — Categories B (B04), CE (CE21) & ME (M01, M15).",
+      "highlight": "Grade G7"
     },
     {
       "code": "ST",
       "title": "Suruhanjaya Tenaga",
       "issuer": "Energy Commission of Malaysia",
-      "detail": "Registered as a Class A Electrical Contractor. Reg. no. ST(TKL)SGR/C/KE/00274/2015"
+      "detail": "Registered as a Class A Electrical Contractor.",
+      "highlight": "Class A"
     },
     {
       "code": "MOF",

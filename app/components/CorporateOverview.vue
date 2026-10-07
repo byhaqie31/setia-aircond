@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import corporate from '~/data/corporate.json'
+import { certificateDetailParts } from '~/utils/certificate-detail'
 
 defineProps<{ arriving: boolean }>()
 const emit = defineEmits<{ arrived: [] }>()
@@ -72,7 +73,7 @@ onMounted(() => heading.value?.focus({ preventScroll: true }))
           <span class="corporate-certificate-code" aria-hidden="true">{{ certificate.code }}</span>
           <h3>{{ certificate.title }}</h3>
           <p class="corporate-certificate-issuer">{{ certificate.issuer }}</p>
-          <p>{{ certificate.detail }}</p>
+          <p><template v-for="(part, partIndex) in certificateDetailParts(certificate.detail, certificate.highlight)" :key="partIndex"><mark v-if="part.highlight" class="certificate-highlight">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
         </article>
       </div>
     </section>
@@ -160,6 +161,7 @@ onMounted(() => heading.value?.focus({ preventScroll: true }))
 .corporate-certificate-code { display: block; margin-bottom: 24px; font-family: 'Space Mono', monospace; font-size: 20px; letter-spacing: -.03em; color: var(--pine); }
 .corporate-certificate h3, .corporate-capability h3 { margin: 0 0 12px; font-family: Georgia, 'Times New Roman', serif; font-size: 24px; line-height: 1.2; font-weight: 400; letter-spacing: -.015em; }
 .corporate-certificate p { margin: 12px 0 0; font-size: 14px; line-height: 1.65; color: var(--ink-soft); }
+.corporate-certificate .certificate-highlight { padding: 0 2px; color: var(--pine); font-weight: 700; background: linear-gradient(transparent 58%, color-mix(in srgb, var(--green-bright) 30%, transparent) 58%); }
 .corporate-certificate .corporate-certificate-issuer { margin-top: 0; font-size: 12px; }
 .corporate-capabilities { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; }
 .corporate-capability { padding-top: 24px; border-top: 1px solid var(--line); }
