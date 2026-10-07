@@ -6,9 +6,9 @@ const arriving = serviceArrival.value?.floor === 'residential' && serviceArrival
 serviceArrival.value = null
 
 useHead({
-  title: 'Residential Air-Conditioning & Electrical | Setia',
+  title: 'Aircond Services & Repairs for Homes in Malaysia | Setia',
   htmlAttrs: { 'data-theme': 'service' },
-  meta: [{ name: 'description', content: 'Air-conditioning design, installation, electrical services and maintenance for homes across Kuala Lumpur and Selangor. Supplied, installed and maintained by Setia since 1990.' }],
+  meta: [{ name: 'description', content: 'Air conditioner installation, servicing, repairs and electrical work for homes across Kuala Lumpur and Selangor. Daikin, York and other leading brands, maintained by Setia since 1990.' }],
 })
 </script>
 

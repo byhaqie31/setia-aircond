@@ -1,32 +1,26 @@
 import { resolve } from 'node:path'
-import { allCommercialParties, commercialServices } from './app/data/commercial-view'
-import { daikinArticlePath, daikinArticles } from './app/data/daikin-articles'
+import { detailRoutes } from './app/data/site-routes'
 
 const cloudflareBuild = process.env.SETIA_CLOUDFLARE_BUILD === '1'
 const siteBaseURL = '/'
-const commercialDetailRoutes = [
-  '/commercial/projects',
-  ...commercialServices.map(service => `/commercial/services/${service.slug}`),
-  ...allCommercialParties.map(party => `/commercial/clients/${party.slug}`),
-  ...daikinArticles.map(article => daikinArticlePath(article.slug)),
-]
 
 export default defineNuxtConfig({
   buildDir: cloudflareBuild ? '.nuxt-cloudflare' : '.nuxt',
   nitro: {
     ...(cloudflareBuild ? { output: { dir: resolve('.output-cloudflare') } } : {}),
-    prerender: { routes: commercialDetailRoutes },
+    prerender: { routes: [...detailRoutes, '/sitemap.xml', '/robots.txt'] },
   },
   compatibilityDate: '2026-09-08',
   devtools: { enabled: true },
   runtimeConfig: {
-    public: { siteUrl: 'https://setia-aircond.axelnova.workers.dev/' },
+    // Production origin for canonicals, og:url and the sitemap; preview hosts are noindexed by workers/site.mjs.
+    public: { siteUrl: 'https://www.setiaaircond.com.my/' },
   },
   css: ['lenis/dist/lenis.css', '~/assets/css/main.css', '~/assets/css/service-story.css'],
   app: {
     baseURL: siteBaseURL,
     head: {
-      htmlAttrs: { lang: 'en' },
+      htmlAttrs: { lang: 'en-MY' },
       title: 'SetiaAC',
       link: [
         { rel: 'icon', type: 'image/x-icon', href: `${siteBaseURL}favicon.ico?v=original` },

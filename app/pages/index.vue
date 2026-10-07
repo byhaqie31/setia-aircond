@@ -35,10 +35,10 @@ let commercialImagePreparation: Promise<unknown> | undefined
 
 useHead({
   htmlAttrs: { 'data-theme': 'dark' },
-  title: 'Setia | Air-conditioning & Electrical Since 1990',
+  title: 'Daikin Air Conditioners Malaysia Supplier | Setia Air-Cond',
   meta: [{
     name: 'description',
-    content: 'Air-conditioning and electrical systems for commercial and residential spaces across Kuala Lumpur and Selangor supplied, installed and maintained since 1990.',
+    content: 'Setia Air-Cond and Electrical is a trusted Daikin air cond Malaysia supplier and distributor, supplying, installing and servicing air-conditioning across Kuala Lumpur and Selangor since 1990.',
   }],
 })
 

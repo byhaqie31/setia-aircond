@@ -59,8 +59,8 @@ function onHashChange() {
 
 useHead({
   htmlAttrs: { 'data-theme': 'service' },
-  title: 'About us | Setia Air-Cond',
-  meta: [{ name: 'description', content: 'Malaysian-owned air-conditioning and electrical specialists since 1990. Get to know Setia and contact our Subang Jaya office.' }],
+  title: 'About Setia | Air Conditioning & Electrical Services Malaysia',
+  meta: [{ name: 'description', content: 'Setia Air-Cond is a Malaysian-owned air conditioner supplier and electrical services specialist since 1990. Get to know Setia and contact our Subang Jaya office.' }],
 })
 
 onMounted(async () => {

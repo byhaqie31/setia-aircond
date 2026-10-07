@@ -1,16 +1,26 @@
 <script setup lang="ts">
 import { daikinArticlePath, daikinArticles } from '~/data/daikin-articles'
+import { articleSchema, jsonLdScript } from '~/utils/structured-data'
 
 const route = useRoute()
 const article = computed(() => daikinArticles.find(item => item.slug === route.params.slug))
 if (!article.value) throw createError({ statusCode: 404, statusMessage: 'Article not found', fatal: true })
 const related = computed(() => daikinArticles.filter(item => item.slug !== route.params.slug))
 
+const siteUrl = useRuntimeConfig().public.siteUrl
 useHead(() => ({
   htmlAttrs: { 'data-theme': 'service' },
   title: `${article.value!.metaTitle} | Setia Air-Cond`,
   meta: [{ name: 'description', content: article.value!.description }],
+  script: [{ key: 'article-schema', ...jsonLdScript(articleSchema(siteUrl, article.value!, route.path)) }],
 }))
+useSeoMeta({
+  ogType: 'article',
+  ogTitle: () => article.value!.title,
+  ogDescription: () => article.value!.description,
+  twitterTitle: () => article.value!.title,
+  twitterDescription: () => article.value!.description,
+})
 
 const { $scrollTo } = useNuxtApp()
 const body = useTemplateRef<HTMLElement>('body')

@@ -3,11 +3,9 @@ import { commercialProjectRecords, commercialSources } from '~/data/commercial-v
 
 const airConditioning = commercialProjectRecords.filter(record => record.discipline === 'air-conditioning')
 const electrical = commercialProjectRecords.filter(record => record.discipline === 'electrical')
-const siteUrl = useRuntimeConfig().public.siteUrl.replace(/\/?$/, '/')
 useHead({
   title: 'All project records | Setia Air-Cond',
   htmlAttrs: { 'data-theme': 'service' },
-  link: [{ rel: 'canonical', href: new URL('commercial/projects', siteUrl).href }],
   meta: [{ name: 'description', content: 'Browse Setia Air-Cond’s published historical air-conditioning and electrical project records.' }],
 })
 </script>

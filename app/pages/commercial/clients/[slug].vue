@@ -14,11 +14,9 @@ const fromProjects = computed(() => mounted.value && router.currentRoute.value.q
 // Return to the client's own group of the clientele screen without reselecting its mark, so nothing stays highlighted after the round trip.
 const clientPage = groupForClient(groupCommercialClients(commercialClients, 8), party.slug) + 1
 const returnTo = computed(() => fromProjects.value ? '/commercial/projects' : `/commercial?scene=clients${clientPage > 1 ? `&page=${clientPage}` : ''}`)
-const siteUrl = useRuntimeConfig().public.siteUrl.replace(/\/?$/, '/')
 useHead({
   title: `${party.displayName} | Commercial clients | Setia Air-Cond`,
   htmlAttrs: { 'data-theme': 'service' },
-  link: [{ rel: 'canonical', href: new URL(`commercial/clients/${party.slug}`, siteUrl).href }],
   meta: [{ name: 'description', content: records.length ? party.summary : `${party.displayName} | Commercial clients | Setia Air-Cond.` }],
 })
 </script>
