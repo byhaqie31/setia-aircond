@@ -32,6 +32,7 @@ let navigating = false
 let disposed = false
 let reducedMotion: MediaQueryList | undefined
 let commercialImagePreparation: Promise<unknown> | undefined
+let residentialImagePreparation: Promise<unknown> | undefined
 
 useHead({
   htmlAttrs: { 'data-theme': 'dark' },
@@ -46,6 +47,8 @@ onMounted(() => {
   void preloadRouteComponents('/residential', router).catch(() => {})
   void preloadRouteComponents('/commercial', router).catch(() => {})
   void prepareCommercialImages()
+  // Warm the room photo so a click starts the camera instead of waiting on a download.
+  void prepareResidentialImages()
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
   reducedMotion.addEventListener('change', onMotionChange)
   window.addEventListener('keydown', onKeydown, true)
@@ -96,21 +99,23 @@ function prepareCommercialImages() {
 function prepareResidentialImages() {
   if (typeof Image === 'undefined') return Promise.resolve()
   const base = useRuntimeConfig().app.baseURL.replace(/\/$/, '')
-  return Promise.all(['/images/residential/room-hero-v1.webp', '/images/residential/room-hero-mobile-v1.webp'].map(path => new Promise<void>(resolve => {
+  if (residentialImagePreparation) return residentialImagePreparation
+  residentialImagePreparation = Promise.all(['/images/residential/room-hero-v1.webp', '/images/residential/room-hero-mobile-v1.webp'].map(path => new Promise<void>(resolve => {
     const image = new Image()
     image.onload = () => { void image.decode().catch(() => {}).finally(resolve) }
     image.onerror = () => resolve()
     image.src = `${base}${path}`
   })))
+  return residentialImagePreparation
 }
 
 /** Measure the building at rest; the overlay plays the plan forwards on entry and backwards on return. */
-function planZoom(floor: BuildingFloor, duration?: number) {
+function planZoom(floor: BuildingFloor, duration?: number, returning = false) {
   if (typeof document === 'undefined') return null
   const frame = document.querySelector<HTMLElement>('.building-frame')
   const canvas = frame?.querySelector<HTMLElement>('.building-canvas')
   if (!frame || !canvas) return null
-  return floor === 'commercial' ? planCommercialZoom(frame, canvas, duration) : planResidentialZoom(frame, canvas, duration)
+  return floor === 'commercial' ? planCommercialZoom(frame, canvas, duration) : planResidentialZoom(frame, canvas, duration, returning)
 }
 
 async function playReturn() {
@@ -119,10 +124,10 @@ async function playReturn() {
   // The scene covers the first frame; let the lit plates decode before the camera pulls out to them.
   await Promise.race([
     building.value ? building.value.prepareFloor(floor).catch(() => {}) : Promise.resolve(),
-    new Promise<void>(resolve => setTimeout(resolve, 600)),
+    new Promise<void>(resolve => setTimeout(resolve, 250)),
   ])
   if (disposed || returningFrom.value !== floor) return
-  const plan = planZoom(floor, floor === 'commercial' ? 1400 : 1800)
+  const plan = planZoom(floor, floor === 'commercial' ? 1400 : 1000, true)
   if (plan && transition.value) transition.value.playReturn(plan)
   else void endReturn()
 }
@@ -190,7 +195,7 @@ async function enterFloor(floor: BuildingFloor) {
     if (disposed || attempt !== entryAttempt) return
     zoomPlan.value = planZoom(floor)
     showTransition.value = true
-  }, 300)
+  }, 60)
 }
 
 async function openFloor(animateArrival = true) {
@@ -254,7 +259,7 @@ function onMotionChange(event: MediaQueryListEvent) {
 </script>
 
 <template>
-  <main class="hero" :class="{ 'hero--entering': showTransition, 'hero--entering-commercial': showTransition && cameraFloor === 'commercial', 'hero--entering-residential': showTransition && cameraFloor === 'residential' }" :inert="showTransition" :aria-busy="Boolean(openingFloor)" aria-labelledby="hero-title">
+  <main class="hero" :class="{ 'hero--opening': Boolean(openingFloor), 'hero--entering': showTransition, 'hero--entering-commercial': showTransition && cameraFloor === 'commercial', 'hero--entering-residential': showTransition && cameraFloor === 'residential' }" :inert="showTransition" :aria-busy="Boolean(openingFloor)" aria-labelledby="hero-title">
     <HeroAtmosphere />
     <a class="skip-link" href="#hero-title">Skip to content</a>
     <header class="site-header">

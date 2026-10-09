@@ -208,12 +208,16 @@ h1:focus { outline: none; }
 .hero--entering-commercial .building-canvas::before { position: absolute; inset: 0 -6.8182%; background: url('/images/hero/building-zoom-extended-v1.webp') center / 100% 100% no-repeat; mask-image: linear-gradient(to right, #000 0 6%, transparent 7.5% 92.5%, #000 94% 100%); content: ''; }
 /* ResidentialTransition drives both cameras; see utils/residential-zoom.ts and utils/commercial-zoom.ts. */
 .hero--entering-commercial .building-frame, .hero--entering-residential .building-frame { overflow: visible; transform-origin: top left; will-change: transform; }
+/* Promote the building while the floor lights up, so the first camera frame is not spent rasterising it. */
+.hero--opening .building-frame { will-change: transform; }
 .navigation-error { color: var(--paper); font-size: 14px; }
 .residential-transition { position: fixed; inset: 0; z-index: 100; }
-.residential-transition__room, .residential-transition__room > picture, .residential-transition__room > picture > img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.residential-transition__room, .residential-transition__aperture, .residential-transition__view, .residential-transition__view > picture, .residential-transition__view > picture > img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .residential-transition__room { display: block; opacity: 0; will-change: opacity; background: #191b17; }
-.residential-transition__room > picture > img { object-fit: cover; object-position: center; max-width: none; }
-.residential-transition__room.is-zooming { transform-origin: 0 0; will-change: transform, opacity, clip-path; }
+.residential-transition__view > picture > img { object-fit: cover; object-position: center; max-width: none; }
+.residential-transition__room.is-zooming { transform-origin: 0 0; will-change: transform, opacity; }
+/* The window grows by scale against a fixed clip, so the whole entry stays on the compositor. */
+.residential-transition__room.is-zooming .residential-transition__aperture, .residential-transition__room.is-zooming .residential-transition__view { will-change: transform; }
 /* The commercial scene is 100svh tall; match the service stage beneath it so the route swap is seamless. */
 .residential-transition__room:has(> .commercial-building-scene) { background: var(--service-stage); }
 /* Coming back from Residential, the room covers the first frame before the camera pulls out. */

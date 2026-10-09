@@ -35,7 +35,7 @@ onBeforeUnmount(() => observer?.disconnect())
     <section class="residential-view__hero" aria-labelledby="residential-title">
       <picture class="residential-view__room">
         <source media="(max-width: 680px)" :srcset="$sitePath('/images/residential/room-hero-mobile-v1.webp')">
-        <img :src="$sitePath('/images/residential/room-hero-v1.webp')" width="1672" height="940" alt="A warmly lit living room with a wall-mounted air conditioner and a recessed ceiling cassette above the sofa." fetchpriority="high" decoding="async">
+        <img :src="$sitePath('/images/residential/room-hero-v1.webp')" width="1672" height="940" alt="A warmly lit living room with a wall-mounted air conditioner and a recessed ceiling cassette above the sofa." fetchpriority="high" :decoding="arriving ? 'sync' : 'async'">
       </picture>
       <div class="residential-view__room-shade" aria-hidden="true" />
 

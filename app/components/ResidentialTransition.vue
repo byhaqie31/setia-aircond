@@ -4,6 +4,8 @@ import type { BuildingZoomPlan } from '~/utils/building-zoom'
 const props = defineProps<{ destination?: string; duration?: number; zoom?: BuildingZoomPlan | null; returning?: boolean }>()
 const emit = defineEmits<{ complete: [animateArrival: boolean]; cancel: [] }>()
 const paper = useTemplateRef<HTMLElement>('paper')
+const aperture = useTemplateRef<HTMLElement>('aperture')
+const view = useTemplateRef<HTMLElement>('view')
 const shade = useTemplateRef<HTMLElement>('shade')
 const skipControl = useTemplateRef<HTMLButtonElement>('skipControl')
 let fade: Animation | undefined
@@ -18,6 +20,8 @@ function finish(animateArrival = true) {
   completed = true
   if (!props.returning) {
     if (paper.value) paper.value.style.opacity = '1'
+    // Without its scale the window clip would close again, so drop it with the animations.
+    if (aperture.value) aperture.value.style.clipPath = ''
     fade?.cancel()
     // The room now covers the building, so the camera can stay where it landed.
     for (const animation of camera.slice(1)) animation.cancel()
@@ -50,6 +54,18 @@ function startCamera(plan: BuildingZoomPlan, direction: PlaybackDirection = 'nor
     room,
     ...(shade.value ? [shade.value.animate(plan.shadeKeyframes, timing)] : []),
   ]
+  if (plan.aperture && aperture.value && view.value) {
+    // The window opens partway through the move and holds still until then.
+    const wait = plan.duration * plan.aperture.from
+    const opening: KeyframeAnimationOptions = { duration: plan.duration - wait, fill: 'both', direction }
+    if (direction === 'reverse') opening.endDelay = wait
+    else opening.delay = wait
+    const origin = `${plan.aperture.origin.x}px ${plan.aperture.origin.y}px`
+    aperture.value.style.clipPath = plan.aperture.clip
+    aperture.value.style.transformOrigin = origin
+    view.value.style.transformOrigin = origin
+    camera.push(aperture.value.animate(plan.aperture.keyframes, opening), view.value.animate(plan.aperture.viewKeyframes, opening))
+  }
   void room.finished.then(() => finish()).catch(() => {
     if (!completed && !disposed) finish(false)
   })
@@ -134,11 +150,15 @@ onBeforeUnmount(() => {
     <div class="residential-transition" role="dialog" aria-modal="true" :aria-label="returning ? 'Returning home' : `Opening ${destination ?? 'Residential'}`">
       <div ref="paper" class="residential-transition__room" :class="{ 'is-zooming': zoom || returning, 'is-returning': returning }" aria-hidden="true">
         <slot>
+        <span ref="aperture" class="residential-transition__aperture">
+        <span ref="view" class="residential-transition__view">
         <picture>
           <source media="(max-width: 680px)" :srcset="$sitePath('/images/residential/room-hero-mobile-v1.webp')">
           <img :src="$sitePath('/images/residential/room-hero-v1.webp')" width="1672" height="940" alt="" decoding="async">
         </picture>
         <span ref="shade" class="residential-transition__shade" />
+        </span>
+        </span>
         </slot>
       </div>
       <button ref="skipControl" class="residential-transition__skip" type="button" @click="finish(false)">Skip transition</button>

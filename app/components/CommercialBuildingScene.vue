@@ -129,14 +129,14 @@ function onPreviewKeydown(event: KeyboardEvent) {
   }
 }
 const compactDescriptions: Record<string, string> = {
-  'cassette-ceiling-ducted': 'Install & service',
+  'cassette-ceiling-ducted': 'Install, maintain & repair',
   'cooling-tower': 'Install & maintain',
   pump: 'Flow enquiries',
   chiller: 'Service & repair',
   'vrf-vrv': 'Multi-zone cooling',
-  ahu: 'Airflow enquiry',
+  ahu: 'Maintain & repair',
   'chilled-water-piping': 'Chilled-water pipework',
-  'duct-services': 'Supply, install & repair',
+  'duct-services': 'Install, maintain & repair',
 }
 
 const equipmentPositions = [

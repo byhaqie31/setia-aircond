@@ -4,6 +4,8 @@ export interface BuildingZoomPlan {
   frameKeyframes: Keyframe[]
   roomKeyframes: Keyframe[]
   shadeKeyframes: Keyframe[]
+  /** The window the room opens out of: a fixed clip whose layer scales up from `origin` while its view scales back down, starting at `from` of the move. */
+  aperture?: { clip: string; origin: Point; keyframes: Keyframe[]; viewKeyframes: Keyframe[]; from: number }
   duration: number
 }
 
