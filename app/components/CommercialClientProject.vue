@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { getCommercialClientPhotos } from '~/data/commercial-client-media'
-import { commercialSources, type CommercialClient, type CommercialProjectRecord } from '~/data/commercial-view'
+import { commercialSources, describeCommercialSystems, type CommercialClient, type CommercialProjectRecord } from '~/data/commercial-view'
 
 const props = defineProps<{ party: CommercialClient, record: CommercialProjectRecord | null, first: boolean }>()
 const photos = computed(() => getCommercialClientPhotos(props.party, props.record))
@@ -14,7 +14,7 @@ const hasRepresentativePhotos = computed(() => photos.value.some(photo => photo.
 const recordKey = computed(() => props.record?.id ?? props.party.slug)
 const title = computed(() => props.record ? props.record.discipline === 'air-conditioning' ? 'Cooling systems' : 'Electrical works' : 'Commercial client')
 /** A client without a register row describes itself from the clientele listing: the systems recorded for it, or its brief. */
-const partyScope = computed(() => props.party.systems.length ? `Setia’s clientele listing records the following systems for ${props.party.displayName}: ${props.party.systems.join(' · ')}.` : props.party.summary ?? 'N/A')
+const partyScope = computed(() => props.party.systems.length ? `Setia’s clientele listing records the following systems for ${props.party.displayName}: ${describeCommercialSystems(props.party)}.` : props.party.summary ?? 'N/A')
 function markUnavailable(src: string) {
   if (!failedSources.value.includes(src)) failedSources.value.push(src)
 }
@@ -66,7 +66,7 @@ function markUnavailable(src: string) {
       <summary>Project details<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 8 4 4 4-4" /></svg></summary>
       <div class="client-project__details-content">
         <div v-if="record?.explicitSystems.length" class="client-project__systems"><h3>Systems included</h3><p>{{ record.explicitSystems.join(' · ') }}</p></div>
-        <div v-else-if="party.systems.length" class="client-project__systems"><h3>Systems included</h3><p>{{ party.systems.join(' · ') }}</p></div>
+        <div v-else-if="party.systems.length" class="client-project__systems"><h3>Systems included</h3><p>{{ describeCommercialSystems(party) }}</p></div>
         <dl>
           <div><dt>Main contractor / owner</dt><dd>{{ record?.partyName ?? 'N/A' }}</dd></div>
           <div><dt>Recorded years</dt><dd>{{ record?.yearText ?? 'N/A' }}</dd></div>

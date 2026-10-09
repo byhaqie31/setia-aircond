@@ -31,6 +31,7 @@ const galleryPhotos = computed(() => [...photos.value.filter(photo => photo.plac
         </div>
       </div>
     </section>
+    <CommercialServiceClients :service="service" />
     <div class="service-editorial__gallery">
       <CommercialServiceGallery :photos="galleryPhotos" />
     </div>

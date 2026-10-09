@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import CommercialSkylinePlate from '~/components/CommercialSkylinePlate.vue'
-import { commercialClientCategories, commercialClients, getCommercialClientPages } from '~/data/commercial-view'
+import { commercialClientCategories, commercialClients, getCommercialClientMonogram, getCommercialClientPages } from '~/data/commercial-view'
 import { compactSceneLabels, groupForClient, type CommercialLeader, type CommercialLabelBounds, type ScenePhase } from '~/utils/commercial-view-layout'
 
 const props = withDefaults(defineProps<{
@@ -339,10 +339,6 @@ function movePage(direction: -1 | 1) {
   goToPage(activeGroupIndex.value + direction)
 }
 
-function guardClientNavigation(event: MouseEvent) {
-  if (busy.value || props.phase === 'exit') event.preventDefault()
-}
-
 function setTabElement(element: unknown, index: number) {
   if (element instanceof HTMLButtonElement) tabElements[index] = element
 }
@@ -364,14 +360,6 @@ function revealTab(behavior: ScrollBehavior = props.reducedMotion ? 'instant' : 
   const tab = tabElements[chosenCategoryIndex.value]
   if (!list || !tab || list.scrollWidth <= list.clientWidth + 1) return
   list.scrollTo({ left: tab.offsetLeft - (list.clientWidth - tab.offsetWidth) / 2, behavior })
-}
-
-/** Placeholder for a client whose mark is not on disk yet: a short acronym, or the initials of the first two words. */
-function monogram(name: string) {
-  const words = name.split(/[\s/]+/).filter(word => /^[\p{L}\p{N}]/u.test(word))
-  const first = words[0] ?? ''
-  if (/^[A-Z]{2,5}$/.test(first)) return first
-  return words.slice(0, 2).map(word => word[0]!.toUpperCase()).join('')
 }
 
 function onVisibilityChange() {
@@ -479,7 +467,7 @@ onBeforeUnmount(() => {
               :tabindex="index === chosenCategoryIndex ? 0 : -1"
               @click="selectCategory(index)"
               @keydown="onTabKeydown($event, index)"
-            >{{ category.label }}</button>
+            >{{ category.tabLabel }}</button>
           </div>
           <button v-if="compact" type="button" class="client-scene__tab-arrow client-scene__tab-arrow--next" aria-label="Next client industry" :disabled="chosenCategoryIndex === categories.length - 1" @click="selectCategory(chosenCategoryIndex + 1)"><svg aria-hidden="true" viewBox="0 0 20 20" width="16" height="16"><path d="m8 5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
         </div>
@@ -505,19 +493,16 @@ onBeforeUnmount(() => {
       />
 
       <div v-if="enhanced && skylineLoaded && !imageUnavailable" id="commercial-clients-panel" ref="markerElement" class="client-scene__marks" role="tabpanel" :aria-labelledby="`client-tab-${activeCategory.id}`" :class="{ 'is-grid': mobile, 'has-framed': !mobile && framedSlug }" :style="mobile ? { top: `${gridTop}px` } : undefined" :aria-busy="busy || undefined">
-        <NuxtLink
+        <span
           v-for="(client, index) in visibleClients"
           :key="client.slug"
-          :to="`/commercial/clients/${client.slug}`"
           class="client-scene__mark"
           :class="{ 'is-visible': index < displayedLogos && !exiting, 'is-selected': selectedSlug === client.slug, 'is-framed': framedSlug === client.slug }"
           :style="mobile ? undefined : { left: `${(leaderFor(client.slug)?.labelX ?? .5) * 100}%`, top: `${(leaderFor(client.slug)?.labelY ?? .32) * 100}%` }"
           :data-client-slug="client.slug"
+          tabindex="0"
           :inert="busy || index >= displayedLogos || exiting"
-          :aria-disabled="busy || index >= displayedLogos || exiting || undefined"
-          :aria-label="`View ${client.displayName}`"
           :aria-describedby="client.summary ? `client-summary-${client.slug}` : undefined"
-          @click="guardClientNavigation($event)"
           @pointerenter="frameClient(client.slug, $event)"
           @pointerleave="unframeClient(client.slug)"
           @focus="frameClient(client.slug, $event)"
@@ -525,11 +510,11 @@ onBeforeUnmount(() => {
         >
           <span class="client-scene__mark-art" aria-hidden="true">
             <img v-if="client.logoSrc" :src="$sitePath(client.logoSrc)" alt="" decoding="async" @error="($event.target as HTMLImageElement).style.visibility = 'hidden'">
-            <span v-else class="client-scene__monogram">{{ monogram(client.displayName) }}</span>
+            <span v-else class="client-scene__monogram">{{ getCommercialClientMonogram(client) }}</span>
           </span>
           <span class="client-scene__mark-name">{{ client.displayName }}</span>
           <span v-if="client.summary" :id="`client-summary-${client.slug}`" class="client-scene__summary" role="tooltip">{{ client.summary }}</span>
-        </NuxtLink>
+        </span>
       </div>
 
       <nav v-if="enhanced && skylineLoaded && !imageUnavailable && groups.length > 1" class="client-scene__pagination client-scene__pagination--stage" aria-label="Client groups" :aria-busy="busy || undefined">
@@ -546,11 +531,9 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="client-scene__below" :class="{ 'has-content': imageUnavailable }">
-      <nav class="client-scene__all" :class="{ 'is-visually-hidden': enhanced && !imageUnavailable }" aria-label="All commercial clients" :inert="enhanced && !imageUnavailable" :aria-hidden="enhanced && !imageUnavailable || undefined">
-        <template v-for="client in commercialClients" :key="client.slug">
-          <NuxtLink :to="`/commercial/clients/${client.slug}`">{{ client.displayName }}</NuxtLink>
-        </template>
-      </nav>
+      <ul class="client-scene__all" :class="{ 'is-visually-hidden': enhanced && !imageUnavailable }" aria-label="All commercial clients" :inert="enhanced && !imageUnavailable" :aria-hidden="enhanced && !imageUnavailable || undefined">
+        <li v-for="client in commercialClients" :key="client.slug">{{ client.displayName }}</li>
+      </ul>
     </div>
   </section>
 </template>
@@ -563,19 +546,19 @@ onBeforeUnmount(() => {
 .client-scene__eyebrow { margin: 0 0 8px; color: #a7d2b5; font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
 .client-scene__heading h2 { max-width: 25ch; margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(28px, 2.8vw, 46px); font-weight: 400; line-height: 1.12; }
 /* Industry tabs under the title. They are part of the measured heading, so the marks and the phone grid keep clear of them on their own. */
-.client-scene__tabbar { position: relative; display: flex; align-items: center; min-width: 0; max-width: 920px; margin-top: 22px; pointer-events: auto; }
+.client-scene__tabbar { position: relative; display: flex; align-items: center; min-width: 0; margin-top: 22px; pointer-events: auto; }
 .client-scene__tabs { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 8px; }
 /* Compact layouts: a round arrow in its own column at either side steps to the neighbouring industry. An arrow with no tab in its direction keeps its space but disappears, so the title between them never shifts. */
 .client-scene__tab-arrow { flex: 0 0 auto; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid #d5e8d966; border-radius: 50%; color: #eff8f0; background: #061710d9; cursor: pointer; }
 .client-scene__tab-arrow[disabled] { visibility: hidden; }
 .client-scene__tab-arrow:active:not([disabled]) { color: #061710; background: #a0ebbb; border-color: #a0ebbb; }
-.client-scene__tab { min-height: 36px; padding: 8px 15px; border: 1px solid #d5e8d94d; border-radius: 999px; color: #d2e2d6; background: #06171066; font: inherit; font-size: 12.5px; font-weight: 600; letter-spacing: .03em; line-height: 1.2; white-space: nowrap; cursor: pointer; transition: color .2s ease, background-color .2s ease, border-color .2s ease; }
+.client-scene__tab { min-height: 36px; padding: 8px 15px; border: 1px solid #d5e8d94d; border-radius: 999px; color: #d2e2d6; background: #06171066; font: inherit; font-size: clamp(11.5px, .9vw, 12.5px); font-weight: 600; letter-spacing: .03em; line-height: 1.2; white-space: nowrap; cursor: pointer; transition: color .2s ease, background-color .2s ease, border-color .2s ease; }
 @media (hover: hover) { .client-scene__tab:hover:not([aria-selected='true']) { border-color: #a0ebbb99; color: #eff8f0; } }
 .client-scene__tab[aria-selected='true'] { color: #061710; background: #a0ebbb; border-color: #a0ebbb; cursor: default; }
 .client-scene__heading, .client-scene__pagination, .client-scene__below { transition: opacity 200ms ease; }
 .client-scene.is-exiting :is(.client-scene__heading, .client-scene__pagination, .client-scene__below) { opacity: 0; pointer-events: none; }
 .client-scene__marks { position: absolute; z-index: 3; inset: 0; pointer-events: none; }
-.client-scene__mark { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 6px; width: clamp(120px, 12vw, 205px); min-height: 52px; padding: 8px 4px; border: 0; background: none; color: #eff8f0; opacity: 0; transform: translate(-50%, -100%) translateY(8px); transition: opacity 180ms ease, transform 180ms ease, color 180ms ease; cursor: pointer; pointer-events: none; }
+.client-scene__mark { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 6px; width: clamp(120px, 12vw, 205px); min-height: 52px; padding: 8px 4px; border: 0; background: none; color: #eff8f0; opacity: 0; transform: translate(-50%, -100%) translateY(8px); transition: opacity 180ms ease, transform 180ms ease, color 180ms ease; cursor: default; pointer-events: none; }
 .client-scene__mark.is-visible { opacity: 1; transform: translate(-50%, -100%); pointer-events: auto; }
 .client-scene__mark:focus-visible, .client-scene__mark.is-selected { color: #a0ebbb; }
 /* Hover styling only where a pointer can hover: touch screens keep :hover on the last tapped spot across a round trip. */
@@ -621,7 +604,7 @@ onBeforeUnmount(() => {
 .client-scene__pagination .client-scene__dot[aria-current='true']::before { background: #a0ebbb; border-color: #a0ebbb; transform: scale(1.25); }
 .client-scene__center { grid-column: 2; grid-row: 1; align-self: end; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
 /* Same white pill as the building scene's secondary action (and the arrows above), so both scenes keep their controls at the bottom centre. */
-.client-scene__all { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 24px 0; }
+.client-scene__all { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 24px 0; padding: 0; list-style: none; }
 .client-scene__all > * { color: #d2e2d6; font-size: 14px; }
 .client-scene__all.is-visually-hidden { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .client-scene :is(a, button):focus-visible { outline: 2px solid #a0ebbb; outline-offset: 4px; }

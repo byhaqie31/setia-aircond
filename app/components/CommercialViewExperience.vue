@@ -353,9 +353,7 @@ onBeforeUnmount(() => {
     <section v-if="!enhanced" class="commercial-view__nojs-clients" aria-labelledby="commercial-nojs-clients-heading">
       <h2 id="commercial-nojs-clients-heading">Commercial clients</h2>
       <ul>
-        <li v-for="client in commercialClients" :key="client.slug">
-          <NuxtLink :to="`/commercial/clients/${client.slug}`">{{ client.displayName }}</NuxtLink>
-        </li>
+        <li v-for="client in commercialClients" :key="client.slug">{{ client.displayName }}</li>
       </ul>
     </section>
 
@@ -379,7 +377,6 @@ onBeforeUnmount(() => {
 :global(body:has(.commercial-view.is-transitioning) .floating-contact) { opacity:0; visibility:hidden; pointer-events:none; }
 .commercial-view__nojs-clients { padding:64px var(--page-gutter); }
 .commercial-view__nojs-clients ul { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; padding:0; list-style:none; }
-.commercial-view__nojs-clients a { text-decoration:underline; text-underline-offset:4px; }
 @media (max-width:700px) { .commercial-view__header { padding:10px 22px; } .commercial-view__header .service-brand { font-size:24px; } .commercial-view__nojs-clients ul { grid-template-columns:1fr 1fr; } }
 @media (max-width:360px) { .commercial-view__header { flex-wrap:wrap; } .commercial-view__header .service-quote { margin-left:auto; } .commercial-view__nojs-clients ul { grid-template-columns:1fr; } }
 @media (prefers-reduced-motion:reduce) { .commercial-view__header { transition:none; } }

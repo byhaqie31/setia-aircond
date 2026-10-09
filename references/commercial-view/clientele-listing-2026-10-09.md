@@ -62,6 +62,12 @@ Eco Sky Development, Assunta Hospital, Animal Medical Center / Medivet.
 6. Education & Learning: Garden International School; UOW; ISKL; SEGi; Taylor's Education / Group; Global Indian Education; Mindvalley Lab / Mindvalley
 7. Healthcare & Veterinary: Assunta Hospital; Animal Medical Center / Medivet
 
+Later the same day the two healthcare clients were folded into the first tab, relabelled
+"Retail, Property & Healthcare", so the screen shows six tabs.
+The tabs carry shorter names so all six sit on one line on a desktop (Banking & Finance,
+Manufacturing & Energy, Automotive & Transport, Telecommunications, Education); the full
+names above remain the category names in the data and in screen-reader announcements.
+
 ## Marks
 
 Marks are pale transparent (#ebf3ea) WebP variants of each client's published

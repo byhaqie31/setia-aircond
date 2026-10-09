@@ -23,6 +23,8 @@ export interface CommercialService {
   id: string
   slug: string
   title: string
+  /** The clientele-listing system this service covers; its page lists the clients recorded with it. */
+  system: CommercialSystemKey
   shortLine: string
   explanation: string
   systemDetails: string[]
@@ -37,7 +39,7 @@ export interface CommercialService {
 
 export const commercialServices: CommercialService[] = [
   {
-    id: 'cassette-ceiling-ducted', slug: 'cassette-ceiling-ducted', title: 'Cassette, ceiling exposed and ducted',
+    id: 'cassette-ceiling-ducted', slug: 'cassette-ceiling-ducted', system: 'ccd', title: 'Cassette, ceiling exposed and ducted',
     shortLine: 'Indoor unit supply, installation, maintenance and repair',
     explanation: 'Cassette, ceiling-exposed and ducted units are the indoor air conditioners that cool offices, shops and other occupied areas. Setia supplies, installs, maintains and repairs all three types in commercial buildings.',
     systemDetails: [
@@ -51,7 +53,7 @@ export const commercialServices: CommercialService[] = [
     detailAlt: 'Illustrative ducted indoor unit with refrigerant connections and ductwork above a ceiling',
   },
   {
-    id: 'cooling-tower', slug: 'cooling-tower', title: 'Cooling tower',
+    id: 'cooling-tower', slug: 'cooling-tower', system: 'coolingTower', title: 'Cooling tower',
     shortLine: 'Installation, repair and preventive maintenance',
     explanation: 'A cooling tower rejects heat from circulating water to the outside air. In a water-cooled building system, it helps the cooling plant release heat collected indoors.',
     systemDetails: [
@@ -65,7 +67,7 @@ export const commercialServices: CommercialService[] = [
     detailAlt: 'Cooling tower fans and connected pipework',
   },
   {
-    id: 'pump', slug: 'pump', title: 'Pump',
+    id: 'pump', slug: 'pump', system: 'pump', title: 'Pump',
     shortLine: 'Discuss pumping and water-circulation requirements',
     explanation: 'Pumps circulate water through pipework and connected cooling equipment. Chilled-water and condenser-water circuits serve different parts of a building system.',
     systemDetails: [
@@ -79,7 +81,7 @@ export const commercialServices: CommercialService[] = [
     detailAlt: 'Pump connections, valves and water pipes',
   },
   {
-    id: 'chilled-water-piping', slug: 'chilled-water-piping', title: 'Chilled water piping works',
+    id: 'chilled-water-piping', slug: 'chilled-water-piping', system: 'chilledWater', title: 'Chilled water piping works',
     shortLine: 'Pipework for chilled-water systems',
     explanation: 'Chilled-water piping connects the cooling plant to the equipment it serves. Talk to Setia about chilled-water piping works for your commercial building.',
     systemDetails: [
@@ -93,7 +95,7 @@ export const commercialServices: CommercialService[] = [
     detailAlt: 'Illustrative water pipes and connections at a chiller',
   },
   {
-    id: 'chiller', slug: 'chiller', title: 'Chiller',
+    id: 'chiller', slug: 'chiller', system: 'chiller', title: 'Chiller',
     shortLine: 'Installation, servicing and system replacement',
     explanation: 'A chiller produces chilled water for air-conditioning equipment. Its heat can be rejected through air-cooled equipment or a water-cooled plant, depending on the system.',
     systemDetails: [
@@ -107,7 +109,7 @@ export const commercialServices: CommercialService[] = [
     detailAlt: 'Chiller connections in a mechanical plant area',
   },
   {
-    id: 'vrf-vrv', slug: 'vrf-vrv', title: 'VRF / VRV',
+    id: 'vrf-vrv', slug: 'vrf-vrv', system: 'vrv', title: 'VRF / VRV',
     shortLine: 'Multi-zone installation and preventive maintenance',
     explanation: 'A variable-refrigerant system connects outdoor equipment to indoor units serving different spaces. VRV is a commonly used name for this type of system.',
     systemDetails: [
@@ -121,7 +123,7 @@ export const commercialServices: CommercialService[] = [
     detailAlt: 'Outdoor units connected to indoor cooling zones',
   },
   {
-    id: 'ahu', slug: 'ahu', title: 'AHU',
+    id: 'ahu', slug: 'ahu', system: 'ahu', title: 'AHU',
     shortLine: 'Air-handling unit maintenance and repair',
     explanation: 'An air-handling unit (AHU) moves air through components such as filters, coils and fans before distributing it through ducts. The connected cooling source depends on the building design. Setia maintains and repairs AHUs in commercial buildings.',
     systemDetails: [
@@ -135,7 +137,7 @@ export const commercialServices: CommercialService[] = [
     detailAlt: 'Illustration of filter, coil and fan sections inside an air-handling unit',
   },
   {
-    id: 'duct-services', slug: 'duct-services', title: 'Duct services',
+    id: 'duct-services', slug: 'duct-services', system: 'ducting', title: 'Duct services',
     shortLine: 'Duct supply, installation, maintenance and repair',
     explanation: 'Setia supplies, installs, maintains and repairs air-conditioning ductwork for commercial spaces.',
     systemDetails: [
@@ -273,18 +275,20 @@ export const commercialProjectRecords: CommercialProjectRecord[] = [
 
 export interface CommercialClientCategory {
   id: string
+  /** Full name, used for announcements and records. */
   label: string
+  /** Shorter name on the tab itself, so all six tabs share one line on a desktop. */
+  tabLabel: string
 }
 
-/** Clientele tabs, in the order of the client-supplied industry grouping. The first tab is the default. */
+/** Clientele tabs, in the order of the client-supplied industry grouping, with its two healthcare clients folded into the first tab so there are six. The first tab is the default. */
 export const commercialClientCategories: CommercialClientCategory[] = [
-  { id: 'retail-property', label: 'Retail & Property Development' },
-  { id: 'banking-finance', label: 'Banking, Finance & Insurance' },
-  { id: 'manufacturing-energy', label: 'Manufacturing, Industrial & Energy' },
-  { id: 'transport-logistics', label: 'Automotive, Transport & Logistics' },
-  { id: 'telecommunications', label: 'Telecommunications & Connectivity' },
-  { id: 'education', label: 'Education & Learning' },
-  { id: 'healthcare', label: 'Healthcare & Veterinary' },
+  { id: 'retail-property-healthcare', label: 'Retail, Property & Healthcare', tabLabel: 'Retail, Property & Healthcare' },
+  { id: 'banking-finance', label: 'Banking, Finance & Insurance', tabLabel: 'Banking & Finance' },
+  { id: 'manufacturing-energy', label: 'Manufacturing, Industrial & Energy', tabLabel: 'Manufacturing & Energy' },
+  { id: 'transport-logistics', label: 'Automotive, Transport & Logistics', tabLabel: 'Automotive & Transport' },
+  { id: 'telecommunications', label: 'Telecommunications & Connectivity', tabLabel: 'Telecommunications' },
+  { id: 'education', label: 'Education & Learning', tabLabel: 'Education' },
 ]
 
 export interface CommercialClient {
@@ -294,15 +298,15 @@ export interface CommercialClient {
   /** Clientele tab the mark sits under; null for parties that only appear in the project register. */
   categoryId: string | null
   logoSrc: string | null
-  /** Air-conditioning systems recorded for the client, in the listing's own order. */
-  systems: string[]
+  /** Air-conditioning systems recorded for the client, in the listing's own order; labels in `commercialSystemLabels`. */
+  systems: CommercialSystemKey[]
   /** Brief shown on hover or focus of the mark; null when nothing beyond the name is recorded. */
   summary: string | null
   projectIds: string[]
   sourceRefs: string[]
 }
 
-const systemLabels = {
+export const commercialSystemLabels = {
   ccd: 'Cassette, ceiling & ducted',
   vrv: 'VRV',
   chiller: 'Chiller',
@@ -312,40 +316,42 @@ const systemLabels = {
   pump: 'Pump',
   chilledWater: 'Chilled water piping',
 } as const
-type SystemKey = keyof typeof systemLabels
+export type CommercialSystemKey = keyof typeof commercialSystemLabels
 
 interface ClientOptions {
   /** Gallery clients show /images/commercial/clients/<id>.webp, a pale transparent mark; false shows a monogram placeholder until one exists. */
   logo?: boolean
-  systems?: SystemKey[]
+  systems?: CommercialSystemKey[]
   summary?: string
   projectIds?: string[]
   sourceRefs?: string[]
 }
 
 const client = (id: string, displayName: string, categoryId: string | null, options: ClientOptions = {}): CommercialClient => {
-  const systems = (options.systems ?? []).map(key => systemLabels[key])
+  const systems = options.systems ?? []
   return {
     id, slug: id, displayName, categoryId,
     logoSrc: (options.logo ?? categoryId !== null) ? `/images/commercial/clients/${id}.webp` : null,
     systems,
-    summary: options.summary ?? (systems.length ? systems.join(' · ') : null),
+    summary: options.summary ?? (systems.length ? systems.map(key => commercialSystemLabels[key]).join(' · ') : null),
     projectIds: options.projectIds ?? [],
     sourceRefs: options.sourceRefs ?? ['clienteleListing'],
   }
 }
 
-const plant: SystemKey[] = ['chiller', 'coolingTower', 'ahu', 'ducting', 'pump']
+const plant: CommercialSystemKey[] = ['chiller', 'coolingTower', 'ahu', 'ducting', 'pump']
 /** A client with a row in the project register keeps that register's wording as its brief. */
 const recorded = (summary: string, projectIds: string[]): ClientOptions => ({ summary, projectIds, sourceRefs: ['clienteleListing', 'projects'] })
 
 // Clients sit in their listing order inside each category. Returning clients keep their slugs so project records, detail pages and marks carry over.
 export const commercialClients: CommercialClient[] = [
-  // Retail & Property Development
-  client('lotuss', 'Lotus’s', 'retail-property', { systems: [...plant, 'chilledWater'] }),
-  client('econsave', 'Econsave', 'retail-property', { systems: ['ccd'] }),
-  client('sp-setia', 'SP Setia', 'retail-property', { summary: 'SP Setia HQ and Bandar Setia Alam.' }),
-  client('eco-sky', 'Eco Sky Development', 'retail-property'),
+  // Retail, Property & Healthcare
+  client('lotuss', 'Lotus’s', 'retail-property-healthcare', { systems: [...plant, 'chilledWater'] }),
+  client('econsave', 'Econsave', 'retail-property-healthcare', { systems: ['ccd'] }),
+  client('sp-setia', 'SP Setia', 'retail-property-healthcare', { summary: 'SP Setia HQ and Bandar Setia Alam.' }),
+  client('eco-sky', 'Eco Sky Development', 'retail-property-healthcare'),
+  client('assunta-hospital', 'Assunta Hospital', 'retail-property-healthcare'),
+  client('animal-medical-centre', 'Animal Medical Centre / Medivet', 'retail-property-healthcare'),
   // Banking, Finance & Insurance
   client('mbsb-bank', 'MBSB Bank', 'banking-finance', { systems: ['ccd'] }),
   client('standard-chartered', 'Standard Chartered', 'banking-finance', { systems: ['ccd', 'vrv'] }),
@@ -385,9 +391,6 @@ export const commercialClients: CommercialClient[] = [
   client('taylors', 'Taylor’s Education Group', 'education'),
   client('global-indian-education', 'Global Indian Education', 'education', { logo: false }),
   client('mindvalley', 'Mindvalley', 'education', { systems: ['ccd'] }),
-  // Healthcare & Veterinary
-  client('assunta-hospital', 'Assunta Hospital', 'healthcare'),
-  client('animal-medical-centre', 'Animal Medical Centre / Medivet', 'healthcare'),
 ]
 
 // These parties are documented in the project register but have no mark on the clientele screen.
@@ -436,6 +439,24 @@ export function getCommercialClientPages(categoryId: string, capacity = 10): Com
     cursor += page.length
     return page
   }).filter(page => page.length > 0)
+}
+
+/** The clientele-listing clients recorded with the system a service covers, in listing order. */
+export function getCommercialClientsForService(serviceId: string): CommercialClient[] {
+  const service = commercialServices.find(entry => entry.id === serviceId)
+  return service ? commercialClients.filter(client => client.systems.includes(service.system)) : []
+}
+
+export function describeCommercialSystems(client: Pick<CommercialClient, 'systems'>) {
+  return client.systems.map(key => commercialSystemLabels[key]).join(' · ')
+}
+
+/** Placeholder for a client whose mark is not on disk yet: a short acronym, or the initials of the first two words. */
+export function getCommercialClientMonogram(client: Pick<CommercialClient, 'displayName'>) {
+  const words = client.displayName.split(/[\s/]+/).filter(word => /^[\p{L}\p{N}]/u.test(word))
+  const first = words[0] ?? ''
+  if (/^[A-Z]{2,5}$/.test(first)) return first
+  return words.slice(0, 2).map(word => word[0]!.toUpperCase()).join('')
 }
 
 export interface CommercialIllustration {
