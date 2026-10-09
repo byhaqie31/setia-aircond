@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { commercialClients } from '~/data/commercial-view'
+import { commercialClientCategories, commercialClients } from '~/data/commercial-view'
 import type { ScenePhase } from '~/utils/commercial-view-layout'
 import type { ArrivalMode } from '~/utils/navigation'
 
@@ -13,6 +13,8 @@ const scene = ref<Scene>(sceneFromRoute())
 const phase = ref<ScenePhase>(scene.value === 'clients' && route.query.scene === 'clients' ? 'ready' : 'intro')
 const selectedClientSlug = ref<string | null>(typeof route.query.client === 'string' ? route.query.client : null)
 const selectedClientPage = ref<number>(Math.max(1, Number(route.query.page) || 1))
+const categoryFromRoute = () => typeof route.query.category === 'string' && commercialClientCategories.some(category => category.id === route.query.category) ? route.query.category : null
+const selectedClientCategory = ref<string | null>(categoryFromRoute())
 const selectedServiceSlug = ref<string | null>(typeof route.query.service === 'string' ? route.query.service : null)
 const enhanced = ref(false)
 const reducedMotion = ref(false)
@@ -153,6 +155,7 @@ function replaceSceneQuery(target: Scene, client: string | null = null, service:
     ...route.query,
     scene: target,
     client: target === 'clients' ? client || undefined : undefined,
+    category: target === 'clients' && selectedClientCategory.value && selectedClientCategory.value !== commercialClientCategories[0]?.id ? selectedClientCategory.value : undefined,
     page: target === 'clients' && selectedClientPage.value > 1 ? String(selectedClientPage.value) : undefined,
     service: target === 'services' ? service || undefined : undefined,
   }
@@ -180,6 +183,7 @@ function onBuildingExit() {
   skylineArrived.value = true
   selectedClientSlug.value = null
   selectedClientPage.value = 1
+  selectedClientCategory.value = null
   phase.value = reducedMotion.value ? 'ready' : 'intro'
   replaceSceneQuery('clients')
   void nextTick(() => {
@@ -215,9 +219,10 @@ function onClientExit() {
   })
 }
 
-function onClientSlideChange(page: number) {
+function onClientSlideChange(page: number, _firstSlug: string, category: string) {
   selectedClientSlug.value = null
   selectedClientPage.value = page
+  selectedClientCategory.value = category
   replaceSceneQuery('clients', selectedClientSlug.value)
 }
 
@@ -252,6 +257,7 @@ watch(() => route.fullPath, () => {
   }
   selectedClientSlug.value = typeof route.query.client === 'string' ? route.query.client : null
   selectedClientPage.value = Math.max(1, Number(route.query.page) || 1)
+  selectedClientCategory.value = categoryFromRoute()
   selectedServiceSlug.value = typeof route.query.service === 'string' ? route.query.service : null
 })
 
@@ -333,6 +339,7 @@ onBeforeUnmount(() => {
             :reduced-motion="reducedMotion"
             :selected-client-slug="selectedClientSlug"
             :initial-page="selectedClientPage"
+            :initial-category="selectedClientCategory"
             :skyline-arrived="skylineArrived"
             :pinned="clientsPinned"
             @ready="onSceneReady"

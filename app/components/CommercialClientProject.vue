@@ -13,6 +13,8 @@ const galleryPhotos = computed(() => availablePhotos.value.length > 2 ? availabl
 const hasRepresentativePhotos = computed(() => photos.value.some(photo => photo.kind === 'representative'))
 const recordKey = computed(() => props.record?.id ?? props.party.slug)
 const title = computed(() => props.record ? props.record.discipline === 'air-conditioning' ? 'Cooling systems' : 'Electrical works' : 'Commercial client')
+/** A client without a register row describes itself from the clientele listing: the systems recorded for it, or its brief. */
+const partyScope = computed(() => props.party.systems.length ? `Setia’s clientele listing records the following systems for ${props.party.displayName}: ${props.party.systems.join(' · ')}.` : props.party.summary ?? 'N/A')
 function markUnavailable(src: string) {
   if (!failedSources.value.includes(src)) failedSources.value.push(src)
 }
@@ -52,7 +54,7 @@ function markUnavailable(src: string) {
             <div><dt>Client</dt><dd>{{ party.displayName }}</dd></div>
           </dl>
         </div>
-        <div class="client-project__scope"><h3>{{ record ? 'What Setia delivered' : 'Project description' }}</h3><p>{{ record?.displayScope ?? 'N/A' }}</p></div>
+        <div class="client-project__scope"><h3>{{ record ? 'What Setia delivered' : 'Project description' }}</h3><p>{{ record?.displayScope ?? partyScope }}</p></div>
       </div>
     </div>
 
@@ -64,6 +66,7 @@ function markUnavailable(src: string) {
       <summary>Project details<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 8 4 4 4-4" /></svg></summary>
       <div class="client-project__details-content">
         <div v-if="record?.explicitSystems.length" class="client-project__systems"><h3>Systems included</h3><p>{{ record.explicitSystems.join(' · ') }}</p></div>
+        <div v-else-if="party.systems.length" class="client-project__systems"><h3>Systems included</h3><p>{{ party.systems.join(' · ') }}</p></div>
         <dl>
           <div><dt>Main contractor / owner</dt><dd>{{ record?.partyName ?? 'N/A' }}</dd></div>
           <div><dt>Recorded years</dt><dd>{{ record?.yearText ?? 'N/A' }}</dd></div>
@@ -73,7 +76,7 @@ function markUnavailable(src: string) {
           <div v-if="record"><dt>Register reference</dt><dd>{{ record.id.toUpperCase() }}</dd></div>
         </dl>
         <div class="client-project__original"><h3>{{ record ? 'Original register wording' : 'Project description' }}</h3><p>{{ record?.originalScope ?? 'N/A' }}</p></div>
-        <p class="client-project__source">Source: <a :href="record ? commercialSources.projects : commercialSources.clientele" target="_blank" rel="noopener noreferrer">{{ record ? 'Setia’s published project register' : 'Setia’s published clientele gallery' }}<span class="sr-only"> (opens in a new tab)</span></a>.</p>
+        <p class="client-project__source">Source: <a v-if="record" :href="commercialSources.projects" target="_blank" rel="noopener noreferrer">Setia’s published project register<span class="sr-only"> (opens in a new tab)</span></a><template v-else>Setia’s clientele listing, October 2026</template>.</p>
       </div>
     </details>
   </section>

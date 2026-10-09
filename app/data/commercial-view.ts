@@ -1,7 +1,8 @@
 /**
  * Commercial content ledger. Project wording and values are transcribed from
  * https://www.setiaaircond.com.my/projects.html (checked 2026-09-30).
- * Client names follow https://www.setiaaircond.com.my/clientele.html.
+ * Client categories, names and system scope follow the client-supplied clientele
+ * listing of 2026-10-09 (references/commercial-view/clientele-listing-2026-10-09.md).
  * Technical descriptions are informational; they are not extra Setia work claims.
  */
 
@@ -9,6 +10,7 @@ export const commercialSources = {
   clientServiceAdditions: 'references/commercial-view/client-service-additions-2026-10-02.md',
   projects: 'https://www.setiaaircond.com.my/projects.html',
   clientele: 'https://www.setiaaircond.com.my/clientele.html',
+  clienteleListing: 'references/commercial-view/clientele-listing-2026-10-09.md',
   services: 'https://www.setiaaircond.com.my/air-conditioner-services.html',
   coolingTower: 'https://baltimoreaircoil.com/what-is-a-cooling-tower',
   pump: 'https://www.grundfos.com/us/learn/ecademy/all-courses/pumping-schemes-in-chilled-water-systems/an-introduction-to-pumping-schemes-in-hvac-applications',
@@ -269,70 +271,135 @@ export const commercialProjectRecords: CommercialProjectRecord[] = [
   },
 ]
 
+export interface CommercialClientCategory {
+  id: string
+  label: string
+}
+
+/** Clientele tabs, in the order of the client-supplied industry grouping. The first tab is the default. */
+export const commercialClientCategories: CommercialClientCategory[] = [
+  { id: 'retail-property', label: 'Retail & Property Development' },
+  { id: 'banking-finance', label: 'Banking, Finance & Insurance' },
+  { id: 'manufacturing-energy', label: 'Manufacturing, Industrial & Energy' },
+  { id: 'transport-logistics', label: 'Automotive, Transport & Logistics' },
+  { id: 'telecommunications', label: 'Telecommunications & Connectivity' },
+  { id: 'education', label: 'Education & Learning' },
+  { id: 'healthcare', label: 'Healthcare & Veterinary' },
+]
+
 export interface CommercialClient {
   id: string
   slug: string
   displayName: string
+  /** Clientele tab the mark sits under; null for parties that only appear in the project register. */
+  categoryId: string | null
   logoSrc: string | null
-  summary: string
+  /** Air-conditioning systems recorded for the client, in the listing's own order. */
+  systems: string[]
+  /** Brief shown on hover or focus of the mark; null when nothing beyond the name is recorded. */
+  summary: string | null
   projectIds: string[]
-  galleryOrder: number
   sourceRefs: string[]
 }
 
-const portfolioSummary = 'N/A'
+const systemLabels = {
+  ccd: 'Cassette, ceiling & ducted',
+  vrv: 'VRV',
+  chiller: 'Chiller',
+  coolingTower: 'Cooling tower',
+  ahu: 'AHU',
+  ducting: 'Ducting',
+  pump: 'Pump',
+  chilledWater: 'Chilled water piping',
+} as const
+type SystemKey = keyof typeof systemLabels
 
-const gallery = (
-  id: string, displayName: string, galleryOrder: number, logoSrc: string | null = null,
-  summary = portfolioSummary, projectIds: string[] = [], sourceRefs: string[] = ['clientele'],
-): CommercialClient => ({
-  id, slug: id, displayName,
-  logoSrc: galleryOrder >= 0 ? `/images/commercial/clients/${id}.webp` : logoSrc,
-  summary, projectIds, galleryOrder, sourceRefs,
-})
+interface ClientOptions {
+  /** Gallery clients show /images/commercial/clients/<id>.webp, a pale transparent mark; false shows a monogram placeholder until one exists. */
+  logo?: boolean
+  systems?: SystemKey[]
+  summary?: string
+  projectIds?: string[]
+  sourceRefs?: string[]
+}
 
-// The first eight entries follow the approved PDF order; subsequent entries
-// retain the published gallery order. All gallery marks are locally stored,
-// pale transparent variants of the verified original identities.
+const client = (id: string, displayName: string, categoryId: string | null, options: ClientOptions = {}): CommercialClient => {
+  const systems = (options.systems ?? []).map(key => systemLabels[key])
+  return {
+    id, slug: id, displayName, categoryId,
+    logoSrc: (options.logo ?? categoryId !== null) ? `/images/commercial/clients/${id}.webp` : null,
+    systems,
+    summary: options.summary ?? (systems.length ? systems.join(' · ') : null),
+    projectIds: options.projectIds ?? [],
+    sourceRefs: options.sourceRefs ?? ['clienteleListing'],
+  }
+}
+
+const plant: SystemKey[] = ['chiller', 'coolingTower', 'ahu', 'ducting', 'pump']
+/** A client with a row in the project register keeps that register's wording as its brief. */
+const recorded = (summary: string, projectIds: string[]): ClientOptions => ({ summary, projectIds, sourceRefs: ['clienteleListing', 'projects'] })
+
+// Clients sit in their listing order inside each category. Returning clients keep their slugs so project records, detail pages and marks carry over.
 export const commercialClients: CommercialClient[] = [
-  gallery('maxis', 'Maxis', 0, '/images/commercial/maxis.svg', 'Air-conditioning installation and preventive maintenance for Maxis Broadband, 2010–2016.', ['ac-02'], ['clientele', 'projects']),
-  gallery('sony-emcs', 'Sony EMCS (Malaysia)', 1, '/images/commercial/sony.svg', 'Air-conditioning installation, preventive maintenance and servicing, 2010–2014.', ['ac-06'], ['clientele', 'projects']),
-  gallery('maybank', 'Maybank', 2, '/images/commercial/maybank.svg', 'Air-conditioning installation, preventive maintenance and servicing, 2010 and 2012.', ['ac-04'], ['clientele', 'projects']),
-  gallery('goodyear', 'Goodyear', 3, '/images/commercial/goodyear.svg', 'Air-conditioning installation and split/chiller servicing for Goodyear Malaysia Berhad, 2013–2016.', ['ac-05'], ['clientele', 'projects']),
-  gallery('mission-foods', 'Mission Foods', 4, '/images/commercial/mission.png', 'Air-conditioning installation and servicing across split, VRV, chiller and cooling-tower systems, 2010–2016.', ['ac-03'], ['clientele', 'projects']),
-  gallery('garden-international-school', 'Garden International School', 5, '/images/commercial/garden-crest.png', 'Air-conditioning installation and split/chiller maintenance, 2013–2015.', ['ac-07'], ['clientele', 'projects']),
-  gallery('limkokwing-university', 'Limkokwing University', 6, '/images/commercial/limkokwing.svg', 'Wall-mounted, ceiling-suspended and cassette air-conditioning installation for Lim Kok Wing Intergrated Sdn Bhd, 2011 and 2013.', ['ac-01'], ['clientele', 'projects']),
-  gallery('viewqwest', 'ViewQwest', 7, '/images/commercial/viewqwest-primary.png', 'VRV air-conditioning installation and preventive maintenance for ViewQwest Management Sdn Bhd, 2016.', ['ac-08'], ['projects']),
-  gallery('affin-bank', 'Affin Bank', 8, '/images/commercial/affin.png'),
-  gallery('university-of-malaya', 'University Malaya', 9),
-  gallery('assunta-hospital', 'Assunta Hospital', 10),
-  gallery('tun-hussein-onn-eye-hospital', 'Tun Hussein Onn National Eye Hospital', 11),
-  gallery('sca', 'SCA', 12),
-  gallery('west-port', 'West Port', 13),
-  gallery('tylon-corporation', 'Tylon Corporation', 14),
-  gallery('bukit-ikhlas', 'Bukit Ikhlas', 15),
-  gallery('wellcome-communication', 'Wellcome Communication', 16),
-  gallery('ups', 'UPS', 17),
-  gallery('siemens', 'Siemens', 18),
-  gallery('kumpulan-europlus', 'Kumpulan Europlus', 19),
-  gallery('sime-darby', 'Sime Darby', 20),
-  gallery('crown-hotel', 'Crown Hotel', 21),
-  gallery('tesco', 'Tesco', 22),
-  gallery('panasonic', 'Panasonic', 23),
-  gallery('sp-setia', 'SP Setia', 24),
-  gallery('segi-university-colleges', 'SEGi University & Colleges', 25),
+  // Retail & Property Development
+  client('lotuss', 'Lotus’s', 'retail-property', { systems: [...plant, 'chilledWater'] }),
+  client('econsave', 'Econsave', 'retail-property', { systems: ['ccd'] }),
+  client('sp-setia', 'SP Setia', 'retail-property', { summary: 'SP Setia HQ and Bandar Setia Alam.' }),
+  client('eco-sky', 'Eco Sky Development', 'retail-property'),
+  // Banking, Finance & Insurance
+  client('mbsb-bank', 'MBSB Bank', 'banking-finance', { systems: ['ccd'] }),
+  client('standard-chartered', 'Standard Chartered', 'banking-finance', { systems: ['ccd', 'vrv'] }),
+  client('maybank', 'Maybank', 'banking-finance', { systems: ['ccd', 'vrv'], ...recorded('Air-conditioning installation, preventive maintenance and servicing, 2010 and 2012.', ['ac-04']) }),
+  client('affin-bank', 'Affin Bank', 'banking-finance', { systems: ['ccd', 'vrv'] }),
+  client('prudential', 'Prudential', 'banking-finance', { systems: ['ccd', 'vrv'] }),
+  client('cimb', 'CIMB Bank', 'banking-finance', { systems: ['coolingTower', 'chilledWater'] }),
+  client('bank-pembangunan', 'Bank Pembangunan Malaysia', 'banking-finance', { systems: ['ccd'] }),
+  // Manufacturing, Industrial & Energy
+  client('sony-emcs', 'Sony EMCS (Malaysia)', 'manufacturing-energy', { systems: [...plant, 'chilledWater'], ...recorded('Air-conditioning installation, preventive maintenance and servicing, 2010–2014.', ['ac-06']) }),
+  client('goodyear', 'Goodyear Malaysia', 'manufacturing-energy', { systems: plant, ...recorded('Air-conditioning installation and split/chiller servicing for Goodyear Malaysia Berhad, 2013–2016.', ['ac-05']) }),
+  client('panasonic', 'Panasonic AVC', 'manufacturing-energy', { systems: plant }),
+  client('siemens', 'Siemens', 'manufacturing-energy', { systems: ['ccd'] }),
+  client('petron', 'Petron Malaysia', 'manufacturing-energy', { systems: ['ccd', 'vrv'] }),
+  client('sime-darby', 'Sime Darby Plantation & Technology', 'manufacturing-energy', { systems: ['ccd'] }),
+  client('kawan-food', 'Kawan Food', 'manufacturing-energy', { systems: ['ccd'] }),
+  client('carlsberg', 'Carlsberg', 'manufacturing-energy', { systems: [...plant, 'ccd'] }),
+  client('nestle', 'Nestlé Manufacturing Malaysia', 'manufacturing-energy', { systems: ['ccd', 'vrv', 'ahu'] }),
+  client('mission-foods', 'Mission Foods Malaysia', 'manufacturing-energy', { systems: [...plant, 'chilledWater', 'vrv'], ...recorded('Air-conditioning installation and servicing across split, VRV, chiller and cooling-tower systems, 2010–2016.', ['ac-03']) }),
+  // Automotive, Transport & Logistics
+  client('proton', 'Proton', 'transport-logistics', { systems: plant }),
+  client('volvo', 'Volvo Malaysia', 'transport-logistics', { systems: ['ccd'] }),
+  client('tan-chong', 'Tan Chong Motor Holdings', 'transport-logistics', { systems: ['ccd', 'vrv'] }),
+  client('malaysia-airlines', 'Malaysia Airlines', 'transport-logistics', { systems: ['pump', 'vrv', 'ahu', 'ducting', 'ccd'] }),
+  client('crown-worldwide', 'Crown Worldwide Group', 'transport-logistics', { systems: ['ccd'] }),
+  client('prolintas', 'PROLINTAS', 'transport-logistics', { systems: ['ccd'] }),
+  // Telecommunications & Connectivity
+  client('maxis', 'Maxis Broadband', 'telecommunications', { systems: ['ccd', 'vrv', 'ahu', 'ducting'], ...recorded('Air-conditioning installation and preventive maintenance for Maxis Broadband, 2010–2016.', ['ac-02']) }),
+  client('viewqwest', 'ViewQwest', 'telecommunications', { systems: ['vrv'], ...recorded('VRV air-conditioning installation and preventive maintenance for ViewQwest Management Sdn Bhd, 2016.', ['ac-08']) }),
+  client('celcom-axiata', 'Celcom Axiata', 'telecommunications', { systems: ['ccd', 'vrv', 'ahu'] }),
+  client('edotco', 'edotco Malaysia', 'telecommunications', { systems: ['ccd'] }),
+  // Education & Learning
+  client('garden-international-school', 'Garden International School', 'education', { systems: ['ccd', 'vrv', 'ahu', 'ducting'], ...recorded('Air-conditioning installation and split/chiller maintenance, 2013–2015.', ['ac-07']) }),
+  client('uow', 'UOW Malaysia', 'education'),
+  client('iskl', 'ISKL', 'education', { systems: ['ccd', 'vrv', 'ahu', 'ducting'] }),
+  client('segi-university-colleges', 'SEGi University & Colleges', 'education', { systems: ['ccd', 'vrv', 'ahu', 'ducting'] }),
+  client('taylors', 'Taylor’s Education Group', 'education'),
+  client('global-indian-education', 'Global Indian Education', 'education', { logo: false }),
+  client('mindvalley', 'Mindvalley', 'education', { systems: ['ccd'] }),
+  // Healthcare & Veterinary
+  client('assunta-hospital', 'Assunta Hospital', 'healthcare'),
+  client('animal-medical-centre', 'Animal Medical Centre / Medivet', 'healthcare'),
 ]
 
-// These parties are documented in the project register but not necessarily
-// identified with a corresponding mark in the Clientele gallery.
+// These parties are documented in the project register but have no mark on the clientele screen.
 export const commercialProjectParties: CommercialClient[] = [
-  gallery('radient-trend', 'Radient Trend Sdn Bhd', -1, null, 'Electrical, telephone and antenna wiring for 150 houses, 2003.', ['el-01'], ['projects']),
-  gallery('bukit-ikhlas-development', 'Bukit Ikhlas Development Sdn Bhd', -1, null, 'Electrical and related infrastructure for condominium blocks and a clubhouse, 2006.', ['el-02'], ['projects']),
-  gallery('europlus-construction', 'Europlus Construction Sdn Bhd', -1, null, 'Street-lighting installation in Dengkil, Sepang, 2006.', ['el-03'], ['projects']),
-  gallery('uitm', 'UiTM Shah Alam / Terengganu', -1, null, 'Fire-protection system work recorded in 2006–2007.', ['el-04'], ['projects']),
-  gallery('kej-mahirjaya', 'Kej. Mahirjaya Sdn Bhd', -1, null, 'Office electrical upgrade and wiring recorded in 2009.', ['el-05'], ['projects']),
-  gallery('kenforce-construction', 'Kenforce Construction Sdn Bhd', -1, null, 'Two separately recorded electrical projects from 2010 and 2014–2016.', ['el-06', 'el-08'], ['projects']),
-  gallery('valserv', 'Valserv Sdn Bhd', -1, null, 'Electrical infrastructure and wiring for apartments and bungalows, 2010.', ['el-07'], ['projects']),
+  client('limkokwing-university', 'Limkokwing University', null, { logo: true, summary: 'Wall-mounted, ceiling-suspended and cassette air-conditioning installation for Lim Kok Wing Intergrated Sdn Bhd, 2011 and 2013.', projectIds: ['ac-01'], sourceRefs: ['projects'] }),
+  client('radient-trend', 'Radient Trend Sdn Bhd', null, { summary: 'Electrical, telephone and antenna wiring for 150 houses, 2003.', projectIds: ['el-01'], sourceRefs: ['projects'] }),
+  client('bukit-ikhlas-development', 'Bukit Ikhlas Development Sdn Bhd', null, { summary: 'Electrical and related infrastructure for condominium blocks and a clubhouse, 2006.', projectIds: ['el-02'], sourceRefs: ['projects'] }),
+  client('europlus-construction', 'Europlus Construction Sdn Bhd', null, { summary: 'Street-lighting installation in Dengkil, Sepang, 2006.', projectIds: ['el-03'], sourceRefs: ['projects'] }),
+  client('uitm', 'UiTM Shah Alam / Terengganu', null, { summary: 'Fire-protection system work recorded in 2006–2007.', projectIds: ['el-04'], sourceRefs: ['projects'] }),
+  client('kej-mahirjaya', 'Kej. Mahirjaya Sdn Bhd', null, { summary: 'Office electrical upgrade and wiring recorded in 2009.', projectIds: ['el-05'], sourceRefs: ['projects'] }),
+  client('kenforce-construction', 'Kenforce Construction Sdn Bhd', null, { summary: 'Two separately recorded electrical projects from 2010 and 2014–2016.', projectIds: ['el-06', 'el-08'], sourceRefs: ['projects'] }),
+  client('valserv', 'Valserv Sdn Bhd', null, { summary: 'Electrical infrastructure and wiring for apartments and bungalows, 2010.', projectIds: ['el-07'], sourceRefs: ['projects'] }),
 ]
 
 export const allCommercialParties: CommercialClient[] = [...commercialClients, ...commercialProjectParties]
@@ -347,6 +414,28 @@ export function getCommercialParty(slug: string) {
 
 export function getCommercialPartyRecords(partyId: string) {
   return commercialProjectRecords.filter(record => record.partyId === partyId)
+}
+
+export function getCommercialClientCategory(id: string | null | undefined) {
+  return commercialClientCategories.find(category => category.id === id)
+}
+
+export function getCommercialClientsInCategory(categoryId: string) {
+  return commercialClients.filter(client => client.categoryId === categoryId)
+}
+
+/** A tab's clients in pages of at most `capacity` (ten, so every current tab is a single page), split as evenly as possible if a tab ever outgrows it. */
+export function getCommercialClientPages(categoryId: string, capacity = 10): CommercialClient[][] {
+  const clients = getCommercialClientsInCategory(categoryId)
+  const count = Math.max(1, Math.ceil(clients.length / capacity))
+  const base = Math.floor(clients.length / count)
+  const extra = clients.length % count
+  let cursor = 0
+  return Array.from({ length: count }, (_, index) => {
+    const page = clients.slice(cursor, cursor + base + (index < extra ? 1 : 0))
+    cursor += page.length
+    return page
+  }).filter(page => page.length > 0)
 }
 
 export interface CommercialIllustration {

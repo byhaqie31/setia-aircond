@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { commercialClients, getCommercialParty, getCommercialPartyRecords } from '~/data/commercial-view'
-import { groupCommercialClients, groupForClient } from '~/utils/commercial-view-layout'
+import { commercialClientCategories, getCommercialClientPages, getCommercialParty, getCommercialPartyRecords } from '~/data/commercial-view'
+import { groupForClient } from '~/utils/commercial-view-layout'
 import { computed, onMounted, ref } from 'vue'
 const route = useRoute()
 const router = useRouter()
@@ -11,13 +11,15 @@ const records = getCommercialPartyRecords(party.id)
 const mounted = ref(false)
 onMounted(() => { mounted.value = true })
 const fromProjects = computed(() => mounted.value && router.currentRoute.value.query.from === 'projects')
-// Return to the client's own group of the clientele screen without reselecting its mark, so nothing stays highlighted after the round trip.
-const clientPage = groupForClient(groupCommercialClients(commercialClients, 8), party.slug) + 1
-const returnTo = computed(() => fromProjects.value ? '/commercial/projects' : `/commercial?scene=clients${clientPage > 1 ? `&page=${clientPage}` : ''}`)
+// Return to the client's own tab and page of the clientele screen without reselecting its mark, so nothing stays highlighted after the round trip.
+const clientPages = party.categoryId ? getCommercialClientPages(party.categoryId) : []
+const clientPage = groupForClient(clientPages, party.slug) + 1
+const clientQuery = (party.categoryId && party.categoryId !== commercialClientCategories[0]?.id ? `&category=${party.categoryId}` : '') + (clientPage > 1 ? `&page=${clientPage}` : '')
+const returnTo = computed(() => fromProjects.value ? '/commercial/projects' : `/commercial?scene=clients${clientQuery}`)
 useHead({
   title: `${party.displayName} | Commercial clients | Setia Air-Cond`,
   htmlAttrs: { 'data-theme': 'service' },
-  meta: [{ name: 'description', content: records.length ? party.summary : `${party.displayName} | Commercial clients | Setia Air-Cond.` }],
+  meta: [{ name: 'description', content: records.length && party.summary ? party.summary : `${party.displayName} | Commercial clients | Setia Air-Cond.` }],
 })
 </script>
 
