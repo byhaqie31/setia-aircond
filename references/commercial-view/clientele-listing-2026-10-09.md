@@ -64,6 +64,12 @@ Eco Sky Development, Assunta Hospital, Animal Medical Center / Medivet.
 
 Later the same day the two healthcare clients were folded into the first tab, relabelled
 "Retail, Property & Healthcare", so the screen shows six tabs.
+
+2026-10-10 client feedback (applied 2026-10-11): Banking, Finance & Insurance moved to the
+first (default) tab, ordered Affin, CIMB, Maybank, Prudential, MBSB, BPMB, with Standard
+Chartered (not in the client's list) kept last. Kawan Food, Carlsberg, Nestlé and Mission
+Foods moved out of manufacturing into a new second tab, "Food & Beverage Manufacturing",
+since the client plans to target food manufacturers. The screen now shows seven tabs.
 The tabs carry shorter names so all six sit on one line on a desktop (Banking & Finance,
 Manufacturing & Energy, Automotive & Transport, Telecommunications, Education); the full
 names above remain the category names in the data and in screen-reader announcements.

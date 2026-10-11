@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { aboutBrandLogos, featuredDaikinProducts } from '~/data/air-conditioning'
+import corporate from '~/data/corporate.json'
+import { commercialCredentialLogos } from '~/data/commercial-logos'
+import { certificateDetailParts } from '~/utils/certificate-detail'
 
 const story = useTemplateRef<HTMLElement>('story')
 const { $scrollTo } = useNuxtApp()
@@ -102,11 +105,14 @@ onMounted(async () => {
 
         const purpose = chapter('.about-purpose-band', 1.5)
         purpose.fromTo(root.querySelectorAll('[data-about-motto]'), { clipPath: 'inset(0 100% 0 0)' }, {
-          clipPath: 'inset(0 0% 0 0)', duration: .8, stagger: .25, ease: 'none',
+          clipPath: 'inset(0 0% 0 0)', duration: .5, stagger: .5, ease: 'none',
         }, 0)
-        purpose.fromTo(root.querySelectorAll('[data-about-purpose-item]'), { opacity: .2, y: 36 }, {
-          opacity: 1, y: 0, duration: .55, stagger: .35,
+        purpose.fromTo(root.querySelector('[data-about-purpose-item]'), { opacity: .2, y: 36 }, {
+          opacity: 1, y: 0, duration: .55,
         }, .25)
+        purpose.fromTo(root.querySelectorAll('[data-about-purpose-card]'), { opacity: .2, y: 48 }, {
+          opacity: 1, y: 0, duration: .6,
+        }, .6)
         purpose.to({}, { duration: .45 })
 
         const standards = chapter('.about-standards', 2)
@@ -116,6 +122,15 @@ onMounted(async () => {
         }, .2)
         standards.fromTo(root.querySelector('.about-support'), { opacity: .2, y: 36 }, { opacity: 1, y: 0, duration: .55 }, 1.25)
         standards.to({}, { duration: .45 })
+
+        const credentials = chapter('.about-credentials-band', 1.6)
+        credentials.fromTo(root.querySelectorAll('[data-about-credentials-intro]'), { opacity: .2, y: 32 }, {
+          opacity: 1, y: 0, duration: .5, stagger: .15,
+        }, 0)
+        credentials.fromTo(root.querySelectorAll('[data-about-credential]'), { opacity: .15, y: 36 }, {
+          opacity: 1, y: 0, duration: .5, stagger: .15,
+        }, .3)
+        credentials.to({}, { duration: .45 })
 
         const brands = chapter('.about-brands-band', 2.1)
         brands.fromTo(root.querySelector('#about-brands-title'), { opacity: .2, y: 32 }, { opacity: 1, y: 0, duration: .5 }, 0)
@@ -210,20 +225,20 @@ onBeforeUnmount(() => {
 
     <section class="about-purpose-band" aria-labelledby="purpose-title">
     <div class="about-purpose company-width">
-      <div class="about-purpose__heading about-columns">
+      <div class="about-purpose__heading">
       <h2 id="purpose-title" class="about-motto">
-        <span class="about-motto__line"><span>“Commit to</span><span class="about-motto__ink" data-about-motto aria-hidden="true">“Commit to</span></span>
+        <span class="about-motto__line"><span>“Commit to</span><span class="about-motto__ink" data-about-motto aria-hidden="true">“Commit to</span></span>{{ ' ' }}
         <span class="about-motto__line"><span>your commitment.”</span><span class="about-motto__ink" data-about-motto aria-hidden="true">your commitment.”</span></span>
       </h2>
       <p data-about-purpose-item>Our motto guides a straightforward goal: comfort and customer satisfaction through efficient equipment, quality workmanship and competitive pricing.</p>
       </div>
-      <div class="about-purpose__cards about-columns">
-        <div class="about-purpose-card about-purpose-card--vision" data-about-purpose-item>
+      <div class="about-purpose__cards">
+        <div class="about-purpose-card about-purpose-card--vision" data-about-purpose-card>
           <img class="about-purpose-card__art about-purpose-card__art--vision" :src="$sitePath('/images/about/vision-ai-v2.webp')" width="640" height="462" alt="" aria-hidden="true" decoding="async">
           <h3>Our vision</h3>
           <p>Understand each client’s needs and deliver appropriate cooling and electrical solutions.</p>
         </div>
-        <div class="about-purpose-card about-purpose-card--mission" data-about-purpose-item>
+        <div class="about-purpose-card about-purpose-card--mission" data-about-purpose-card>
           <img class="about-purpose-card__art" :src="$sitePath('/images/about/mission-ai-v2.webp')" width="640" height="490" alt="" aria-hidden="true" decoding="async">
           <h3>Our mission</h3>
           <p>Reliable service, safe and environmentally responsible solutions, skilled people, and quality equipment from established partners.</p>
@@ -255,9 +270,29 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
+    <section id="credentials" class="about-credentials-band" aria-labelledby="about-credentials-title">
+    <div class="about-credentials company-width">
+      <div class="about-credentials__intro">
+        <h2 id="about-credentials-title" data-about-credentials-intro>Registered, graded and audited.</h2>
+        <p data-about-credentials-intro>The registrations and certifications behind our work, from government bodies to our Daikin dealership.</p>
+      </div>
+      <ul class="about-credentials__grid" aria-label="Registrations and certifications">
+        <li v-for="certificate in corporate.certifications" :key="certificate.code" class="about-credential" data-about-credential>
+          <div class="about-credential__mark">
+            <CommercialLogo v-if="commercialCredentialLogos[certificate.code]" :logo="commercialCredentialLogos[certificate.code]!" :name="certificate.title" :lazy="true" />
+            <span v-else class="about-credential__standard">{{ certificate.title }}</span>
+          </div>
+          <h3>{{ certificate.title }}</h3>
+          <p class="about-credential__issuer">{{ certificate.issuer }}</p>
+          <p class="about-credential__detail"><template v-for="(part, partIndex) in certificateDetailParts(certificate.detail, certificate.highlight)" :key="partIndex"><mark v-if="part.highlight" class="about-credential__highlight">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
+        </li>
+      </ul>
+    </div>
+    </section>
+
     <section class="about-brands-band" aria-labelledby="about-brands-title">
     <div class="about-brands service-brands company-width">
-      <h2 id="about-brands-title">Supplying<br>and supporting.</h2>
+      <h2 id="about-brands-title">Supplying and supporting.</h2>
       <ul aria-label="Air-conditioning brands we supply and support">
         <li v-for="brand in aboutBrandLogos" :key="brand.name">
           <div class="service-brand-mark" data-about-brand>
@@ -309,11 +344,12 @@ onBeforeUnmount(() => {
 .about-intro__art { width: min(300px, 64%); height: auto; margin-top: clamp(22px, 4svh, 40px); }
 .about-purpose-band { background: #d1e4d7; color: #0b3022; --company-muted: #365b46; --company-line: #365b4640; }
 .about-purpose { padding-block: clamp(48px, 7svh, 80px); }
-.about-purpose h2 { margin: 0; font-size: clamp(38px, 4vw, 60px); }
-.about-purpose__heading { align-items: center; }
-.about-purpose__cards { margin-top: 40px; align-items: stretch; }
-.about-motto__line { position: relative; display: block; color: #4a6755; }
-.about-motto__ink { position: absolute; inset: 0; color: #0b3022; }
+.about-purpose h2 { margin: 0; font-size: clamp(38px, 4vw, 60px); line-height: 1.15; }
+/* The motto reads as one line on the left, with the goal beneath it. */
+.about-purpose__heading { display: grid; gap: 20px; justify-items: start; }
+.about-purpose__cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--company-column-gap); margin-top: 40px; align-items: stretch; }
+.about-motto__line { position: relative; display: inline-block; color: #4a6755; }
+.about-motto__ink { position: absolute; inset: 0; color: #0b3022; user-select: none; }
 .about-purpose p, .about-standards p { margin: 0; max-width: 60ch; color: var(--company-muted); }
 .about-purpose h3, .about-standards h3 { font-size: 20px; font-weight: 600; margin: 0 0 12px; }
 .about-purpose-card { padding: clamp(24px, 2.4vw, 36px); }
@@ -329,6 +365,26 @@ onBeforeUnmount(() => {
 .about-standards li:first-child { padding-top: 8px; }
 .about-support { margin-top: 44px; }
 .about-standards p + p { margin-top: 20px; }
+/* Registrations: a light band between the dark chapters, with the same marks as the commercial page. */
+.about-credentials-band { background: #d1e4d7; color: #0b3022; --company-muted: #365b46; --company-line: #365b4640; }
+.about-credentials { padding-block: clamp(56px, 7vw, 100px); }
+.about-credentials__intro { margin-inline: auto; text-align: center; }
+.about-credentials h2 { margin: 0; font-size: clamp(38px, 4vw, 60px); line-height: 1.15; }
+.about-credentials__intro p { margin: 20px auto 0; max-width: 52ch; color: var(--company-muted); }
+.about-credentials__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px clamp(24px, 3.5vw, 56px); max-width: 1200px; margin: clamp(40px, 5vw, 64px) auto 0; padding: 0; list-style: none; }
+.about-credential { min-width: 0; padding-bottom: 24px; border-bottom: 1px solid var(--company-line); text-align: center; }
+.about-credential__mark { --logo-height: 56px; --logo-width: 200px; display: grid; align-items: center; min-height: 56px; }
+.about-credential__standard { font-size: clamp(24px, 2.4vw, 32px); font-weight: 600; letter-spacing: -.03em; }
+.about-credential h3 { margin: 20px 0 0; font-size: 18px; font-weight: 600; line-height: 1.3; text-wrap: balance; }
+.about-credential__issuer { margin: 6px 0 0; color: var(--company-muted); font-size: 13px; line-height: 1.4; }
+.about-credential__detail { max-width: 38ch; margin: 14px auto 0; color: var(--company-muted); font-size: 15px; line-height: 1.55; text-wrap: pretty; }
+.about-credential__highlight { padding: 0 2px; color: #0b3022; font-weight: 700; background: linear-gradient(transparent 58%, color-mix(in srgb, var(--green-bright) 38%, transparent) 58%); }
+/* One line on desktop; where they wrap on narrow screens, the extra leading keeps descenders off the next line. */
+@media (min-width: 851px) { .about-motto, .about-credentials h2, .about-brands h2 { white-space: nowrap; } }
+.about-brands h2 { line-height: 1.15; }
+/* Selected text stays legible on every band: dark green on the mint bands, mint on the dark ones. */
+:is(.about-purpose-band, .about-credentials-band, .about-daikin-band) ::selection { background: #16513a; color: #fff; }
+.about-brands-band ::selection { background: #d1e4d7; color: #0b3022; }
 .about-brands-band { background: #16513a; --company-muted: #d1e4d7; }
 .about-brands { padding: clamp(48px, 6vw, 80px) 0; background: transparent; }
 .about-brands h2 { margin-bottom: clamp(32px, 4vw, 48px); text-align: center; }
@@ -362,11 +418,15 @@ onBeforeUnmount(() => {
   .about-intro__art { width: 200px; margin-top: 18px; }
   .about-purpose h2 { margin: 0; }
   .about-purpose__heading { gap: 24px; }
-  .about-purpose__cards { margin-top: 28px; gap: 16px; }
+  .about-purpose__cards { grid-template-columns: minmax(0, 1fr); margin-top: 28px; gap: 16px; }
   .about-standards__art { width: 170px; margin-top: 16px; }
+  .about-credentials__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 24px; }
   .about-daikin h2 { white-space: normal; }
   .about-daikin__grid { grid-template-columns: minmax(0, 1fr); }
   .about-daikin-card__media { height: 180px; margin-bottom: 20px; }
+}
+@media (max-width: 560px) {
+  .about-credentials__grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 380px) {
   .about-intro h1 { font-size: clamp(36px, 11vw, 48px); }

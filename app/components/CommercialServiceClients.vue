@@ -1,20 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { commercialServices, getCommercialClientMonogram, getCommercialClientsForService, type CommercialService } from '~/data/commercial-view'
+import { commercialServiceShowcases, commercialServices, getCommercialClientMonogram, getCommercialClientsForService, type CommercialService } from '~/data/commercial-view'
 
 const props = defineProps<{ service: CommercialService }>()
-// Clients recorded with this system in Setia's clientele listing, in the listing's own order.
+// A short pick of well-known clients recorded with this system; the heading names the service itself.
 const clients = computed(() => getCommercialClientsForService(props.service.id))
+const heading = computed(() => commercialServiceShowcases[props.service.id]?.heading ?? `${props.service.title} we’ve worked on.`)
 
-// Service pages take turns through these headings so neighbouring pages read differently.
-const headings = [
+// Service pages take turns through these lines so neighbouring pages read differently.
+const leads = [
   'The brands we help keep Malaysia cool.',
   'Trusted by the brands that keep Malaysia running.',
   'Brands that trust us to keep Malaysia cool.',
 ]
-const heading = computed(() => {
+const lead = computed(() => {
   const index = commercialServices.findIndex(service => service.id === props.service.id)
-  return headings[Math.max(index, 0) % headings.length]
+  return leads[Math.max(index, 0) % leads.length]
 })
 </script>
 
@@ -24,9 +25,9 @@ const heading = computed(() => {
       <div class="service-clients__heading">
         <p class="service-clients__eyebrow">Track record</p>
         <h2 id="service-clients-heading">{{ heading }}</h2>
-        <p class="service-clients__lead">Recorded for {{ clients.length }} of Setia’s commercial clients.</p>
+        <p class="service-clients__lead">{{ lead }}</p>
       </div>
-      <ul class="service-clients__list" aria-label="Clients recorded with this system">
+      <ul class="service-clients__list" aria-label="Some of the clients we’ve done this work for">
         <li v-for="client in clients" :key="client.slug" class="service-clients__mark">
           <span class="service-clients__art" aria-hidden="true">
             <img v-if="client.logoSrc" :src="$sitePath(client.logoSrc)" alt="" loading="lazy" decoding="async" @error="($event.target as HTMLImageElement).style.visibility = 'hidden'">
@@ -35,6 +36,7 @@ const heading = computed(() => {
           <span class="service-clients__name">{{ client.displayName }}</span>
         </li>
       </ul>
+      <p class="service-clients__more">…and many more.</p>
     </div>
   </section>
 </template>
@@ -47,12 +49,14 @@ const heading = computed(() => {
 .service-clients h2 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(34px, 3.8vw, 54px); font-weight: 400; line-height: 1.08; letter-spacing: -.035em; text-wrap: balance; }
 .service-clients__lead { margin: 0; color: #bed0c3; font-size: 16px; line-height: 1.6; }
 /* The same pale marks as the clientele screen, as a quiet grid of cards. */
-.service-clients__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 28px 0 0; padding: 0; list-style: none; }
+.service-clients__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 28px 0 0; padding: 0; list-style: none; }
 .service-clients__mark { display: grid; justify-items: center; align-content: center; gap: 10px; min-height: 112px; padding: 16px 12px; border: 1px solid #d5e8d933; border-radius: 12px; background: #0f3a2a80; text-align: center; }
 .service-clients__art { display: grid; place-items: center; height: 40px; }
 .service-clients__art img { display: block; max-width: 120px; max-height: 40px; object-fit: contain; }
 .service-clients__monogram { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid #d5e8d980; border-radius: 50%; color: #ebf3ea; font-family: Georgia, 'Times New Roman', serif; font-size: 15px; letter-spacing: .04em; }
 .service-clients__name { color: #e9f1eb; font-size: 13px; line-height: 1.3; text-wrap: balance; }
+/* A line under the cards says the list goes on, in the heading's serif. */
+.service-clients__more { margin: 16px 0 0; color: #bed0c3; font-family: Georgia, 'Times New Roman', serif; font-size: 19px; font-style: italic; }
 @media (max-width: 550px) {
   .service-clients__list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .service-clients__mark { min-height: 96px; padding: 12px 8px; }

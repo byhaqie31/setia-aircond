@@ -486,7 +486,6 @@ onBeforeUnmount(() => {
         :selected-id="selectedSlug"
         :reduced-motion="reducedMotion"
         :label-bounds="compact ? labelBounds : undefined"
-        :frames="labelFrames"
         :framed-id="framedSlug"
         :size="stageSize"
         dim-others
@@ -513,7 +512,7 @@ onBeforeUnmount(() => {
             <span v-else class="client-scene__monogram">{{ getCommercialClientMonogram(client) }}</span>
           </span>
           <span class="client-scene__mark-name">{{ client.displayName }}</span>
-          <span v-if="client.summary" :id="`client-summary-${client.slug}`" class="client-scene__summary" role="tooltip">{{ client.summary }}</span>
+          <span v-if="client.summary" :id="`client-summary-${client.slug}`" class="client-scene__summary">{{ client.summary }}</span>
         </span>
       </div>
 
@@ -563,21 +562,22 @@ onBeforeUnmount(() => {
 .client-scene__mark:focus-visible, .client-scene__mark.is-selected { color: #a0ebbb; }
 /* Hover styling only where a pointer can hover: touch screens keep :hover on the last tapped spot across a round trip. */
 @media (hover: hover) { .client-scene__mark:hover { color: #a0ebbb; } }
-/* The hovered or focused mark is framed by its own leader line, drawn in CommercialLeaderLayer; the frame replaces the focus ring. */
+/* The hovered or focused mark grows its logo in place of a focus ring. */
 .client-scene__marks:not(.is-grid) .client-scene__mark:focus-visible { outline: none; }
 /* The other clients step back so the framed mark and its brief read on their own. */
 .client-scene__marks.has-framed .client-scene__mark.is-visible:not(.is-framed) { opacity: .22; }
 .client-scene__mark-art { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 46px; }
+/* Hover or keyboard focus enlarges the logo and name together, growing up from the end of the leader line. */
+.client-scene__marks:not(.is-grid) .client-scene__mark { transform-origin: 50% 100%; }
+@media (hover: hover) { .client-scene__marks:not(.is-grid) .client-scene__mark.is-visible:hover { transform: translate(-50%, -100%) scale(1.3); } }
+.client-scene__marks:not(.is-grid) .client-scene__mark.is-visible:focus-visible { transform: translate(-50%, -100%) scale(1.3); }
 .client-scene__mark-art > img { display: block; max-width: 82%; max-height: 48px; object-fit: contain; }
 /* A client without a mark on disk shows its monogram where the mark will go. */
 .client-scene__monogram { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #d5e8d980; border-radius: 50%; color: #ebf3ea; font-family: Georgia, 'Times New Roman', serif; font-size: 17px; letter-spacing: .04em; }
 .client-scene__mark-name { font-size: 12px; line-height: 1.2; text-align: center; }
-/* Project summary on hover or keyboard focus; it floats above the mark so the leader line stays clear. */
-.client-scene__mark:hover, .client-scene__mark:focus-visible { z-index: 1; }
-.client-scene__summary { position: absolute; left: 50%; bottom: calc(100% + 10px); z-index: 2; width: max(100%, 240px); max-width: 300px; padding: 10px 12px; border: 1px solid #a0ebbb40; border-radius: 10px; color: #e9f1eb; background: #061710f0; font-size: 12.5px; font-weight: 400; line-height: 1.4; text-align: center; text-wrap: pretty; opacity: 0; transform: translate(-50%, 4px); transition: opacity .18s ease, transform .18s ease; pointer-events: none; }
-.client-scene__summary::after { content: ''; position: absolute; left: 50%; top: 100%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-right: 1px solid #a0ebbb40; border-bottom: 1px solid #a0ebbb40; background: #061710f0; transform: rotate(45deg); }
-@media (hover: hover) { .client-scene__mark.is-visible:hover .client-scene__summary { opacity: 1; transform: translate(-50%, 0); } }
-.client-scene__mark.is-visible:focus-visible .client-scene__summary { opacity: 1; transform: translate(-50%, 0); }
+.client-scene__mark:hover, .client-scene__mark:focus, .client-scene__mark:focus-visible { z-index: 1; }
+/* The project summary is read out with the mark but not shown, so hover keeps to the logo alone. */
+.client-scene__summary { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .client-scene__fallback { position: absolute; top: 50%; left: clamp(24px, 5.5vw, 104px); max-width: 28ch; color: #c9dfcf; font-size: 17px; line-height: 1.45; }
 .client-scene__below { padding: 0 clamp(24px, 5.5vw, 104px); }
 .client-scene__below.has-content { padding-bottom: 64px; }
@@ -643,12 +643,15 @@ onBeforeUnmount(() => {
 }
 /* Phones: two columns of logo cards in the sky (up to five rows), no leader lines; the page arrows sit beside the grid's middle. */
 .client-scene__marks.is-grid { --client-card-columns: 2; --client-card-gap: 10px; bottom: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--client-card-gap); inset-inline: 60px; }
-.client-scene__marks.is-grid .client-scene__mark { position: relative; flex: 0 0 auto; justify-content: center; width: calc((100% - var(--client-card-gap) * (var(--client-card-columns) - 1)) / var(--client-card-columns)); min-height: 56px; padding: 6px; gap: 4px; border: 1px solid #d5e8d94d; border-radius: 12px; background: #0f3a2ab3; transform: translateY(10px); transition: opacity 180ms ease, transform 180ms ease, color 180ms ease, border-color 180ms ease, background-color 180ms ease; }
+.client-scene__marks.is-grid .client-scene__mark { position: relative; flex: 0 0 auto; justify-content: center; width: calc((100% - var(--client-card-gap) * (var(--client-card-columns) - 1)) / var(--client-card-columns)); min-height: 56px; padding: 6px; gap: 4px; border: 1px solid #d5e8d94d; border-radius: 12px; background: #0f3a2ab3; transform: translateY(10px); transition: opacity 180ms ease, transform 180ms ease, color 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease; }
 .client-scene__marks.is-grid .client-scene__mark.is-visible { transform: none; }
 .client-scene__marks.is-grid .client-scene__mark:focus-visible, .client-scene__marks.is-grid .client-scene__mark.is-selected { border-color: #a0ebbb; background: #a0ebbb1f; }
 @media (hover: hover) { .client-scene__marks.is-grid .client-scene__mark:hover { border-color: #a0ebbb; background: #a0ebbb1f; } }
 .client-scene__marks.is-grid .client-scene__mark-art { min-height: 26px; }
 .client-scene__marks.is-grid .client-scene__mark-art > img { max-width: 80%; max-height: 26px; }
+/* A tapped card pops forward with its logo and name enlarged together, and stays that way until something else is tapped. */
+.client-scene__marks.is-grid .client-scene__mark.is-visible:focus { border-color: #a0ebbb; background: #164a36; transform: scale(1.18); box-shadow: 0 8px 22px #0617108c; outline: none; }
+.client-scene__marks.is-grid .client-scene__mark.is-visible:focus .client-scene__mark-name { color: #eff8f0; }
 .client-scene__marks.is-grid .client-scene__monogram { width: 26px; height: 26px; font-size: 11px; }
 .client-scene__marks.is-grid .client-scene__mark-name { font-size: 11px; }
 /* grid-area: auto so the arrows position against the stage edges rather than the pagination's padded columns. */

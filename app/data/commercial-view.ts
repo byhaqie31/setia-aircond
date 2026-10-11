@@ -277,14 +277,18 @@ export interface CommercialClientCategory {
   id: string
   /** Full name, used for announcements and records. */
   label: string
-  /** Shorter name on the tab itself, so all six tabs share one line on a desktop. */
+  /** Shorter name on the tab itself, so the tabs stay compact on a desktop. */
   tabLabel: string
 }
 
-/** Clientele tabs, in the order of the client-supplied industry grouping, with its two healthcare clients folded into the first tab so there are six. The first tab is the default. */
+/**
+ * Clientele tabs. Banking leads at the client's request and is the default tab; food and beverage manufacturers have their own tab,
+ * split out of manufacturing, as the client is targeting that sector. The listing's two healthcare clients sit with retail and property.
+ */
 export const commercialClientCategories: CommercialClientCategory[] = [
-  { id: 'retail-property-healthcare', label: 'Retail, Property & Healthcare', tabLabel: 'Retail, Property & Healthcare' },
   { id: 'banking-finance', label: 'Banking, Finance & Insurance', tabLabel: 'Banking & Finance' },
+  { id: 'food-beverage', label: 'Food & Beverage Manufacturing', tabLabel: 'Food & Beverage' },
+  { id: 'retail-property-healthcare', label: 'Retail, Property & Healthcare', tabLabel: 'Retail, Property & Healthcare' },
   { id: 'manufacturing-energy', label: 'Manufacturing, Industrial & Energy', tabLabel: 'Manufacturing & Energy' },
   { id: 'transport-logistics', label: 'Automotive, Transport & Logistics', tabLabel: 'Automotive & Transport' },
   { id: 'telecommunications', label: 'Telecommunications & Connectivity', tabLabel: 'Telecommunications' },
@@ -345,21 +349,26 @@ const recorded = (summary: string, projectIds: string[]): ClientOptions => ({ su
 
 // Clients sit in their listing order inside each category. Returning clients keep their slugs so project records, detail pages and marks carry over.
 export const commercialClients: CommercialClient[] = [
+  // Banking, Finance & Insurance, in the client's requested order
+  client('affin-bank', 'Affin Bank', 'banking-finance', { systems: ['ccd', 'vrv'] }),
+  client('cimb', 'CIMB Bank', 'banking-finance', { systems: ['coolingTower', 'chilledWater'] }),
+  client('maybank', 'Maybank', 'banking-finance', { systems: ['ccd', 'vrv'], ...recorded('Air-conditioning installation, preventive maintenance and servicing, 2010 and 2012.', ['ac-04']) }),
+  client('prudential', 'Prudential', 'banking-finance', { systems: ['ccd', 'vrv'] }),
+  client('mbsb-bank', 'MBSB Bank', 'banking-finance', { systems: ['ccd'] }),
+  client('bank-pembangunan', 'Bank Pembangunan Malaysia', 'banking-finance', { systems: ['ccd'] }),
+  client('standard-chartered', 'Standard Chartered', 'banking-finance', { systems: ['ccd', 'vrv'] }),
+  // Food & Beverage Manufacturing
+  client('nestle', 'Nestlé Manufacturing Malaysia', 'food-beverage', { systems: ['ccd', 'vrv', 'ahu'] }),
+  client('mission-foods', 'Mission Foods Malaysia', 'food-beverage', { systems: [...plant, 'chilledWater', 'vrv'], ...recorded('Air-conditioning installation and servicing across split, VRV, chiller and cooling-tower systems, 2010–2016.', ['ac-03']) }),
+  client('kawan-food', 'Kawan Food', 'food-beverage', { systems: ['ccd'] }),
+  client('carlsberg', 'Carlsberg', 'food-beverage', { systems: [...plant, 'ccd'] }),
   // Retail, Property & Healthcare
   client('lotuss', 'Lotus’s', 'retail-property-healthcare', { systems: [...plant, 'chilledWater'] }),
   client('econsave', 'Econsave', 'retail-property-healthcare', { systems: ['ccd'] }),
-  client('sp-setia', 'SP Setia', 'retail-property-healthcare', { summary: 'SP Setia HQ and Bandar Setia Alam.' }),
+  client('sp-setia', 'SP Setia', 'retail-property-healthcare', { systems: ['coolingTower'], summary: 'SP Setia HQ and Bandar Setia Alam.' }),
   client('eco-sky', 'Eco Sky Development', 'retail-property-healthcare'),
   client('assunta-hospital', 'Assunta Hospital', 'retail-property-healthcare'),
   client('animal-medical-centre', 'Animal Medical Centre / Medivet', 'retail-property-healthcare'),
-  // Banking, Finance & Insurance
-  client('mbsb-bank', 'MBSB Bank', 'banking-finance', { systems: ['ccd'] }),
-  client('standard-chartered', 'Standard Chartered', 'banking-finance', { systems: ['ccd', 'vrv'] }),
-  client('maybank', 'Maybank', 'banking-finance', { systems: ['ccd', 'vrv'], ...recorded('Air-conditioning installation, preventive maintenance and servicing, 2010 and 2012.', ['ac-04']) }),
-  client('affin-bank', 'Affin Bank', 'banking-finance', { systems: ['ccd', 'vrv'] }),
-  client('prudential', 'Prudential', 'banking-finance', { systems: ['ccd', 'vrv'] }),
-  client('cimb', 'CIMB Bank', 'banking-finance', { systems: ['coolingTower', 'chilledWater'] }),
-  client('bank-pembangunan', 'Bank Pembangunan Malaysia', 'banking-finance', { systems: ['ccd'] }),
   // Manufacturing, Industrial & Energy
   client('sony-emcs', 'Sony EMCS (Malaysia)', 'manufacturing-energy', { systems: [...plant, 'chilledWater'], ...recorded('Air-conditioning installation, preventive maintenance and servicing, 2010–2014.', ['ac-06']) }),
   client('goodyear', 'Goodyear Malaysia', 'manufacturing-energy', { systems: plant, ...recorded('Air-conditioning installation and split/chiller servicing for Goodyear Malaysia Berhad, 2013–2016.', ['ac-05']) }),
@@ -367,10 +376,6 @@ export const commercialClients: CommercialClient[] = [
   client('siemens', 'Siemens', 'manufacturing-energy', { systems: ['ccd'] }),
   client('petron', 'Petron Malaysia', 'manufacturing-energy', { systems: ['ccd', 'vrv'] }),
   client('sime-darby', 'Sime Darby Plantation & Technology', 'manufacturing-energy', { systems: ['ccd'] }),
-  client('kawan-food', 'Kawan Food', 'manufacturing-energy', { systems: ['ccd'] }),
-  client('carlsberg', 'Carlsberg', 'manufacturing-energy', { systems: [...plant, 'ccd'] }),
-  client('nestle', 'Nestlé Manufacturing Malaysia', 'manufacturing-energy', { systems: ['ccd', 'vrv', 'ahu'] }),
-  client('mission-foods', 'Mission Foods Malaysia', 'manufacturing-energy', { systems: [...plant, 'chilledWater', 'vrv'], ...recorded('Air-conditioning installation and servicing across split, VRV, chiller and cooling-tower systems, 2010–2016.', ['ac-03']) }),
   // Automotive, Transport & Logistics
   client('proton', 'Proton', 'transport-logistics', { systems: plant }),
   client('volvo', 'Volvo Malaysia', 'transport-logistics', { systems: ['ccd'] }),
@@ -441,10 +446,28 @@ export function getCommercialClientPages(categoryId: string, capacity = 10): Com
   }).filter(page => page.length > 0)
 }
 
-/** The clientele-listing clients recorded with the system a service covers, in listing order. */
+/**
+ * Each service page's track-record section: its own heading and four well-known clients, followed by "and many more".
+ * Picks differ between services where the listing allows; the biggest names (Lotus's, Proton and the like) may repeat.
+ */
+export const commercialServiceShowcases: Record<string, { heading: string, clients: string[] }> = {
+  'cassette-ceiling-ducted': { heading: 'Cassette, ceiling and ducted units we’ve installed.', clients: ['maybank', 'sime-darby', 'volvo', 'econsave'] },
+  'cooling-tower': { heading: 'Cooling towers we’ve serviced.', clients: ['cimb', 'lotuss', 'sp-setia', 'mission-foods'] },
+  'pump': { heading: 'Pumps we’ve kept running.', clients: ['malaysia-airlines', 'goodyear', 'proton', 'sony-emcs'] },
+  'chilled-water-piping': { heading: 'Chilled water piping we’ve worked on.', clients: ['sony-emcs', 'lotuss', 'mission-foods', 'cimb'] },
+  'chiller': { heading: 'Chillers we’ve serviced.', clients: ['panasonic', 'carlsberg', 'proton', 'lotuss'] },
+  'vrf-vrv': { heading: 'VRF and VRV systems we’ve installed.', clients: ['prudential', 'standard-chartered', 'petron', 'maxis'] },
+  'ahu': { heading: 'AHUs we’ve maintained.', clients: ['nestle', 'celcom-axiata', 'segi-university-colleges', 'garden-international-school'] },
+  'duct-services': { heading: 'Ductwork we’ve installed and serviced.', clients: ['iskl', 'malaysia-airlines', 'carlsberg', 'goodyear'] },
+}
+
+/** A service's showcase picks, kept only where the client is recorded with that service's system. */
 export function getCommercialClientsForService(serviceId: string): CommercialClient[] {
   const service = commercialServices.find(entry => entry.id === serviceId)
-  return service ? commercialClients.filter(client => client.systems.includes(service.system)) : []
+  if (!service) return []
+  return (commercialServiceShowcases[serviceId]?.clients ?? [])
+    .map(slug => commercialClients.find(client => client.slug === slug))
+    .filter((client): client is CommercialClient => !!client && client.systems.includes(service.system))
 }
 
 export function describeCommercialSystems(client: Pick<CommercialClient, 'systems'>) {
