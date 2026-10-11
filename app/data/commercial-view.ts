@@ -363,9 +363,9 @@ export const commercialClients: CommercialClient[] = [
   client('kawan-food', 'Kawan Food', 'food-beverage', { systems: ['ccd'] }),
   client('carlsberg', 'Carlsberg', 'food-beverage', { systems: [...plant, 'ccd'] }),
   // Retail, Property & Healthcare
-  client('lotuss', 'Lotus’s', 'retail-property-healthcare', { systems: [...plant, 'chilledWater'] }),
-  client('econsave', 'Econsave', 'retail-property-healthcare', { systems: ['ccd'] }),
   client('sp-setia', 'SP Setia', 'retail-property-healthcare', { systems: ['coolingTower'], summary: 'SP Setia HQ and Bandar Setia Alam.' }),
+  client('econsave', 'Econsave', 'retail-property-healthcare', { systems: ['ccd'] }),
+  client('lotuss', 'Lotus’s', 'retail-property-healthcare', { systems: [...plant, 'chilledWater'] }),
   client('eco-sky', 'Eco Sky Development', 'retail-property-healthcare'),
   client('assunta-hospital', 'Assunta Hospital', 'retail-property-healthcare'),
   client('animal-medical-centre', 'Animal Medical Centre / Medivet', 'retail-property-healthcare'),

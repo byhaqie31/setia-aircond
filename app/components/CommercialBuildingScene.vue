@@ -784,8 +784,10 @@ onBeforeUnmount(() => {
 .commercial-building-scene__marker strong { font-size: clamp(15px, 1.1vw, 18px); line-height: 1.2; }
 .commercial-building-scene__marker span { max-width: 22ch; color: #cfddd1; font-size: clamp(12px, .8vw, 14px); line-height: 1.35; }
 /* The only way on is to scroll: a quiet cue where the buttons were, its dot travelling down the line like the residential cue. */
-.commercial-building-scene__cue { position: absolute; z-index: 5; left: 50%; bottom: max(22px, 3.5svh); display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 140px; min-height: 52px; padding: 6px 12px; color: #e4f0e6; font-size: 13px; font-weight: 600; letter-spacing: .02em; text-decoration: none; opacity: 0; pointer-events: none; transform: translateX(-50%); transition: opacity 320ms ease, color 180ms ease; }
+.commercial-building-scene__cue { --cue-bottom: max(10px, 1.2svh); position: absolute; z-index: 5; left: 50%; bottom: var(--cue-bottom); display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 140px; min-height: 52px; padding: 6px 12px; color: #e4f0e6; font-size: 13px; font-weight: 600; letter-spacing: .02em; text-decoration: none; opacity: 0; pointer-events: none; transform: translateX(-50%); transition: opacity 320ms ease, color 180ms ease; }
 .commercial-building-scene__cue.is-ready { opacity: 1; pointer-events: auto; transition-delay: 240ms, 0ms; }
+/* A dark green half-circle rises from the bottom edge behind the cue, so it reads over the lit building. */
+.commercial-building-scene__cue::before { content: ''; position: absolute; z-index: -1; left: 50%; top: -12px; bottom: calc(-1 * var(--cue-bottom)); width: 180px; border: 1px solid #a0ebbb2e; border-bottom: 0; border-radius: 90px 90px 0 0; background: radial-gradient(120% 100% at 50% 100%, #061710f2, #0b3022d9 70%); box-shadow: 0 -10px 36px #06171066; transform: translateX(-50%); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); pointer-events: none; }
 .commercial-building-scene__cue:hover, .commercial-building-scene__cue:focus-visible { color: #a0ebbb; }
 .commercial-building-scene__cue[aria-disabled='true'] { cursor: wait; }
 .commercial-building-scene__cue-line { position: relative; width: 1px; height: 22px; background: #c2d9c8a6; }
@@ -830,7 +832,7 @@ onBeforeUnmount(() => {
 @media (max-width: 1099px), (max-height: 699px) {
   .commercial-building-scene.is-enhanced { overflow-x: clip; overflow-y: auto; overscroll-behavior: contain; }
   .commercial-building-scene.is-enhanced .commercial-building-scene__stage { height: max(620px, 100svh, var(--commercial-compact-min, 620px)); }
-  .commercial-building-scene__cue { bottom: max(12px, env(safe-area-inset-bottom)); }
+  .commercial-building-scene__cue { --cue-bottom: max(8px, env(safe-area-inset-bottom)); }
 }
 @media (max-width: 1023px) {
   .commercial-building-scene__stage,
@@ -840,6 +842,7 @@ onBeforeUnmount(() => {
   .commercial-building-scene__marker { justify-content: end; min-height: 44px; padding: 4px 2px; }
   .commercial-building-scene__marker strong { font-size: 12px; line-height: 1.25; text-wrap: balance; }
   .commercial-building-scene__cue { min-height: 44px; font-size: 12px; }
+  .commercial-building-scene__cue::before { top: -10px; width: 160px; border-radius: 80px 80px 0 0; }
 }
 /* Phones: tappable service cards in a wrapped row instead of the leader map. Eight cards wrap 3 / 3 / 2 and the short last row centres itself. */
 .commercial-building-scene__markers.is-cards { --commercial-card-columns: 3; --commercial-card-gap: 10px; bottom: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--commercial-card-gap); inset-inline: clamp(16px, 5vw, 24px); }
