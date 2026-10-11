@@ -389,7 +389,7 @@ export const commercialClients: CommercialClient[] = [
   client('iskl', 'ISKL', 'education', { systems: ['ccd', 'vrv', 'ahu', 'ducting'] }),
   client('segi-university-colleges', 'SEGi University & Colleges', 'education', { systems: ['ccd', 'vrv', 'ahu', 'ducting'] }),
   client('taylors', 'Taylor’s Education Group', 'education'),
-  client('global-indian-education', 'Global Indian Education', 'education', { logo: false }),
+  client('global-indian-education', 'Global Indian Education', 'education'),
   client('mindvalley', 'Mindvalley', 'education', { systems: ['ccd'] }),
 ]
 

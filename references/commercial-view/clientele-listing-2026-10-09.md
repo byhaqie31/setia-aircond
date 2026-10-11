@@ -89,5 +89,8 @@ identities and recoloured to the pale treatment with sharp:
   Animal Medical Centre (animalhospital.com.my), used for the "Animal Medical Centre /
   Medivet" entry.
 - Eco Sky Development uses the EcoWorld parent-brand wordmark.
-- Global Indian Education: no usable logo found; it shows the monogram placeholder
-  until a mark is supplied.
+- Supplied by the user on 2026-10-11, replacing the marks above, and exported at 2x:
+  Global Indian Education (global_indian.svg, Global Indian International School mark),
+  CIMB (CIMB-Logo.jpg; white knocked out, red chevron half-tone), ISKL (seal PNG;
+  white lettering knocked out), Kawan Food (Kawan-Logo-2025.png; white sticker
+  outline dropped).

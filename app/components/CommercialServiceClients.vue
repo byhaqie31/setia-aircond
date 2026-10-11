@@ -1,10 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { getCommercialClientMonogram, getCommercialClientsForService, type CommercialService } from '~/data/commercial-view'
+import { commercialServices, getCommercialClientMonogram, getCommercialClientsForService, type CommercialService } from '~/data/commercial-view'
 
 const props = defineProps<{ service: CommercialService }>()
 // Clients recorded with this system in Setia's clientele listing, in the listing's own order.
 const clients = computed(() => getCommercialClientsForService(props.service.id))
+
+// Service pages take turns through these headings so neighbouring pages read differently.
+const headings = [
+  'The brands we help keep Malaysia cool.',
+  'Trusted by the brands that keep Malaysia running.',
+  'Brands that trust us to keep Malaysia cool.',
+]
+const heading = computed(() => {
+  const index = commercialServices.findIndex(service => service.id === props.service.id)
+  return headings[Math.max(index, 0) % headings.length]
+})
 </script>
 
 <template>
@@ -12,7 +23,7 @@ const clients = computed(() => getCommercialClientsForService(props.service.id))
     <div class="service-clients__inner">
       <div class="service-clients__heading">
         <p class="service-clients__eyebrow">Track record</p>
-        <h2 id="service-clients-heading">Clients who have taken this service.</h2>
+        <h2 id="service-clients-heading">{{ heading }}</h2>
         <p class="service-clients__lead">Recorded for {{ clients.length }} of Setia’s commercial clients.</p>
       </div>
       <ul class="service-clients__list" aria-label="Clients recorded with this system">
