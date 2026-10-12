@@ -106,7 +106,7 @@ function recordStyle(group: CommercialRecordGroup, index: number) {
 .records-certificate h3 { margin: 20px 0 0; font-size: 18px; line-height: 1.3; font-weight: 500; text-wrap: balance; }
 .records-standard { font-size: clamp(24px, 2.4vw, 34px); font-weight: 600; letter-spacing: -.03em; }
 .records-issuer { margin: 8px 0 0; color: var(--ink-soft); font-size: 12px; line-height: 1.4; }
-.records-certificate-detail { max-width: 38ch; margin: 16px auto 0; font-size: 14px; line-height: 1.5; text-wrap: pretty; }
+.records-certificate-detail { max-width: 38ch; margin: 16px auto 0; font-size: 14px; line-height: 1.5; text-wrap: pretty; white-space: pre-line; }
 .records-certificate-detail .certificate-highlight { padding: 0 2px; color: inherit; font-weight: 700; background: linear-gradient(transparent 58%, color-mix(in srgb, var(--green-bright) 38%, transparent) 58%); }
 .capability-boards { max-width: 1200px; margin: 64px auto 0; }
 .capability-board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px; }

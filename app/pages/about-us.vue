@@ -377,7 +377,7 @@ onBeforeUnmount(() => {
 .about-credential__standard { font-size: clamp(24px, 2.4vw, 32px); font-weight: 600; letter-spacing: -.03em; }
 .about-credential h3 { margin: 20px 0 0; font-size: 18px; font-weight: 600; line-height: 1.3; text-wrap: balance; }
 .about-credential__issuer { margin: 6px 0 0; color: var(--company-muted); font-size: 13px; line-height: 1.4; }
-.about-credential__detail { max-width: 38ch; margin: 14px auto 0; color: var(--company-muted); font-size: 15px; line-height: 1.55; text-wrap: pretty; }
+.about-credential__detail { max-width: 38ch; margin: 14px auto 0; color: var(--company-muted); font-size: 15px; line-height: 1.55; text-wrap: pretty; white-space: pre-line; }
 .about-credential__highlight { padding: 0 2px; color: #0b3022; font-weight: 700; background: linear-gradient(transparent 58%, color-mix(in srgb, var(--green-bright) 38%, transparent) 58%); }
 /* One line on desktop; where they wrap on narrow screens, the extra leading keeps descenders off the next line. */
 @media (min-width: 851px) { .about-motto, .about-credentials h2, .about-brands h2 { white-space: nowrap; } }

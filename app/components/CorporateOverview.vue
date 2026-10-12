@@ -160,7 +160,7 @@ onMounted(() => heading.value?.focus({ preventScroll: true }))
 .corporate-certificate { padding-top: 24px; border-top: 1px solid var(--line); }
 .corporate-certificate-code { display: block; margin-bottom: 24px; font-family: 'Space Mono', monospace; font-size: 20px; letter-spacing: -.03em; color: var(--pine); }
 .corporate-certificate h3, .corporate-capability h3 { margin: 0 0 12px; font-family: Georgia, 'Times New Roman', serif; font-size: 24px; line-height: 1.2; font-weight: 400; letter-spacing: -.015em; }
-.corporate-certificate p { margin: 12px 0 0; font-size: 14px; line-height: 1.65; color: var(--ink-soft); }
+.corporate-certificate p { margin: 12px 0 0; font-size: 14px; line-height: 1.65; color: var(--ink-soft); white-space: pre-line; }
 .corporate-certificate .certificate-highlight { padding: 0 2px; color: var(--pine); font-weight: 700; background: linear-gradient(transparent 58%, color-mix(in srgb, var(--green-bright) 30%, transparent) 58%); }
 .corporate-certificate .corporate-certificate-issuer { margin-top: 0; font-size: 12px; }
 .corporate-capabilities { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; }

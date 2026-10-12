@@ -5,7 +5,7 @@ import { commercialServiceShowcases, commercialServices, getCommercialClientMono
 const props = defineProps<{ service: CommercialService }>()
 // A short pick of well-known clients recorded with this system; the heading names the service itself.
 const clients = computed(() => getCommercialClientsForService(props.service.id))
-const heading = computed(() => commercialServiceShowcases[props.service.id]?.heading ?? `${props.service.title} we’ve worked on.`)
+const heading = computed(() => commercialServiceShowcases[props.service.id]?.heading ?? `${props.service.title} we install, service and maintain.`)
 
 // Service pages take turns through these lines so neighbouring pages read differently.
 const leads = [
@@ -44,10 +44,10 @@ const lead = computed(() => {
 <style scoped>
 .service-clients { color: #f8fbf8; }
 .service-clients__inner { width: min(100% - 2 * var(--detail-gutter, clamp(24px, 5.5vw, 80px)), 1440px); margin: auto; padding-top: var(--detail-section, clamp(40px, 4.8vw, 72px)); }
-.service-clients__heading { display: grid; gap: 12px; max-width: 62ch; }
+.service-clients__heading { display: grid; gap: 12px; }
 .service-clients__eyebrow { margin: 0; color: #a7d2b5; font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
-.service-clients h2 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(34px, 3.8vw, 54px); font-weight: 400; line-height: 1.08; letter-spacing: -.035em; text-wrap: balance; }
-.service-clients__lead { margin: 0; color: #bed0c3; font-size: 16px; line-height: 1.6; }
+.service-clients h2 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(30px, 3.4vw, 54px); font-weight: 400; line-height: 1.08; letter-spacing: -.035em; text-wrap: balance; }
+.service-clients__lead { max-width: 62ch; margin: 0; color: #bed0c3; font-size: 16px; line-height: 1.6; }
 /* The same pale marks as the clientele screen, as a quiet grid of cards. */
 .service-clients__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 28px 0 0; padding: 0; list-style: none; }
 .service-clients__mark { display: grid; justify-items: center; align-content: center; gap: 10px; min-height: 112px; padding: 16px 12px; border: 1px solid #d5e8d933; border-radius: 12px; background: #0f3a2a80; text-align: center; }

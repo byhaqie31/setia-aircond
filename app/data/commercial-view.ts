@@ -451,14 +451,14 @@ export function getCommercialClientPages(categoryId: string, capacity = 10): Com
  * Picks differ between services where the listing allows; the biggest names (Lotus's, Proton and the like) may repeat.
  */
 export const commercialServiceShowcases: Record<string, { heading: string, clients: string[] }> = {
-  'cassette-ceiling-ducted': { heading: 'Cassette, ceiling and ducted units we’ve installed.', clients: ['maybank', 'sime-darby', 'volvo', 'econsave'] },
-  'cooling-tower': { heading: 'Cooling towers we’ve serviced.', clients: ['cimb', 'lotuss', 'sp-setia', 'mission-foods'] },
-  'pump': { heading: 'Pumps we’ve kept running.', clients: ['malaysia-airlines', 'goodyear', 'proton', 'sony-emcs'] },
-  'chilled-water-piping': { heading: 'Chilled water piping we’ve worked on.', clients: ['sony-emcs', 'lotuss', 'mission-foods', 'cimb'] },
-  'chiller': { heading: 'Chillers we’ve serviced.', clients: ['panasonic', 'carlsberg', 'proton', 'lotuss'] },
-  'vrf-vrv': { heading: 'VRF and VRV systems we’ve installed.', clients: ['prudential', 'standard-chartered', 'petron', 'maxis'] },
-  'ahu': { heading: 'AHUs we’ve maintained.', clients: ['nestle', 'celcom-axiata', 'segi-university-colleges', 'garden-international-school'] },
-  'duct-services': { heading: 'Ductwork we’ve installed and serviced.', clients: ['iskl', 'malaysia-airlines', 'carlsberg', 'goodyear'] },
+  'cassette-ceiling-ducted': { heading: 'Ceiling and ducted units we install, service and maintain.', clients: ['maybank', 'sime-darby', 'volvo', 'econsave'] },
+  'cooling-tower': { heading: 'Cooling towers we install, service and maintain.', clients: ['cimb', 'lotuss', 'sp-setia', 'mission-foods'] },
+  'pump': { heading: 'Pumps we install, service and maintain.', clients: ['malaysia-airlines', 'goodyear', 'proton', 'sony-emcs'] },
+  'chilled-water-piping': { heading: 'Chilled water piping we install, service and maintain.', clients: ['sony-emcs', 'lotuss', 'mission-foods', 'cimb'] },
+  'chiller': { heading: 'Chillers we install, service and maintain.', clients: ['panasonic', 'carlsberg', 'proton', 'lotuss'] },
+  'vrf-vrv': { heading: 'VRF and VRV systems we install, service and maintain.', clients: ['prudential', 'standard-chartered', 'petron', 'maxis'] },
+  'ahu': { heading: 'AHUs we install, service and maintain.', clients: ['nestle', 'celcom-axiata', 'segi-university-colleges', 'garden-international-school'] },
+  'duct-services': { heading: 'Ductwork we install, service and maintain.', clients: ['iskl', 'malaysia-airlines', 'carlsberg', 'goodyear'] },
 }
 
 /** A service's showcase picks, kept only where the client is recorded with that service's system. */
