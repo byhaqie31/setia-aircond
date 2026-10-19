@@ -25,6 +25,18 @@ const legacyRedirects = new Map([
 // Preview hosts must not compete with the production domain in search results.
 const isPreviewHost = hostname => hostname.endsWith('.workers.dev');
 
+// Pages are prerendered with share tags on the production origin (runtimeConfig.public.siteUrl). Until that
+// domain serves this site, its image 404s, so on any other host the share tags point back at the host that
+// served the page and link previews show. Canonicals keep the production origin.
+const productionOrigin = 'https://www.setiaaircond.com.my';
+const shareTags = 'meta[property="og:url"], meta[property="og:image"], meta[property="og:image:secure_url"], meta[name="twitter:image"]';
+const pointShareTagsAt = (response, origin) => new HTMLRewriter().on(shareTags, {
+  element(tag) {
+    const content = tag.getAttribute('content');
+    if (content?.startsWith(`${productionOrigin}/`)) tag.setAttribute('content', origin + content.slice(productionOrigin.length));
+  },
+}).transform(response);
+
 export default {
   async fetch(request, env) {
     if (!['GET', 'HEAD'].includes(request.method)) {
@@ -41,6 +53,9 @@ export default {
       if (location.origin === url.origin && location.pathname === `${url.pathname}/`) {
         return Response.redirect(location.href, 301);
       }
+    }
+    if (url.origin !== productionOrigin && response.headers.get('Content-Type')?.includes('text/html')) {
+      response = pointShareTagsAt(response, url.origin);
     }
     if (isPreviewHost(url.hostname)) {
       response = new Response(response.body, response);

@@ -5,11 +5,12 @@ import { businessSchema, jsonLdScript } from '~/utils/structured-data'
 const { $sitePath } = useNuxtApp()
 const route = useRoute()
 const siteUrl = useRuntimeConfig().public.siteUrl.replace(/\/?$/, '/')
-const socialImage = new URL('images/social/setia-aircond-og-v2.png', siteUrl).href
-const socialTitle = 'Setia | Air-conditioning & Electrical Since 1990'
-const socialDescription = 'Air-conditioning and electrical systems for residential and commercial spaces. Supplied, installed and maintained by Setia since 1990.'
+const socialImage = new URL('images/social/setia-aircond-og-v3.jpg', siteUrl).href
+// Link previews take the home page's opening screen: its headline, description and a capture of it.
+const socialTitle = 'Setia Air-Cond | Every building has a pulse. We keep it cool.'
+const socialDescription = 'Air-conditioning and electrical systems for commercial and residential spaces across Kuala Lumpur and Selangor supplied, installed and maintained since 1990.'
 const pageUrl = () => absoluteSiteUrl(siteUrl, route.path)
-const socialImageAlt = 'SETIA Air-Cond. Better cooling. Since 1990. A close-up of an ivory air conditioner with sculpted airflow on deep green.'
+const socialImageAlt = 'Setia Air-Cond home page: Every building has a pulse. We keep it cool. Beside it, a cutaway building with residential and commercial floors and the Kuala Lumpur skyline at night.'
 
 useSeoMeta({
   ogType: 'website',
@@ -19,9 +20,9 @@ useSeoMeta({
   ogUrl: pageUrl,
   ogImage: socialImage,
   ogImageSecureUrl: socialImage,
-  ogImageType: 'image/png',
-  ogImageWidth: 1734,
-  ogImageHeight: 907,
+  ogImageType: 'image/jpeg',
+  ogImageWidth: 1200,
+  ogImageHeight: 628,
   ogImageAlt: socialImageAlt,
   twitterCard: 'summary_large_image',
   twitterTitle: socialTitle,

@@ -14,7 +14,7 @@ export function businessSchema(siteUrl: string) {
     alternateName: 'Setia Air-Cond',
     url: root,
     logo: new URL('apple-touch-icon.png', root).href,
-    image: new URL('images/social/setia-aircond-og-v2.png', root).href,
+    image: new URL('images/social/setia-aircond-og-v3.jpg', root).href,
     description: 'Setia Air-Cond and Electrical Sdn Bhd supplies, installs and maintains air-conditioning and electrical systems for residential and commercial properties in Malaysia, carrying brands including Daikin, Acson, Panasonic, York, Carrier, Fujiaire and Toshiba.',
     telephone: '+60356338325',
     faxNumber: '+60356327072',
