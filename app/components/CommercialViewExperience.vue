@@ -7,7 +7,7 @@ type Scene = 'services' | 'clients'
 const props = defineProps<{ arrival?: ArrivalMode | null }>()
 const route = useRoute()
 const router = useRouter()
-const supportHashes = ['#certifications', '#capability', '#commercial-brands', '#tender', '#commercial-contacts', '#brands']
+const supportHashes = ['#coverage', '#certifications', '#capability', '#commercial-brands', '#tender', '#commercial-contacts', '#brands']
 const sceneFromRoute = (): Scene => route.query.scene === 'clients' || supportHashes.includes(route.hash) || (!route.query.scene && route.hash === '#commercial-clients') ? 'clients' : 'services'
 const scene = ref<Scene>(sceneFromRoute())
 const phase = ref<ScenePhase>(scene.value === 'clients' && route.query.scene === 'clients' ? 'ready' : 'intro')

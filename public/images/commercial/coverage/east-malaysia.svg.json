@@ -1,0 +1,4 @@
+{
+  "source": "Natural Earth 10m admin-1 states (Malaysia) and admin-0 countries (Thailand, Indonesia, Brunei, Singapore, Philippines), public domain, from github.com/nvkelso/natural-earth-vector. Clipped to the panel bounds in app/data/commercial-coverage.ts (latitude 0.75-7.45 N, plate carree at 100 SVG units per degree), Douglas-Peucker simplified at 0.45 units, specks under 3 square units dropped. Malaysia #21684a with #0b3022 state borders; neighbours #113a2a.",
+  "createdAt": "2026-10-19T08:41:00.000Z"
+}

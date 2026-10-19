@@ -451,6 +451,7 @@ onBeforeUnmount(() => {
       <div ref="headingElement" class="client-scene__heading">
         <p class="client-scene__eyebrow">Our work</p>
         <h2 id="commercial-clients-heading">Clients we have worked with</h2>
+        <p class="client-scene__lede">We cover nationwide, including Sabah and Sarawak.</p>
         <div v-if="!imageUnavailable" class="client-scene__tabbar">
           <button v-if="compact" type="button" class="client-scene__tab-arrow" aria-label="Previous client industry" :disabled="chosenCategoryIndex === 0" @click="selectCategory(chosenCategoryIndex - 1)"><svg aria-hidden="true" viewBox="0 0 20 20" width="16" height="16"><path d="m12 5-5 5 5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
           <div ref="tablistElement" class="client-scene__tabs" role="tablist" aria-label="Client industries">
@@ -545,6 +546,7 @@ onBeforeUnmount(() => {
 .client-scene__eyebrow { margin: 0 0 8px; color: #a7d2b5; font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
 .client-scene__heading h2 { max-width: 25ch; margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(28px, 2.8vw, 46px); font-weight: 400; line-height: 1.12; }
 /* Industry tabs under the title. They are part of the measured heading, so the marks and the phone grid keep clear of them on their own. */
+.client-scene__lede { max-width: 46ch; margin: 10px 0 0; color: #bed0c3; font-size: 15px; line-height: 1.5; }
 .client-scene__tabbar { position: relative; display: flex; align-items: center; min-width: 0; margin-top: 22px; pointer-events: auto; }
 .client-scene__tabs { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 8px; }
 /* Compact layouts: a round arrow in its own column at either side steps to the neighbouring industry. An arrow with no tab in its direction keeps its space but disappears, so the title between them never shifts. */
@@ -628,6 +630,7 @@ onBeforeUnmount(() => {
 }
 @media (max-width: 699px) {
   .client-scene__heading h2 { font-size: clamp(28px, 7vw, 34px); text-wrap: balance; }
+  .client-scene__lede { margin-top: 8px; font-size: 14px; }
   .client-scene__mark { width: 42%; }
   .client-scene__mark-art > img { max-height: 32px; }
   .client-scene__pagination { gap: 12px; }

@@ -3,7 +3,7 @@ import corporate from '~/data/corporate.json'
 import { certificateDetailParts } from '~/utils/certificate-detail'
 import { commercialCredentialLogos } from '~/data/commercial-logos'
 import { commercialBrandLogos, commercialEnquiry } from '~/data/commercial-motion'
-import { COMMERCIAL_SUPPORT_SCREENS, COMMERCIAL_CREDENTIALS_STOP, COMMERCIAL_MAINTENANCE_STOP, commercialSupportAt } from '~/utils/commercial-support-journey'
+import { COMMERCIAL_COVERAGE_STOP, COMMERCIAL_CREDENTIALS_STOP, COMMERCIAL_MAINTENANCE_STOP, commercialSupportAt, commercialSupportScreens } from '~/utils/commercial-support-journey'
 import { COMMERCIAL_ENDING_SCREENS, COMMERCIAL_BRANDS_STOP, COMMERCIAL_TENDER_STOP, COMMERCIAL_FIRST_BRAND_ENTRY, commercialEndingAt } from '~/utils/commercial-ending'
 
 const maintenance = corporate.capabilities[3]!
@@ -32,7 +32,9 @@ let jumpRecords: ((value: number) => void) | undefined
 let jumpCover: ((value: number) => void) | undefined
 let jumpEnding: ((value: number) => void) | undefined
 
-function groupState(group: 'certifications' | 'capability') {
+type RecordsGroup = 'coverage' | 'certifications' | 'capability'
+function groupState(group: RecordsGroup) {
+  if (group === 'coverage') return recordsState.value.coverage
   return group === 'certifications' ? recordsState.value.credentials : recordsState.value.maintenance
 }
 function recordState(index: number) {
@@ -46,10 +48,10 @@ function maintenanceItemStyle(index: number) {
   const state = recordsState.value.maintenanceItems[index]!
   return { '--item-reveal': state.reveal }
 }
-function groupStyle(group: 'certifications' | 'capability') {
+function groupStyle(group: RecordsGroup) {
   if (!pinned.value) return undefined
   const state = groupState(group)
-  return { '--group-opacity': state.opacity, '--group-reveal': state.reveal, '--group-cover': group === 'certifications' ? recordsState.value.credentialsCover : 1 }
+  return { '--group-opacity': state.opacity, '--group-reveal': state.reveal, '--group-cover': group === 'coverage' ? recordsState.value.coverageCover : 1 }
 }
 function recordStyle(index: number) {
   if (!pinned.value) return undefined
@@ -75,10 +77,12 @@ const maintenanceArtStyle = computed(() => pinned.value ? {
 async function followHash() {
   if (!alive) return
   const id = route.hash.slice(1)
-  if (!['certifications', 'capability', 'commercial-brands', 'tender'].includes(id)) return
-  if (pinned.value && id === 'certifications') jumpRecords?.(COMMERCIAL_CREDENTIALS_STOP)
+  if (!['coverage', 'certifications', 'capability', 'commercial-brands', 'tender'].includes(id)) return
+  if (pinned.value && id === 'coverage') jumpRecords?.(COMMERCIAL_COVERAGE_STOP)
+  else if (pinned.value && id === 'certifications') jumpRecords?.(COMMERCIAL_CREDENTIALS_STOP)
   else if (pinned.value && id === 'capability') jumpRecords?.(COMMERCIAL_MAINTENANCE_STOP)
-  else if (coverPinned.value && id === 'certifications') jumpCover?.(1)
+  // The coverage map is the first group over the skyline, so the end of the cover is where it starts.
+  else if (coverPinned.value && id === 'coverage') jumpCover?.(1)
   else if (endingPinned.value && ['commercial-brands', 'tender'].includes(id)) jumpEnding?.(id === 'commercial-brands' ? COMMERCIAL_BRANDS_STOP : COMMERCIAL_TENDER_STOP)
   else {
     if (coverPinned.value) {
@@ -140,7 +144,7 @@ async function initialize() {
           scrollTrigger: {
             trigger: recordsRoot.value, pin: recordsStage.value, start: 'top top',
             id: 'commercial-clients-credentials',
-            end: () => `+=${recordsStage.value!.clientHeight * (hasClients ? COMMERCIAL_SUPPORT_SCREENS : 3.25)}`,
+            end: () => `+=${recordsStage.value!.clientHeight * commercialSupportScreens(hasClients)}`,
             scrub: .45, anticipatePin: 1, invalidateOnRefresh: true,
           },
         })
@@ -330,6 +334,17 @@ onBeforeUnmount(() => { alive = false; motion?.revert(); motion = undefined })
           <slot name="clients" :pinned="pinned || coverPinned" />
         </div>
         <div class="support-details" :style="detailsStyle">
+        <section id="coverage" class="records-group records-coverage" aria-labelledby="commercial-coverage-heading" tabindex="-1" :style="groupStyle('coverage')"
+          :inert="pinned && !groupState('coverage').visible" :aria-hidden="pinned && !groupState('coverage').visible || undefined">
+          <header class="records-heading" data-support-reveal>
+            <h2 id="commercial-coverage-heading" class="service-section-heading">Every state within reach.</h2>
+            <p>From Perlis to Johor, and across the South China Sea to Sabah, Sarawak and Labuan.</p>
+          </header>
+          <div class="coverage-stage" data-support-reveal>
+            <CommercialCoverageMap :shown="pinned ? recordsState.coverageCover > .95 : undefined" />
+          </div>
+        </section>
+
         <section id="certifications" class="records-group records-credentials" aria-labelledby="commercial-credentials-heading" tabindex="-1" :style="groupStyle('certifications')"
           :inert="pinned && !groupState('certifications').visible" :aria-hidden="pinned && !groupState('certifications').visible || undefined">
           <header class="records-heading" data-support-reveal><h2 id="commercial-credentials-heading" class="service-section-heading">Registered, graded<br>and audited.</h2></header>
@@ -431,10 +446,18 @@ onBeforeUnmount(() => { alive = false; motion?.revert(); motion = undefined })
 .support--pinned .support-clients { position:absolute; z-index:1; inset:0; }
 .support--pinned .support-clients :deep(.client-scene__heading), .support--pinned .support-clients :deep(.client-scene__marks), .support--pinned .support-clients :deep(.commercial-leaders), .support--pinned .support-clients :deep(.client-scene__pagination), .support--pinned .support-clients :deep(.client-scene__below) { opacity:var(--clients-controls,1); }
 .support--pinned .records-group { position:absolute; z-index:2; inset:0; display:flex; flex-direction:column; padding:80px var(--page-gutter) 140px; opacity:var(--group-opacity,0); }
-.support--pinned .records-credentials { background:#0b3022; transform:translate3d(0,calc((1 - var(--group-cover,0)) * 100%),0); }
+/* The coverage map rises over the skyline; the credentials then cross-fade in over it. */
+.support--pinned .records-coverage { background:#0b3022; transform:translate3d(0,calc((1 - var(--group-cover,0)) * 100%),0); }
+.support--pinned .records-credentials { background:#0b3022; }
 .support--client-cover .support-clients { position:relative; z-index:1; height:125svh; }
 .support--client-cover .support-details { position:relative; z-index:2; transform:translate3d(0,calc((1 - var(--clients-cover,0)) * -25svh),0); }
-.support--client-cover .records-credentials { background:#0b3022; }
+.support--client-cover :is(.records-coverage,.records-credentials) { background:#0b3022; }
+.coverage-stage { margin-top:48px; }
+/* Heading and line each hold one line where there is room; phones wrap them. */
+@media (min-width:761px) { .records-coverage .records-heading p { max-width:none; white-space:nowrap; } }
+/* Pinned, the map takes the height left under the heading and sizes its width from that (panels are 1510 x 670 at one scale). */
+.support--pinned .coverage-stage { flex:1 1 auto; min-height:0; margin-top:32px; container-type:size; display:grid; align-items:center; }
+.support--pinned .coverage-stage :deep(.coverage-map) { width:min(100%,1300px,calc(100cqh * 1510 / 670 + var(--coverage-gap))); }
 .support--pinned .records-heading { flex-shrink:0; transform:translate3d(0,calc((1 - var(--group-reveal,0)) * 40px),0); }
 .support--pinned .credential-grid { width:100%; margin-block:auto; padding-top:24px; gap:28px 48px; }
 .support--pinned .records-certificate { opacity:var(--record-opacity,0); transform:translate3d(0,calc((1 - var(--record-reveal,0)) * 32px),0); }
@@ -479,6 +502,7 @@ onBeforeUnmount(() => { alive = false; motion?.revert(); motion = undefined })
   .support--pinned .records-certificate-detail { margin-top:12px; font-size:13px; }
   .support--pinned .records-issuer { font-size:11px; }
   .support--pinned .capability-boards { margin-top:28px; }
+  .support--pinned .coverage-stage { margin-top:24px; }
   .support--pinned .capability-column h3 { font-size:32px; }
   .support--pinned .records-capability-title { margin-block:12px 20px; font-size:13px; }
   .support--pinned .records-capability-items li { padding-block:10px; font-size:14px; }
@@ -492,6 +516,7 @@ onBeforeUnmount(() => { alive = false; motion?.revert(); motion = undefined })
   .records-certificate-detail { font-size:13px; }
   .records-standard { font-size:22px; }
   .capability-boards { grid-template-columns:1fr; gap:40px; margin-top:48px; }
+  .coverage-stage { margin-top:36px; }
   .capability-illustration img { width:min(100%,340px); }
   .records-capability-items li { font-size:15px; }
 }

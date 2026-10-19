@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "coverage-pin-jiggle",
+        "createdAt": "2026-10-19T08:53:13.969Z",
+        "reason": "user requested: asked in chat (2026-10-19) for a jiggle animation on each coverage map pin logo"
+      }
+    ]
+  }
+}
