@@ -23,8 +23,8 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'en-MY' },
       title: 'SetiaAC',
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: `${siteBaseURL}favicon.ico?v=original` },
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: `${siteBaseURL}favicon.png?v=original` },
+        { rel: 'icon', type: 'image/x-icon', href: `${siteBaseURL}favicon.ico?v=bright` },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: `${siteBaseURL}favicon.png?v=bright` },
         { rel: 'apple-touch-icon', sizes: '180x180', href: `${siteBaseURL}apple-touch-icon.png` },
       ],
     },

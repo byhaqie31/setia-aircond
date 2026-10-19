@@ -451,13 +451,13 @@ export function getCommercialClientPages(categoryId: string, capacity = 10): Com
  * Picks differ between services where the listing allows; the biggest names (Lotus's, Proton and the like) may repeat.
  */
 export const commercialServiceShowcases: Record<string, { heading: string, clients: string[] }> = {
-  'cassette-ceiling-ducted': { heading: 'Ceiling and ducted units we install, service and maintain.', clients: ['maybank', 'sime-darby', 'volvo', 'econsave'] },
+  'cassette-ceiling-ducted': { heading: 'Ceiling and ducted units we install, service and maintain.', clients: ['maybank', 'maxis', 'volvo', 'prudential'] },
   'cooling-tower': { heading: 'Cooling towers we install, service and maintain.', clients: ['cimb', 'lotuss', 'sp-setia', 'mission-foods'] },
   'pump': { heading: 'Pumps we install, service and maintain.', clients: ['malaysia-airlines', 'goodyear', 'proton', 'sony-emcs'] },
   'chilled-water-piping': { heading: 'Chilled water piping we install, service and maintain.', clients: ['sony-emcs', 'lotuss', 'mission-foods', 'cimb'] },
   'chiller': { heading: 'Chillers we install, service and maintain.', clients: ['panasonic', 'carlsberg', 'proton', 'lotuss'] },
   'vrf-vrv': { heading: 'VRF and VRV systems we install, service and maintain.', clients: ['prudential', 'standard-chartered', 'petron', 'maxis'] },
-  'ahu': { heading: 'AHUs we install, service and maintain.', clients: ['nestle', 'celcom-axiata', 'segi-university-colleges', 'garden-international-school'] },
+  'ahu': { heading: 'AHUs we install, service and maintain.', clients: ['nestle', 'proton', 'lotuss', 'garden-international-school'] },
   'duct-services': { heading: 'Ductwork we install, service and maintain.', clients: ['iskl', 'malaysia-airlines', 'carlsberg', 'goodyear'] },
 }
 
