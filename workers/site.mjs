@@ -9,7 +9,7 @@ const legacyRedirects = new Map([
   ['/certifications.html', '/commercial/'],
   ['/clientele.html', '/commercial/'],
   ['/projects.html', '/commercial/projects/'],
-  ['/air-conditioner-services.html', '/residential/'],
+  ['/air-conditioner-services.html', '/air-conditioner-services/'],
   ['/air-conditioners.html', '/residential/'],
   ['/aircon-repairs.html', '/residential/'],
   ['/aircond-services.html', '/residential/'],

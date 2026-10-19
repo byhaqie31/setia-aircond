@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { acServiceGroups, acServicesPath } from '~/data/ac-services'
 import { aboutBrandLogos, featuredDaikinProducts } from '~/data/air-conditioning'
 import corporate from '~/data/corporate.json'
 import { commercialCredentialLogos } from '~/data/commercial-logos'
@@ -132,6 +133,15 @@ onMounted(async () => {
         }, .3)
         credentials.to({}, { duration: .45 })
 
+        const services = chapter('.about-services-band', 1.6)
+        services.fromTo(root.querySelectorAll('[data-about-services-intro]'), { opacity: .2, y: 32 }, {
+          opacity: 1, y: 0, duration: .5, stagger: .15,
+        }, 0)
+        services.fromTo(root.querySelectorAll('[data-about-service-card]'), { opacity: .15, y: 36 }, {
+          opacity: 1, y: 0, duration: .5, stagger: .15,
+        }, .3)
+        services.to({}, { duration: .45 })
+
         const brands = chapter('.about-brands-band', 2.1)
         brands.fromTo(root.querySelector('#about-brands-title'), { opacity: .2, y: 32 }, { opacity: 1, y: 0, duration: .5 }, 0)
         brands.fromTo(root.querySelectorAll('[data-about-brand]'), { opacity: 0, y: 70, rotationX: 65 }, {
@@ -181,8 +191,8 @@ onMounted(async () => {
     rebuild()
     // Pin spacing changes document positions; restore explicit direct contact entry.
     if (window.location.hash === '#company-contact') followContact(pendingOfficeClick, pendingOfficeClick)
-    // Returning from a Daikin article: pin spacing has moved the section since the router's hash scroll.
-    else if (window.location.hash === '#featured-daikin') $scrollTo(root.querySelector<HTMLElement>('#featured-daikin')!, { immediate: true })
+    // Returning from a Daikin article or the services page: pin spacing has moved the section since the router's hash scroll.
+    else if (['#featured-daikin', '#services'].includes(window.location.hash)) $scrollTo(root.querySelector<HTMLElement>(window.location.hash)!, { immediate: true })
     pendingOfficeClick = false
     window.addEventListener('resize', onResize)
     window.addEventListener('hashchange', onHashChange)
@@ -290,6 +300,28 @@ onBeforeUnmount(() => {
     </div>
     </section>
 
+    <section id="services" class="about-services-band" aria-labelledby="about-services-title">
+    <div class="about-services company-width">
+      <div class="about-services__intro about-columns">
+        <h2 id="about-services-title" data-about-services-intro>Air-conditioning services.</h2>
+        <div class="about-services__summary" data-about-services-intro>
+          <p>Setia is a trusted provider of air-conditioning services in Malaysia for homes, commercial buildings and industrial properties. Our certified technicians handle everything from system design and new installations to troubleshooting, repairs, replacements and preventive maintenance.</p>
+          <NuxtLink class="company-link" :to="acServicesPath">Read more about our air conditioning services<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
+        </div>
+      </div>
+      <ul class="about-services__cards" aria-label="Residential and commercial air-conditioning services">
+        <li v-for="group in acServiceGroups" :key="group.id" class="about-service-card" :class="`about-service-card--${group.id}`" data-about-service-card>
+          <span class="about-service-card__icon" aria-hidden="true"><span class="icon" :class="`icon--${group.icon}`" /></span>
+          <h3>{{ group.title }}</h3>
+          <ul>
+            <li v-for="item in group.items" :key="item"><span class="about-service-card__tick" aria-hidden="true"><span class="icon" /></span>{{ item }}</li>
+          </ul>
+          <p v-if="group.note" class="about-service-card__note">{{ group.note }}</p>
+        </li>
+      </ul>
+    </div>
+    </section>
+
     <section class="about-brands-band" aria-labelledby="about-brands-title">
     <div class="about-brands service-brands company-width">
       <h2 id="about-brands-title">Supplying and supporting.</h2>
@@ -379,6 +411,29 @@ onBeforeUnmount(() => {
 .about-credential__issuer { margin: 6px 0 0; color: var(--company-muted); font-size: 13px; line-height: 1.4; }
 .about-credential__detail { max-width: 38ch; margin: 14px auto 0; color: var(--company-muted); font-size: 15px; line-height: 1.55; text-wrap: pretty; white-space: pre-line; }
 .about-credential__highlight { padding: 0 2px; color: #0b3022; font-weight: 700; background: linear-gradient(transparent 58%, color-mix(in srgb, var(--green-bright) 38%, transparent) 58%); }
+/* Services: a summary on the dark stage between the registrations and brands bands; the full copy has its own page. */
+.about-services { padding-block: clamp(56px, 7vw, 100px); }
+.about-services h2 { margin: 0; }
+.about-services__summary p { margin: 0; max-width: 60ch; color: var(--company-muted); }
+.about-services__summary .company-link { margin-top: 20px; }
+.about-services__cards { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.75fr); gap: clamp(16px, 2vw, 28px); margin: clamp(40px, 5vw, 64px) 0 0; padding: 0; list-style: none; }
+.about-service-card { padding: clamp(24px, 2.4vw, 36px); background: var(--mist); color: var(--ink); }
+.about-service-card ::selection { background: #16513a; color: #fff; }
+.about-service-card__icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--pine-700); color: var(--paper); }
+.about-service-card__icon .icon { width: 24px; height: 24px; }
+.about-service-card h3 { margin: 20px 0 12px; font-size: 20px; font-weight: 600; }
+.about-service-card ul { display: grid; gap: 0 28px; margin: 0; padding: 0; list-style: none; }
+.about-service-card--commercial ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.about-service-card li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid #365b4626; font-size: 16px; line-height: 1.45; }
+.about-service-card__tick { display: grid; flex: 0 0 auto; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #d1e4d7; color: var(--pine-700); }
+.about-service-card__tick .icon { --icon: url('/icons/check.svg'); width: 12px; height: 12px; }
+.about-service-card__note { margin: 16px 0 0; color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
+@media (max-width: 850px) {
+  .about-services__cards { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .about-service-card--commercial ul { grid-template-columns: minmax(0, 1fr); }
+}
 /* One line on desktop; where they wrap on narrow screens, the extra leading keeps descenders off the next line. */
 @media (min-width: 851px) { .about-motto, .about-credentials h2, .about-brands h2 { white-space: nowrap; } }
 .about-brands h2 { line-height: 1.15; }

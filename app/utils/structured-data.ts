@@ -45,6 +45,37 @@ function plainAnswer(blocks: DaikinBlock[]): string {
   }).filter(Boolean).join(' ')
 }
 
+/** Home › About us › page: the Daikin articles and the services page both sit under About us. */
+function aboutBreadcrumb(siteUrl: string, name: string, url: string) {
+  return {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: absoluteSiteUrl(siteUrl, '/') },
+      { '@type': 'ListItem', position: 2, name: 'About us', item: absoluteSiteUrl(siteUrl, '/about-us') },
+      { '@type': 'ListItem', position: 3, name, item: url },
+    ],
+  }
+}
+
+/** Service and breadcrumb markup for the air-conditioning services page. */
+export function servicesPageSchema(siteUrl: string, page: Pick<DaikinArticle, 'title' | 'description'>, path: string) {
+  const url = absoluteSiteUrl(siteUrl, path)
+  const root = absoluteSiteUrl(siteUrl, '/')
+  return [
+    {
+      '@type': 'Service',
+      '@id': `${url}#service`,
+      name: page.title,
+      serviceType: 'Air conditioning design, installation, repair and maintenance',
+      description: page.description,
+      url,
+      provider: { '@id': `${root}#business` },
+      areaServed: { '@type': 'Country', name: 'Malaysia' },
+    },
+    aboutBreadcrumb(siteUrl, page.title, url),
+  ]
+}
+
 /** Article, breadcrumb and (where the article has one) FAQ markup, as the original blog pages carried. */
 export function articleSchema(siteUrl: string, article: DaikinArticle, path: string) {
   const url = absoluteSiteUrl(siteUrl, path)
@@ -63,14 +94,7 @@ export function articleSchema(siteUrl: string, article: DaikinArticle, path: str
       author: { '@id': `${root}#business` },
       publisher: { '@id': `${root}#business` },
     },
-    {
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: root },
-        { '@type': 'ListItem', position: 2, name: 'About us', item: absoluteSiteUrl(siteUrl, '/about-us') },
-        { '@type': 'ListItem', position: 3, name: article.title, item: url },
-      ],
-    },
+    aboutBreadcrumb(siteUrl, article.title, url),
     ...(faqs.length ? [{
       '@type': 'FAQPage',
       mainEntity: faqs.map(item => ({

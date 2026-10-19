@@ -35,6 +35,7 @@ export default defineNuxtConfig({
     '/commercial': { prerender: true },
     '/residential-prototype': { prerender: true },
     '/about-us': { prerender: true },
+    '/air-conditioner-services': { prerender: true },
     '/get-a-quote': { prerender: true },
   },
 })

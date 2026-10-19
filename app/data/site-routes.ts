@@ -10,7 +10,7 @@ export const detailRoutes = [
 ]
 
 // Every page meant for search results, as listed in /sitemap.xml. The motion prototype stays out (noindex).
-export const indexableRoutes = ['/', '/residential', '/commercial', '/about-us', '/get-a-quote', ...detailRoutes]
+export const indexableRoutes = ['/', '/residential', '/commercial', '/about-us', '/air-conditioner-services', '/get-a-quote', ...detailRoutes]
 
 /** Absolute URL in the form the site is served at: Cloudflare serves /path/index.html at /path/. */
 export function absoluteSiteUrl(siteUrl: string, path: string) {
