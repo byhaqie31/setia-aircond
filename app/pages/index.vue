@@ -3,8 +3,12 @@ import { isPlainNavigation, type BuildingFloor, type ServiceArrival } from '~/ut
 import type { BuildingZoomPlan } from '~/utils/building-zoom'
 import { planCommercialZoom } from '~/utils/commercial-zoom'
 import { planResidentialZoom } from '~/utils/residential-zoom'
+import corporate from '~/data/corporate.json'
+import { commercialCredentialLogos } from '~/data/commercial-logos'
+import { certificateDetailParts } from '~/utils/certificate-detail'
 
 const building = useTemplateRef('building')
+const hero = useTemplateRef<HTMLElement>('hero')
 const exploreTrigger = useTemplateRef<HTMLButtonElement>('exploreTrigger')
 const residentialChoice = useTemplateRef<HTMLAnchorElement>('residentialChoice')
 const commercialChoice = useTemplateRef<HTMLAnchorElement>('commercialChoice')
@@ -24,6 +28,11 @@ const serviceArrival = useState<ServiceArrival | null>('service-arrival', () => 
 const navigationError = ref('')
 const destinationName = computed(() => cameraFloor.value === 'commercial' ? 'Commercial' : 'Residential')
 const router = useRouter()
+const { $scrollTo } = useNuxtApp()
+// The four registrations that persuade on the home page; About us lists them all.
+const homeCredentials = ['G7', 'ST', 'ISO', 'DAIKIN'].flatMap(code => corporate.certifications.filter(certificate => certificate.code === code))
+let heroSize: ResizeObserver | undefined
+let settling = false
 let lightingTimer: ReturnType<typeof setTimeout> | undefined
 let assetTimer: ReturnType<typeof setTimeout> | undefined
 let finishAssetWait: (() => void) | undefined
@@ -52,6 +61,14 @@ onMounted(() => {
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
   reducedMotion.addEventListener('change', onMotionChange)
   window.addEventListener('keydown', onKeydown, true)
+  // The pinned hero may outgrow short screens: let it scroll until its bottom lands before it holds.
+  if (hero.value && 'ResizeObserver' in window) {
+    heroSize = new ResizeObserver(entries => {
+      const height = entries[0]?.borderBoxSize?.[0]?.blockSize ?? hero.value?.offsetHeight
+      if (height) hero.value?.style.setProperty('--hero-height', `${Math.round(height)}px`)
+    })
+    heroSize.observe(hero.value)
+  }
   if (returningFrom.value) void playReturn()
 })
 
@@ -61,6 +78,7 @@ onBeforeUnmount(() => {
   clearEntryTimers()
   reducedMotion?.removeEventListener('change', onMotionChange)
   window.removeEventListener('keydown', onKeydown, true)
+  heroSize?.disconnect()
 })
 
 function clearEntryTimers() {
@@ -176,14 +194,15 @@ async function enterFloor(floor: BuildingFloor) {
   }
 
   // Give the selected plate time to decode, with a bounded fallback on slow networks.
+  // Meanwhile the page settles back to the top so the story chapter is clear of the camera.
   const preparation = building.value?.prepareFloor(floor).catch(() => {})
-  await Promise.race([
+  await Promise.all([settleScroll(), Promise.race([
     Promise.all([preparation, floor === 'commercial' ? prepareCommercialImages() : prepareResidentialImages()]),
     new Promise<void>(resolve => {
       finishAssetWait = resolve
       assetTimer = setTimeout(resolve, 1200)
     }),
-  ])
+  ])])
   if (disposed || attempt !== entryAttempt) return
   clearTimeout(assetTimer)
   finishAssetWait = undefined
@@ -196,6 +215,20 @@ async function enterFloor(floor: BuildingFloor) {
     zoomPlan.value = planZoom(floor)
     showTransition.value = true
   }, 60)
+}
+
+/** Scrolled into the story chapter, a floor opens with the hero at rest so the camera moves over the whole scene. */
+function settleScroll() {
+  // A hero taller than the viewport rests with its bottom landed, not at the page top.
+  const landed = Math.max(0, (hero.value?.offsetHeight ?? 0) - window.innerHeight)
+  if (window.scrollY <= landed + 1 || !$scrollTo) return Promise.resolve()
+  settling = true
+  return new Promise<void>(resolve => {
+    let deadline: ReturnType<typeof setTimeout> | undefined
+    const done = () => { clearTimeout(deadline); settling = false; resolve() }
+    deadline = setTimeout(done, 700)
+    $scrollTo(landed, { duration: .5, onComplete: done })
+  })
 }
 
 async function openFloor(animateArrival = true) {
@@ -227,6 +260,11 @@ async function cancelEntry() {
   const floor = openingFloor.value
   entryAttempt++
   clearEntryTimers()
+  // Escape mid-settle leaves the page where it is instead of carrying it to the top.
+  if (settling && $scrollTo) {
+    settling = false
+    $scrollTo(window.scrollY, { immediate: true })
+  }
   showTransition.value = false
   zoomPlan.value = null
   serviceArrival.value = null
@@ -259,46 +297,164 @@ function onMotionChange(event: MediaQueryListEvent) {
 </script>
 
 <template>
-  <main class="hero" :class="{ 'hero--opening': Boolean(openingFloor), 'hero--entering': showTransition, 'hero--entering-commercial': showTransition && cameraFloor === 'commercial', 'hero--entering-residential': showTransition && cameraFloor === 'residential' }" :inert="showTransition" :aria-busy="Boolean(openingFloor)" aria-labelledby="hero-title">
-    <HeroAtmosphere />
+  <main class="home" :inert="showTransition" :aria-busy="Boolean(openingFloor)">
     <a class="skip-link" href="#hero-title">Skip to content</a>
-    <header class="site-header">
-      <a class="brand" :href="$sitePath('/')" aria-label="Setia Air-Cond and Electrical home">
-        <SetiaWordmark class="brand__name" />
-      </a>
-      <nav class="site-nav" aria-label="Main navigation">
-        <NuxtLink class="site-nav__quote" to="/get-a-quote">Get a quote<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
-      </nav>
-    </header>
+    <section ref="hero" class="hero" :class="{ 'hero--opening': Boolean(openingFloor), 'hero--entering': showTransition, 'hero--entering-commercial': showTransition && cameraFloor === 'commercial', 'hero--entering-residential': showTransition && cameraFloor === 'residential' }" aria-labelledby="hero-title">
+      <HeroAtmosphere />
+      <header class="site-header">
+        <a class="brand" :href="$sitePath('/')" aria-label="Setia Air-Cond and Electrical home">
+          <SetiaWordmark class="brand__name" />
+        </a>
+        <nav class="site-nav" aria-label="Main navigation">
+          <NuxtLink class="site-nav__quote" to="/get-a-quote">Get a quote<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
+        </nav>
+      </header>
 
-    <div class="hero__copy">
-      <p class="eyebrow">SINCE 1990</p>
-      <h1 id="hero-title" tabindex="-1"><span>Every building has a pulse.</span> <span>We keep it cool.</span></h1>
-      <p class="hero__description">Air-conditioning and electrical systems for commercial and residential spaces across Kuala Lumpur and Selangor supplied, installed and maintained since 1990.</p>
-      <div class="hero__actions">
-        <div class="hero-explore" :class="{ 'is-choosing': choosingFloor }" @keydown.esc.stop.prevent="closeChoices">
-          <button ref="exploreTrigger" class="button hero-explore__trigger" type="button" :inert="choosingFloor" :aria-hidden="choosingFloor || undefined" aria-controls="hero-service-choices" :aria-expanded="choosingFloor" @click="showChoices">
-            Explore<span class="icon icon--arrow" aria-hidden="true" />
-          </button>
-          <NuxtLink class="hero-explore__about" to="/about-us" :inert="choosingFloor" :aria-hidden="choosingFloor || undefined">About us</NuxtLink>
-          <button class="hero-explore__back" type="button" aria-label="Back to Explore" :inert="!choosingFloor" :aria-hidden="!choosingFloor || undefined" :disabled="Boolean(openingFloor)" @click="closeChoices">
-            <span class="icon icon--arrow icon--back" aria-hidden="true" />
-          </button>
-          <div id="hero-service-choices" class="hero-explore__choices" role="group" aria-label="Choose residential or commercial services" :inert="!choosingFloor" :aria-hidden="!choosingFloor || undefined">
-            <a ref="residentialChoice" :href="$sitePath('/residential')" class="hero-explore__choice hero-explore__choice--residential" :class="{ 'is-selected': openingFloor === 'residential' }" :aria-disabled="Boolean(openingFloor) || undefined" @click="chooseFloor('residential', $event)">Residential</a>
-            <a ref="commercialChoice" :href="$sitePath('/commercial')" class="hero-explore__choice hero-explore__choice--commercial" :class="{ 'is-selected': openingFloor === 'commercial' }" :aria-disabled="Boolean(openingFloor) || undefined" @click="chooseFloor('commercial', $event)">Commercial</a>
+      <div class="hero__copy">
+        <p class="eyebrow">SINCE 1990</p>
+        <h1 id="hero-title" tabindex="-1"><span>Every building has a pulse.</span> <span>We keep it cool.</span></h1>
+        <p class="hero__description">Air-conditioning and electrical systems for commercial and residential spaces across Kuala Lumpur and Selangor supplied, installed and maintained since 1990.</p>
+        <div class="hero__actions">
+          <div class="hero-explore" :class="{ 'is-choosing': choosingFloor }" @keydown.esc.stop.prevent="closeChoices">
+            <button ref="exploreTrigger" class="button hero-explore__trigger" type="button" :inert="choosingFloor" :aria-hidden="choosingFloor || undefined" aria-controls="hero-service-choices" :aria-expanded="choosingFloor" @click="showChoices">
+              Explore<span class="icon icon--arrow" aria-hidden="true" />
+            </button>
+            <NuxtLink class="hero-explore__about" to="/about-us" :inert="choosingFloor" :aria-hidden="choosingFloor || undefined">About us</NuxtLink>
+            <button class="hero-explore__back" type="button" aria-label="Back to Explore" :inert="!choosingFloor" :aria-hidden="!choosingFloor || undefined" :disabled="Boolean(openingFloor)" @click="closeChoices">
+              <span class="icon icon--arrow icon--back" aria-hidden="true" />
+            </button>
+            <div id="hero-service-choices" class="hero-explore__choices" role="group" aria-label="Choose residential or commercial services" :inert="!choosingFloor" :aria-hidden="!choosingFloor || undefined">
+              <a ref="residentialChoice" :href="$sitePath('/residential')" class="hero-explore__choice hero-explore__choice--residential" :class="{ 'is-selected': openingFloor === 'residential' }" :aria-disabled="Boolean(openingFloor) || undefined" @click="chooseFloor('residential', $event)">Residential</a>
+              <a ref="commercialChoice" :href="$sitePath('/commercial')" class="hero-explore__choice hero-explore__choice--commercial" :class="{ 'is-selected': openingFloor === 'commercial' }" :aria-disabled="Boolean(openingFloor) || undefined" @click="chooseFloor('commercial', $event)">Commercial</a>
+            </div>
           </div>
         </div>
+        <p class="sr-only" role="status">{{ openingFloor ? `Opening ${destinationName}.` : '' }}</p>
+        <p v-if="navigationError" class="navigation-error" role="alert">{{ navigationError }}</p>
       </div>
-      <p class="sr-only" role="status">{{ openingFloor ? `Opening ${destinationName}.` : '' }}</p>
-      <p v-if="navigationError" class="navigation-error" role="alert">{{ navigationError }}</p>
-    </div>
 
-    <InteractiveBuilding ref="building" :entering-floor="cameraFloor" @enter="enterFloor" />
-    <ResidentialTransition v-if="showTransition" ref="transition" :returning="Boolean(returningFrom)" :destination="destinationName" :duration="cameraFloor === 'commercial' ? 600 : 1050" :zoom="zoomPlan" @complete="onTransitionComplete" @cancel="cancelEntry">
-      <template v-if="cameraFloor === 'commercial'" #default>
-        <CommercialBuildingScene phase="intro" :preview="returningFrom ? 'return' : 'entry'" inert />
-      </template>
-    </ResidentialTransition>
+      <InteractiveBuilding ref="building" :entering-floor="cameraFloor" @enter="enterFloor" />
+      <div class="hero-cue" aria-hidden="true">
+        <span class="hero-cue__label">Scroll</span>
+        <span class="hero-cue__track" />
+      </div>
+      <ResidentialTransition v-if="showTransition" ref="transition" :returning="Boolean(returningFrom)" :destination="destinationName" :duration="cameraFloor === 'commercial' ? 600 : 1050" :zoom="zoomPlan" @complete="onTransitionComplete" @cancel="cancelEntry">
+        <template v-if="cameraFloor === 'commercial'" #default>
+          <CommercialBuildingScene phase="intro" :preview="returningFrom ? 'return' : 'entry'" inert />
+        </template>
+      </ResidentialTransition>
+    </section>
+
+    <section class="home-story" aria-labelledby="home-story-title">
+      <div class="home-story__inner">
+        <div class="home-story__copy">
+          <h2 id="home-story-title">Committed <span class="home-story__year">since 1990.</span></h2>
+          <p>Wholly Malaysian-owned, Setia designs, installs and maintains air-conditioning and electrical systems for public and private clients across Malaysia.</p>
+          <p>From homes to factories, production plants and high-rise buildings, each system is matched to the space, budget and programme by a team with over 100 man-years of combined technical experience.</p>
+          <NuxtLink class="home-story__link" to="/about-us">Read our story<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
+        </div>
+        <div class="home-story__proof">
+          <h3 id="home-credentials-title">What backs the work.</h3>
+          <ul class="home-credentials" aria-labelledby="home-credentials-title">
+            <li v-for="certificate in homeCredentials" :key="certificate.code" class="home-credential">
+              <div class="home-credential__mark" :aria-hidden="commercialCredentialLogos[certificate.code] ? 'true' : undefined">
+                <CommercialLogo v-if="commercialCredentialLogos[certificate.code]" :logo="commercialCredentialLogos[certificate.code]!" :name="certificate.title" :lazy="true" />
+                <span v-else class="home-credential__standard">{{ certificate.title }}</span>
+              </div>
+              <div class="home-credential__text">
+                <!-- A standard with no logo already names itself in the mark, so its line carries the issuer instead. -->
+                <p class="home-credential__title">{{ commercialCredentialLogos[certificate.code] ? certificate.title : certificate.issuer }}</p>
+                <p class="home-credential__detail"><template v-for="(part, partIndex) in certificateDetailParts(certificate.detail, certificate.highlight)" :key="partIndex"><mark v-if="part.highlight" class="home-credential__highlight">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="home-close">
+      <CompanyEnquirySection heading-id="home-enquiry-title" />
+      <CompanyFooter />
+    </div>
   </main>
 </template>
+
+<style scoped>
+/* The hero holds at the top while the story chapter slides up over it. A hero taller than the
+   viewport (short or zoomed phones) scrolls until its bottom lands, then holds; the page measures --hero-height,
+   and until it has, the 200svh fallback keeps the hero in normal flow. */
+.hero { position: sticky; top: min(0px, calc(100svh - var(--hero-height, 200svh))); }
+/* Night falls over the scene as the chapter covers it. */
+.hero::after { content: ''; position: absolute; inset: 0; z-index: 5; background: var(--stage); opacity: 0; pointer-events: none; }
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero::after { animation: hero-dusk linear both; animation-timeline: scroll(root); animation-range: calc(var(--hero-height, 200svh) - 100svh) calc(var(--hero-height, 200svh) - 10svh); }
+  }
+}
+@keyframes hero-dusk { from { opacity: 0; } to { opacity: .62; } }
+
+/* The same travelling-dot cue as the service stories, sitting at the bottom of the first viewport even when the
+   hero is taller than it, so the rising chapter covers it first. Phones scroll on their own and lose it. */
+.hero-cue { position: absolute; z-index: 2; left: 50%; top: calc(100svh - 48px - max(20px, env(safe-area-inset-bottom))); display: flex; flex-direction: column; align-items: center; gap: 6px; color: #bed0c3; text-shadow: 0 1px 8px #061710; pointer-events: none; transform: translateX(-50%); transition: opacity .25s ease; }
+.hero--opening .hero-cue, .hero--entering .hero-cue { opacity: 0; }
+.hero-cue__label { font-size: 11px; line-height: 1.4; white-space: nowrap; }
+.hero-cue__track { position: relative; width: 1px; height: 26px; }
+.hero-cue__track::before { content: ''; position: absolute; inset: 0; background: currentColor; opacity: .3; }
+.hero-cue__track::after { content: ''; position: absolute; top: 0; left: -1px; width: 3px; height: 3px; border-radius: 50%; background: currentColor; box-shadow: 0 0 4px currentColor; animation: hero-cue-travel 2.6s linear infinite; }
+@keyframes hero-cue-travel {
+  0% { opacity: 0; transform: translateY(0); }
+  12% { opacity: .9; }
+  32% { opacity: .45; }
+  52% { opacity: 1; }
+  72% { opacity: .55; }
+  88% { opacity: .85; }
+  96%, 100% { opacity: 0; transform: translateY(23px); }
+}
+
+/* Story chapter: the About page's mint band, rising over the night scene. */
+.home-story { --story-muted: #365b46; --story-line: #365b4640; position: relative; z-index: 2; color: #0b3022; background: #d1e4d7; box-shadow: 0 -18px 48px -16px #061710a6; }
+.home-story ::selection { background: #16513a; color: #fff; }
+.home-story :focus-visible { outline-color: #0b3022; }
+.home-story__inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(40px, 7vw, 112px); align-items: start; width: min(100% - var(--page-gutter) * 2, 1240px); margin-inline: auto; padding-block: clamp(72px, 9vw, 136px); }
+.home-story__inner > * { min-width: 0; }
+.home-story h2 { margin: 0 0 28px; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(40px, 4.6vw, 68px); font-weight: 400; line-height: 1.04; letter-spacing: -.035em; text-wrap: balance; }
+.home-story__year { color: #16513a; }
+.home-story__copy p { max-width: 54ch; margin: 0; color: var(--story-muted); font-size: clamp(17px, 1.3vw, 19px); line-height: 1.7; }
+.home-story__copy p + p { margin-top: 20px; }
+.home-story__link { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; margin-top: 28px; font-weight: 600; text-decoration: underline; text-decoration-color: #0b302266; text-underline-offset: 5px; }
+.home-story__link .icon { width: 18px; height: 18px; transition: transform .2s ease; }
+.home-story__link:hover { text-decoration-color: currentColor; }
+.home-story__link:hover .icon { transform: translateX(4px); }
+/* The proof column starts a touch below the heading's cap line so the two columns read as one line of thought. */
+.home-story__proof { padding-top: clamp(12px, 1.6vw, 24px); }
+.home-story h3 { margin: 0 0 14px; font-size: 22px; font-weight: 600; line-height: 1.3; letter-spacing: -.01em; }
+.home-credentials { margin: 0; padding: 0; list-style: none; }
+.home-credential { display: grid; grid-template-columns: 148px minmax(0, 1fr); gap: 24px; align-items: center; padding-block: 20px; border-top: 1px solid var(--story-line); }
+.home-credential:last-child { border-bottom: 1px solid var(--story-line); }
+.home-credential__mark { --logo-height: 40px; --logo-width: 140px; display: flex; align-items: center; min-height: 40px; }
+.home-credential__mark :deep(.commercial-logo__image) { justify-content: flex-start; }
+.home-credential__standard { font-size: 20px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+.home-credential__title { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.3; }
+.home-credential__detail { margin: 4px 0 0; color: var(--story-muted); font-size: 15px; line-height: 1.55; white-space: pre-line; text-wrap: pretty; }
+.home-credential__highlight { padding: 0 2px; color: #0b3022; font-weight: 700; background: linear-gradient(transparent 58%, color-mix(in srgb, var(--green-bright) 38%, transparent) 58%); }
+
+/* Enquiry and footer close the page on the service stage, as About does. */
+.home-close { position: relative; z-index: 2; padding-top: clamp(48px, 7vw, 96px); background: var(--service-stage); }
+
+@media (max-width: 850px) {
+  .home-story__inner { grid-template-columns: minmax(0, 1fr); gap: 48px; width: min(100% - var(--page-gutter) * 2, 680px); padding-block: clamp(64px, 12vw, 96px); }
+  .home-story__proof { padding-top: 0; }
+  .home-credential { grid-template-columns: 112px minmax(0, 1fr); gap: 16px; }
+  .home-credential__mark { --logo-width: 104px; }
+}
+@media (max-width: 680px) {
+  .hero-cue { display: none; }
+}
+@media (max-width: 380px) {
+  .home-credential { grid-template-columns: minmax(0, 1fr); gap: 10px; padding-block: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-cue { transition: none; }
+  .hero-cue__track::after { animation: none; opacity: .65; transform: translateY(11px); }
+}
+</style>

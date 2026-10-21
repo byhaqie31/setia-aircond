@@ -58,7 +58,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     lenis.off('scroll', update)
     lenis.destroy()
   }
-  const scrollTo = (target: number | HTMLElement, options: { immediate?: boolean; onComplete?: () => void } = {}) => {
+  const scrollTo = (target: number | HTMLElement, options: { immediate?: boolean; duration?: number; onComplete?: () => void } = {}) => {
     if (disposed) return
     // A programmatic journey owns its destination; discard the native-link resync.
     if (navigationFrame !== undefined) {
@@ -67,7 +67,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     }
     resize()
     lenis.scrollTo(target, {
-      duration: 1.8,
+      duration: options.duration ?? 1.8,
       lerp: 0,
       easing: t => t < .5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2,
       immediate: options.immediate ?? false,
