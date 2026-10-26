@@ -25,15 +25,15 @@
     "vue-router": "^5.3.1"
   },
   "devDependencies": {
-    "@types/node": "22.20.2",
+    "@types/node": "24.19.2",
     "@types/three": "0.185.0",
-    "node": "22.23.2",
+    "node": "24.22.1",
     "typescript": "~5.9.3",
     "vue-tsc": "^3.3.11",
     "wrangler": "4.130.0"
   },
   "allowScripts": {
-    "node@22.23.2": true,
+    "node@24.22.1": true,
     "esbuild@0.28.2": true
   }
 }
