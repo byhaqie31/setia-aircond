@@ -330,7 +330,12 @@ function transitionTo(category: number, page: number) {
         later(() => { if (current === sequence) visibleLeaders.value = index + 1 }, index * 70)
         later(() => { if (current === sequence) displayedLogos.value = index + 1 }, index * 70 + logoLag.value)
       })
-      later(() => { if (current === sequence) busy.value = false }, Math.max(0, visibleClients.value.length - 1) * 70 + 100 + logoLag.value)
+      // A tab or page chosen while the scene is still arriving cancelled the intro's own ending, so this one reports the scene ready instead.
+      later(() => {
+        if (current !== sequence) return
+        if (props.phase === 'intro') setReady()
+        else busy.value = false
+      }, Math.max(0, visibleClients.value.length - 1) * 70 + 100 + logoLag.value)
     }, 80)
   }, 460)
 }
