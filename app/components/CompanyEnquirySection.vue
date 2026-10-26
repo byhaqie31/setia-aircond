@@ -28,7 +28,7 @@ withDefaults(defineProps<{
         <NuxtLink v-if="showQuote" class="service-enquiry" :to="quoteTo" :inert="detailsHidden" :aria-hidden="detailsHidden || undefined">Get a quote<span class="service-enquiry__arrow"><span class="icon icon--arrow" aria-hidden="true" /></span></NuxtLink>
       </div>
       <div class="company-enquiry__team" aria-hidden="true">
-        <img :src="$sitePath('/images/residential/technician-team-v1.webp')" width="1200" height="800" alt="" loading="lazy" decoding="async">
+        <img :src="$sitePath('/images/residential/technician-team-v5.webp')" width="1200" height="800" alt="" loading="lazy" decoding="async">
       </div>
     </div>
     <CompanyContactDetails compact :inert="detailsHidden" :aria-hidden="detailsHidden || undefined" />
@@ -43,8 +43,10 @@ withDefaults(defineProps<{
 .company-enquiry h2 { margin: 0 0 24px; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(36px, 4vw, 60px); font-weight: 400; line-height: 1.04; letter-spacing: -.035em; text-wrap: balance; }
 .company-enquiry .service-enquiry { color: var(--paper); }
 .company-enquiry__description { max-width: 40ch; margin: 0 0 24px; color: var(--company-muted); font-size: 15px; line-height: 1.6; }
-.company-enquiry__team { width: 100%; max-width: 460px; justify-self: center; margin: 0; mask-image: linear-gradient(#000 75%, transparent 100%); transform-origin: center bottom; }
-.company-enquiry__team img { width: 100%; height: auto; }
+/* The team fills its column at half length: the crop keeps three quarters of the height, trimming the
+   headroom above the team, and the fade softens the cut at the thigh. */
+.company-enquiry__team { width: 100%; justify-self: center; margin: 0; mask-image: linear-gradient(#000 75%, transparent 100%); transform-origin: center bottom; }
+.company-enquiry__team img { width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: cover; object-position: center 15%; }
 .company-enquiry :deep(.company-link) { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; text-decoration: underline; text-decoration-color: #bed0c380; text-underline-offset: 5px; }
 .company-enquiry :deep(.company-link .icon) { width: 18px; height: 18px; }
 .company-enquiry :deep(.company-link:hover) { text-decoration-color: currentColor; }
@@ -58,6 +60,6 @@ withDefaults(defineProps<{
 @media (max-width: 850px) {
   .company-enquiry { --company-columns: minmax(0, 1fr); --company-content-width: 680px; }
   .company-enquiry__hero { gap: 20px; }
-  .company-enquiry__team { max-width: 380px; }
+  .company-enquiry__team { max-width: 560px; }
 }
 </style>

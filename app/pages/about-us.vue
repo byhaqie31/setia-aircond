@@ -7,7 +7,7 @@ import { certificateDetailParts } from '~/utils/certificate-detail'
 import { isPlainNavigation, type BuildingFloor } from '~/utils/navigation'
 
 const story = useTemplateRef<HTMLElement>('story')
-const { $scrollTo } = useNuxtApp()
+const { $scrollTo, $setGlide } = useNuxtApp()
 let alive = true
 let motion: { revert: () => void } | undefined
 let rebuild: (() => void) | undefined
@@ -78,6 +78,8 @@ useHead({
 })
 
 onMounted(async () => {
+  // A longer wheel glide suits this reading page; the site default returns on the way out.
+  $setGlide(.07)
   try {
     const [{ gsap }, { ScrollTrigger }] = await Promise.all([import('gsap'), import('gsap/ScrollTrigger')])
     if (!alive || !story.value) return
@@ -91,10 +93,13 @@ onMounted(async () => {
       motion = media
       media.add('(prefers-reduced-motion: no-preference)', () => {
         const canPin = viewportWidth >= 1000 && viewportHeight >= 760
+        // The sticky header keeps the top of the viewport, so chapters pin just below it.
+        const headerHeight = root.closest('.company-page')?.querySelector<HTMLElement>('.company-header')?.offsetHeight ?? 0
+        // Holds are kept short (in screens of scroll) so a chapter settles, reveals and moves on without feeling stuck.
         const chapter = (selector: string, screens: number, compactEnd = 'bottom 82%') => {
           const section = root.querySelector<HTMLElement>(selector)!
           // Measure the reading layout first: long/zoomed content must never be trapped.
-          const pin = canPin && section.scrollHeight <= viewportHeight
+          const pin = canPin && section.scrollHeight <= viewportHeight - headerHeight
           if (pin) {
             section.setAttribute('data-about-pinned', '')
             pinnedChapters.add(section)
@@ -102,9 +107,10 @@ onMounted(async () => {
           return gsap.timeline({
             defaults: { ease: 'power2.out' },
             scrollTrigger: {
-              trigger: section, start: pin ? 'top top' : 'top 88%',
+              trigger: section, start: pin ? `top ${headerHeight}px` : 'top 88%',
               end: pin ? () => `+=${window.innerHeight * screens}` : compactEnd,
-              pin, pinSpacing: true, scrub: .7, anticipatePin: pin ? 1 : 0,
+              // No anticipatePin: Lenis already eases the scroll, and pinning early shows as a hitch on arrival.
+              pin, pinSpacing: true, scrub: .7,
               invalidateOnRefresh: true,
             },
           })
@@ -114,7 +120,7 @@ onMounted(async () => {
           opacity: 1, y: 0, duration: .7, stagger: .1, ease: 'power3.out',
         })
 
-        const purpose = chapter('.about-purpose-band', 1.5)
+        const purpose = chapter('.about-purpose-band', 1)
         purpose.fromTo(root.querySelectorAll('[data-about-motto]'), { clipPath: 'inset(0 100% 0 0)' }, {
           clipPath: 'inset(0 0% 0 0)', duration: .5, stagger: .5, ease: 'none',
         }, 0)
@@ -126,7 +132,7 @@ onMounted(async () => {
         }, .6)
         purpose.to({}, { duration: .45 })
 
-        const standards = chapter('.about-standards', 2)
+        const standards = chapter('.about-standards', 1.3)
         standards.fromTo(root.querySelector('#standards-title'), { opacity: .2, y: 36 }, { opacity: 1, y: 0, duration: .5 }, 0)
         standards.fromTo(root.querySelectorAll('[data-about-commitment]'), { opacity: .15, y: 28 }, {
           opacity: 1, y: 0, duration: .45, stagger: .3,
@@ -134,7 +140,7 @@ onMounted(async () => {
         standards.fromTo(root.querySelector('.about-support'), { opacity: .2, y: 36 }, { opacity: 1, y: 0, duration: .55 }, 1.25)
         standards.to({}, { duration: .45 })
 
-        const credentials = chapter('.about-credentials-band', 1.6)
+        const credentials = chapter('.about-credentials-band', 1.1)
         credentials.fromTo(root.querySelectorAll('[data-about-credentials-intro]'), { opacity: .2, y: 32 }, {
           opacity: 1, y: 0, duration: .5, stagger: .15,
         }, 0)
@@ -143,7 +149,7 @@ onMounted(async () => {
         }, .3)
         credentials.to({}, { duration: .45 })
 
-        const services = chapter('.about-services-band', 1.6)
+        const services = chapter('.about-services-band', 1.1)
         services.fromTo(root.querySelectorAll('[data-about-services-intro]'), { opacity: .2, y: 32 }, {
           opacity: 1, y: 0, duration: .5, stagger: .15,
         }, 0)
@@ -152,7 +158,7 @@ onMounted(async () => {
         }, .3)
         services.to({}, { duration: .45 })
 
-        const brands = chapter('.about-brands-band', 2.1)
+        const brands = chapter('.about-brands-band', 1.4)
         brands.fromTo(root.querySelector('#about-brands-title'), { opacity: .2, y: 32 }, { opacity: 1, y: 0, duration: .5 }, 0)
         brands.fromTo(root.querySelectorAll('[data-about-brand]'), { opacity: 0, y: 70, rotationX: 65 }, {
           opacity: 1, y: 0, rotationX: 0, duration: .55, stagger: .1,
@@ -160,7 +166,7 @@ onMounted(async () => {
         brands.fromTo(root.querySelector('[data-about-brand-more]'), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: .4 }, '>-.15')
         brands.to({}, { duration: .55 })
 
-        const daikin = chapter('.about-daikin-band', 1.6, 'bottom 90%')
+        const daikin = chapter('.about-daikin-band', 1.1, 'bottom 90%')
         daikin.fromTo(root.querySelectorAll('[data-about-daikin-intro]'), { opacity: .2, y: 32 }, {
           opacity: 1, y: 0, duration: .5, stagger: .15,
         }, 0)
@@ -169,7 +175,7 @@ onMounted(async () => {
         }, .3)
         daikin.to({}, { duration: .45 })
 
-        const enquiry = chapter('.about-enquiry', 1.1, 'top 35%')
+        const enquiry = chapter('.about-enquiry', .8, 'top 35%')
         // Reveal the heading, action and portrait together, with no faded preview.
         enquiry.fromTo(root.querySelector('.company-enquiry__hero'), { autoAlpha: 0, y: 36 }, {
           autoAlpha: 1, y: 0, duration: .8,
@@ -215,6 +221,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   alive = false
+  $setGlide()
   clearTimeout(resizeTimer)
   window.removeEventListener('resize', onResize)
   window.removeEventListener('hashchange', onHashChange)
@@ -225,7 +232,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <CompanyPage current="about" class="about-page">
+  <CompanyPage current="about" class="about-page" sticky-header>
     <div ref="story" class="about-story">
     <section class="company-intro company-width about-intro about-columns" aria-labelledby="about-title">
       <div class="about-intro__title-block">
@@ -375,7 +382,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.about-page { --company-columns: minmax(0, .9fr) minmax(0, 1.1fr); --company-column-gap: clamp(40px, 7vw, 112px); --about-header-height: 64px; }
+.about-page { --company-columns: minmax(0, .9fr) minmax(0, 1.1fr); --company-column-gap: clamp(40px, 7vw, 112px); --about-header-height: var(--company-header-height, 64px); }
 .about-columns { display: grid; grid-template-columns: var(--company-columns); gap: var(--company-column-gap); align-items: start; }
 .about-columns > * { min-width: 0; }
 .about-intro { min-height: calc(100svh - var(--about-header-height)); align-items: start; align-content: center; padding-block: clamp(32px, 6svh, 64px); animation: none; }
@@ -477,7 +484,7 @@ onBeforeUnmount(() => {
 .about-daikin-card h3 { margin: 0 0 12px; font-size: 20px; font-weight: 600; }
 .about-daikin-card p { margin: 0; color: var(--company-muted); line-height: 1.7; }
 .about-daikin-card__link { align-self: flex-start; margin-top: auto; padding-top: 20px; color: #16513a; font-weight: 600; }
-[data-about-pinned] { min-height: 100svh; align-content: center; }
+[data-about-pinned] { min-height: calc(100svh - var(--about-header-height)); align-content: center; }
 .about-purpose-band[data-about-pinned], .about-brands-band[data-about-pinned] { display: flex; align-items: center; }
 @media (max-width: 850px) {
   .about-page { --company-columns: minmax(0, 1fr); --company-content-width: 680px; }

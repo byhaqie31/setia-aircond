@@ -440,7 +440,7 @@ onBeforeUnmount(() => {
       <div class="commercial-contact__body service-contact__body">
         <h2 id="commercial-contact-heading">Ready for<br>better cooling?</h2>
         <div class="commercial-contact__team service-contact__team" aria-hidden="true">
-          <img src="/images/residential/technician-team-v1.webp" width="1200" height="800" alt="" decoding="async">
+          <img src="/images/residential/technician-team-v5.webp" width="1200" height="800" alt="" decoding="async">
         </div>
         <div class="commercial-contact__details service-contact__details" :inert="enhanced && endingState.contactDetails < .1" :aria-hidden="enhanced && endingState.contactDetails < .1 || undefined">
           <p>{{ corporate.tenderDescription }}</p>

@@ -237,7 +237,7 @@ async function enterFloor(floor: BuildingFloor) {
 }
 
 /** Scrolled into the story chapter, a floor opens with the hero at rest so the camera moves over the whole scene. */
-function settleScroll() {
+function settleScroll(duration = .5) {
   // A hero taller than the viewport rests with its bottom landed, not at the page top.
   const landed = Math.max(0, (hero.value?.offsetHeight ?? 0) - window.innerHeight)
   if (window.scrollY <= landed + 1 || !$scrollTo) return Promise.resolve()
@@ -245,18 +245,19 @@ function settleScroll() {
   return new Promise<void>(resolve => {
     let deadline: ReturnType<typeof setTimeout> | undefined
     const done = () => { clearTimeout(deadline); settling = false; resolve() }
-    deadline = setTimeout(done, 700)
-    $scrollTo(landed, { duration: .5, onComplete: done })
+    deadline = setTimeout(done, duration * 1000 + 200)
+    $scrollTo(landed, { duration, onComplete: done })
   })
 }
 
-/** The story chapter's floor buttons carry the visitor back up to the building and point at the matching floor. */
+/** The story buttons and explore cards carry the visitor back up to the building and point at the matching floor. */
 async function pointToFloor(floor: BuildingFloor, event: MouseEvent) {
   if (!isPlainNavigation(event)) return
   event.preventDefault()
   if (openingFloor.value || returningFrom.value || disposed) return
   navigationError.value = ''
-  await settleScroll()
+  // The longer trip up from the explore cards gets a little more time than the one from the story chapter.
+  await settleScroll(Math.min(1.2, .5 + window.scrollY / 4000))
   if (!disposed && !openingFloor.value) building.value?.nudge(floor)
 }
 
@@ -415,6 +416,46 @@ function onMotionChange(event: MediaQueryListEvent) {
       <CommercialCoverageMap class="home-coverage__map" shuffle />
     </section>
 
+    <section class="home-explore" aria-labelledby="home-explore-title">
+      <header class="home-explore__heading">
+        <h2 id="home-explore-title">Explore our services.</h2>
+        <p>Choose a floor, and we’ll take you to it on the building.</p>
+      </header>
+      <ul class="home-explore__cards">
+        <li>
+          <a :href="$sitePath('/residential')" class="home-explore__card" aria-label="Explore residential" @click="pointToFloor('residential', $event)">
+            <span class="home-explore__snapshot home-explore__snapshot--residential" aria-hidden="true">
+              <img :src="$sitePath('/images/residential/room-hero-v1.webp')" width="1672" height="940" alt="" loading="lazy" decoding="async">
+              <span class="home-explore__page">
+                <SetiaWordmark class="home-explore__brand" />
+                <span class="home-explore__page-title">Your Home Is<br>Our Responsibility</span>
+              </span>
+            </span>
+            <span class="home-explore__caption">
+              <span class="home-explore__name">Residential</span>
+              <span class="home-explore__cta">Explore<span class="icon icon--arrow" aria-hidden="true" /></span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a :href="$sitePath('/commercial')" class="home-explore__card" aria-label="Explore commercial" @click="pointToFloor('commercial', $event)">
+            <span class="home-explore__snapshot home-explore__snapshot--commercial" aria-hidden="true">
+              <img :src="$sitePath('/images/commercial/building/commercial-roof-lit-1280.webp')" width="1280" height="428" alt="" loading="lazy" decoding="async">
+              <span class="home-explore__page">
+                <SetiaWordmark class="home-explore__brand" />
+                <span class="home-explore__page-eyebrow">Commercial</span>
+                <span class="home-explore__page-title">Commercial air-conditioning services</span>
+              </span>
+            </span>
+            <span class="home-explore__caption">
+              <span class="home-explore__name">Commercial</span>
+              <span class="home-explore__cta">Explore<span class="icon icon--arrow" aria-hidden="true" /></span>
+            </span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
     <div class="home-close">
       <CompanyEnquirySection heading-id="home-enquiry-title" />
       <CompanyFooter />
@@ -497,6 +538,44 @@ function onMotionChange(event: MediaQueryListEvent) {
 .home-coverage__map { margin-top: clamp(36px, 5vw, 64px); }
 @media (min-width: 761px) {
   .home-coverage__heading p { max-width: none; white-space: nowrap; }
+}
+
+/* Explore: each floor's page in miniature, composed like its opening screen. Type inside a snapshot is sized in
+   container units so it scales with the card like a shrunken page. A click carries the visitor up to the building.
+   The band takes About's brand green so it reads apart from the dark map and enquiry either side. */
+.home-explore { position: relative; z-index: 2; padding: clamp(56px, 7vw, 104px) var(--page-gutter); color: var(--paper); background: #16513a; }
+.home-explore ::selection { background: #d1e4d7; color: #0b3022; }
+.home-explore__heading { text-align: center; }
+.home-explore h2 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(36px, 4vw, 60px); font-weight: 400; line-height: 1.04; letter-spacing: -.035em; text-wrap: balance; }
+.home-explore__heading p { max-width: 46ch; margin: 16px auto 0; color: #d1e4d7; font-size: clamp(15px, 1.2vw, 17px); line-height: 1.6; text-wrap: balance; }
+.home-explore__cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 3vw, 40px); width: min(100%, 1240px); margin: clamp(32px, 4vw, 56px) auto 0; padding: 0; list-style: none; }
+.home-explore__card { display: grid; gap: 18px; color: inherit; border-radius: 8px; }
+.home-explore__card:focus-visible { outline: 2px solid #d1e4d7; outline-offset: 6px; }
+.home-explore__snapshot { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; container-type: inline-size; border: 1px solid #d1e4d733; border-radius: 6px; background: #061710; box-shadow: 0 28px 48px -26px #061710e6; }
+.home-explore__snapshot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.16, 1, .3, 1); }
+.home-explore__card:hover .home-explore__snapshot img { transform: scale(1.03); }
+.home-explore__page { position: absolute; z-index: 1; inset: 0; display: flex; flex-direction: column; padding: 3.4cqw 4.4cqw; color: #f5f5ed; }
+.home-explore__brand { align-self: flex-start; font-size: 3.4cqw; }
+.home-explore__page-title { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; letter-spacing: -.035em; }
+/* Residential: the room photo under the page's own shade, headline low on the left. */
+.home-explore__snapshot--residential::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #07180fc4 0%, #07180f10 49%, transparent 100%), linear-gradient(0deg, #061b12d6 0%, #061b1240 26%, transparent 58%), linear-gradient(180deg, #051b1399 0%, transparent 22%); }
+.home-explore__snapshot--residential .home-explore__page-title { margin: auto 0 7cqw; font-size: 6.6cqw; line-height: .98; white-space: nowrap; }
+/* Commercial: the night sky with the lit building along the bottom, heading centred above it. */
+.home-explore__snapshot--commercial { background: radial-gradient(ellipse 75% 36% at 50% 82%, #14503a8c, transparent 78%), linear-gradient(180deg, #061710 0%, #09241a 40%, #0b3022 75%, #0d3524 100%); }
+.home-explore__snapshot--commercial img { inset: auto 0 4% 0; height: auto; mask-image: linear-gradient(transparent, #000 30%); }
+.home-explore__page-eyebrow { align-self: center; margin-top: 7cqw; color: #a7d2b5; font-size: 1.5cqw; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+.home-explore__snapshot--commercial .home-explore__page-title { align-self: center; margin-top: 1.2cqw; font-size: 3.6cqw; line-height: 1.12; white-space: nowrap; }
+.home-explore__caption { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.home-explore__name { font-size: clamp(20px, 1.8vw, 26px); font-weight: 600; letter-spacing: -.01em; }
+.home-explore__cta { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: #d1e4d7; font-size: 15px; font-weight: 600; transition: color .2s ease; }
+.home-explore__cta .icon { width: 18px; height: 18px; transition: transform .2s ease; }
+.home-explore__card:hover .home-explore__cta { color: var(--paper); }
+.home-explore__card:hover .home-explore__cta .icon { transform: translateX(4px); }
+@media (max-width: 760px) {
+  .home-explore__cards { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-explore__snapshot img, .home-explore__cta .icon { transition: none; }
 }
 
 /* Enquiry and footer close the page on the service stage, as About does. */

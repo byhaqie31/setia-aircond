@@ -1,11 +1,69 @@
 <script setup lang="ts">
-defineProps<{ current: 'about' | 'quote' }>()
+const props = defineProps<{ current: 'about' | 'quote'; stickyHeader?: boolean }>()
+const page = useTemplateRef<HTMLElement>('page')
+const header = useTemplateRef<HTMLElement>('header')
+// The band beneath the sticky header, as 'r, g, b', and whether it needs dark ink.
+const blend = ref<string | null>(null)
+const lightBand = ref(false)
+let headerSize: ResizeObserver | undefined
+let sampleFrame: number | undefined
+
+function onScroll() {
+  if (sampleFrame === undefined) sampleFrame = requestAnimationFrame(sampleBand)
+}
+
+// The header takes on the full-width band just below it, so cards passing beneath don't flicker it.
+function sampleBand() {
+  sampleFrame = undefined
+  const bar = header.value
+  if (!bar) return
+  const width = document.documentElement.clientWidth
+  let node = document.elementFromPoint(width / 2, bar.offsetHeight + 1)
+  while (node && node !== document.documentElement) {
+    const rgb = node.getBoundingClientRect().width >= width - 1 ? opaqueRgb(getComputedStyle(node).backgroundColor) : null
+    if (rgb) {
+      blend.value = rgb.join(', ')
+      const [r, g, b] = rgb.map(value => value / 255 <= .04045 ? value / 255 / 12.92 : ((value / 255 + .055) / 1.055) ** 2.4)
+      lightBand.value = .2126 * r! + .7152 * g! + .0722 * b! > .4
+      return
+    }
+    node = node.parentElement
+  }
+}
+
+function opaqueRgb(color: string) {
+  const channels = color.match(/[\d.]+/g)?.map(Number)
+  if (!channels || channels.length < 3 || (channels[3] ?? 1) < .5) return null
+  return channels.slice(0, 3)
+}
+
+// Pins and anchor landings on the page measure from below the header.
+function measureHeader() {
+  page.value?.style.setProperty('--company-header-height', `${header.value?.offsetHeight ?? 0}px`)
+}
+
+onMounted(() => {
+  if (!props.stickyHeader) return
+  measureHeader()
+  sampleBand()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onScroll)
+  headerSize = new ResizeObserver(measureHeader)
+  if (header.value) headerSize.observe(header.value)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('resize', onScroll)
+  if (sampleFrame !== undefined) cancelAnimationFrame(sampleFrame)
+  headerSize?.disconnect()
+})
 </script>
 
 <template>
-  <div class="company-page">
+  <div ref="page" class="company-page" :class="{ 'company-page--sticky-header': stickyHeader }">
     <a class="skip-link" href="#page-content">Skip to content</a>
-    <header class="company-header">
+    <header ref="header" class="company-header" :class="{ 'company-header--light': lightBand }" :style="blend ? { '--header-blend': blend } : undefined">
       <div class="site-header company-header__inner">
         <NuxtLink class="brand" to="/" aria-label="Setia Air-Cond and Electrical home"><SetiaWordmark class="brand__name" /></NuxtLink>
         <nav class="site-nav" aria-label="Main navigation">
@@ -29,6 +87,14 @@ defineProps<{ current: 'about' | 'quote' }>()
 .company-page h2 { margin: 0 0 28px; font-size: clamp(36px, 4vw, 60px); }
 .company-page p { line-height: 1.7; }
 .company-page .company-header { position: relative; z-index: 4; width: 100%; }
+/* A sticky header that blends into each band: it takes the exact colour of the band beneath it, with dark ink over
+   the light bands. It stays opaque because pinned chapters hold below it, leaving the dark page behind the header.
+   Anchored sections land below it. */
+.company-page--sticky-header .company-header { --header-blend: 11, 48, 34; position: sticky; top: 0; z-index: 20; color: var(--paper); background-color: rgb(var(--header-blend)); transition: background-color .3s ease, color .3s ease; }
+.company-page--sticky-header .company-header .site-nav__quote { color: inherit; transition: color .3s ease; }
+.company-page--sticky-header .company-header--light { color: #0b3022; }
+.company-page--sticky-header .company-header--light :focus-visible { outline-color: #0b3022; }
+.company-page--sticky-header main [id] { scroll-margin-top: var(--company-header-height, 0px); }
 /* The header reuses the home page .site-header lockup so the logo, gutters and sizing match page to page. */
 .company-width { width: min(100% - var(--page-gutter) * 2, var(--company-content-width, 1240px)); margin-inline: auto; }
 .company-intro { padding-block: clamp(56px, 8vw, 120px) clamp(56px, 7vw, 96px); }

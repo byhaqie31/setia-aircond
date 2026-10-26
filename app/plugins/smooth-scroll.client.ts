@@ -4,8 +4,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 export default defineNuxtPlugin((nuxtApp) => {
   gsap.registerPlugin(ScrollTrigger)
+  const defaultLerp = .1
   const lenis = new Lenis({
-    lerp: .1,
+    lerp: defaultLerp,
     autoRaf: false,
     autoToggle: true,
     smoothWheel: true,
@@ -76,7 +77,11 @@ export default defineNuxtPlugin((nuxtApp) => {
       onComplete: options.onComplete,
     })
   }
+  // A page can soften the wheel glide while it is open; calling it with no value restores the site default.
+  const setGlide = (lerp = defaultLerp) => {
+    if (!disposed) lenis.options.lerp = lerp
+  }
   nuxtApp.vueApp.onUnmount(dispose)
   if (import.meta.hot) import.meta.hot.dispose(dispose)
-  return { provide: { scrollTo } }
+  return { provide: { scrollTo, setGlide } }
 })
