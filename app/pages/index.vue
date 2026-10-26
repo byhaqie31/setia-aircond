@@ -42,6 +42,10 @@ let disposed = false
 let reducedMotion: MediaQueryList | undefined
 let commercialImagePreparation: Promise<unknown> | undefined
 let residentialImagePreparation: Promise<unknown> | undefined
+let nudgeTimer: ReturnType<typeof setTimeout> | undefined
+const pageCovered = useState('page-covered', () => false)
+// Set by About's service cards: point at that floor once the home page is on screen.
+const buildingNudge = useState<BuildingFloor | null>('building-nudge', () => null)
 
 useHead({
   htmlAttrs: { 'data-theme': 'dark' },
@@ -70,12 +74,27 @@ onMounted(() => {
     heroSize.observe(hero.value)
   }
   if (returningFrom.value) void playReturn()
+  const nudgeFloor = buildingNudge.value
+  buildingNudge.value = null
+  if (nudgeFloor && !returningFrom.value) {
+    // Wait for the page cover to lift and hand focus to the page, then point.
+    const point = () => { nudgeTimer = setTimeout(() => building.value?.nudge(nudgeFloor), 300) }
+    if (!pageCovered.value) point()
+    else {
+      const stop = watch(pageCovered, (covered) => {
+        if (covered) return
+        stop()
+        point()
+      })
+    }
+  }
 })
 
 onBeforeUnmount(() => {
   disposed = true
   entryAttempt++
   clearEntryTimers()
+  clearTimeout(nudgeTimer)
   reducedMotion?.removeEventListener('change', onMotionChange)
   window.removeEventListener('keydown', onKeydown, true)
   heroSize?.disconnect()
@@ -231,6 +250,16 @@ function settleScroll() {
   })
 }
 
+/** The story chapter's floor buttons carry the visitor back up to the building and point at the matching floor. */
+async function pointToFloor(floor: BuildingFloor, event: MouseEvent) {
+  if (!isPlainNavigation(event)) return
+  event.preventDefault()
+  if (openingFloor.value || returningFrom.value || disposed) return
+  navigationError.value = ''
+  await settleScroll()
+  if (!disposed && !openingFloor.value) building.value?.nudge(floor)
+}
+
 async function openFloor(animateArrival = true) {
   const floor = openingFloor.value
   if (!floor || navigating || disposed) return
@@ -351,7 +380,13 @@ function onMotionChange(event: MediaQueryListEvent) {
           <h2 id="home-story-title">Committed <span class="home-story__year">since 1990.</span></h2>
           <p>Wholly Malaysian-owned, Setia designs, installs and maintains air-conditioning and electrical systems for public and private clients across Malaysia.</p>
           <p>From homes to factories, production plants and high-rise buildings, each system is matched to the space, budget and programme by a team with over 100 man-years of combined technical experience.</p>
-          <NuxtLink class="home-story__link" to="/about-us">Read our story<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
+          <div class="home-story__actions">
+            <div class="home-story__floors" role="group" aria-label="Explore residential or commercial services">
+              <a :href="$sitePath('/residential')" class="home-story__floor home-story__floor--residential" @click="pointToFloor('residential', $event)">Residential</a>
+              <a :href="$sitePath('/commercial')" class="home-story__floor home-story__floor--commercial" @click="pointToFloor('commercial', $event)">Commercial</a>
+            </div>
+            <NuxtLink class="home-story__link" to="/about-us">Read our story<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink>
+          </div>
         </div>
         <div class="home-story__proof">
           <h3 id="home-credentials-title">What backs the work.</h3>
@@ -370,6 +405,14 @@ function onMotionChange(event: MediaQueryListEvent) {
           </ul>
         </div>
       </div>
+    </section>
+
+    <section class="home-coverage" aria-labelledby="home-coverage-title">
+      <header class="home-coverage__heading">
+        <h2 id="home-coverage-title">Every state within reach.</h2>
+        <p>From Perlis to Johor, and across the South China Sea to Sabah, Sarawak and Labuan.</p>
+      </header>
+      <CommercialCoverageMap class="home-coverage__map" shuffle />
     </section>
 
     <div class="home-close">
@@ -421,10 +464,18 @@ function onMotionChange(event: MediaQueryListEvent) {
 .home-story__year { color: #16513a; }
 .home-story__copy p { max-width: 54ch; margin: 0; color: var(--story-muted); font-size: clamp(17px, 1.3vw, 19px); line-height: 1.7; }
 .home-story__copy p + p { margin-top: 20px; }
-.home-story__link { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; margin-top: 28px; font-weight: 600; text-decoration: underline; text-decoration-color: #0b302266; text-underline-offset: 5px; }
+.home-story__link { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; font-weight: 600; text-decoration: underline; text-decoration-color: #0b302266; text-underline-offset: 5px; }
 .home-story__link .icon { width: 18px; height: 18px; transition: transform .2s ease; }
 .home-story__link:hover { text-decoration-color: currentColor; }
 .home-story__link:hover .icon { transform: translateX(4px); }
+/* The hero's floor pair, repeated at the end of the chapter; a click carries the visitor back up to it. */
+.home-story__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-top: 32px; }
+.home-story__floors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; width: min(100%, 300px); }
+.home-story__floor { display: inline-flex; align-items: center; justify-content: center; min-width: 0; min-height: 56px; padding: 10px 12px; border: 1px solid #0b302233; border-radius: 100px; color: var(--floor-ink); background: var(--floor-color); font-size: 15px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; transition: background .2s ease; }
+.home-story__floor--residential { --floor-color: var(--paper); --floor-hover: #fff; --floor-ink: var(--pine-900); }
+.home-story__floor--commercial { --floor-color: var(--pine); --floor-hover: var(--pine-700); --floor-ink: var(--paper); border-color: transparent; }
+.home-story__floor:hover { background: var(--floor-hover); }
+.home-story__floor:focus-visible { outline: 2px solid var(--floor-ink); outline-offset: -5px; }
 /* The proof column starts a touch below the heading's cap line so the two columns read as one line of thought. */
 .home-story__proof { padding-top: clamp(12px, 1.6vw, 24px); }
 .home-story h3 { margin: 0 0 14px; font-size: 22px; font-weight: 600; line-height: 1.3; letter-spacing: -.01em; }
@@ -438,12 +489,23 @@ function onMotionChange(event: MediaQueryListEvent) {
 .home-credential__detail { margin: 4px 0 0; color: var(--story-muted); font-size: 15px; line-height: 1.55; white-space: pre-line; text-wrap: pretty; }
 .home-credential__highlight { padding: 0 2px; color: #0b3022; font-weight: 700; background: linear-gradient(transparent 58%, color-mix(in srgb, var(--green-bright) 38%, transparent) 58%); }
 
+/* The commercial page's coverage map, on the night stage its artwork is drawn for. */
+.home-coverage { position: relative; z-index: 2; padding: clamp(72px, 9vw, 136px) var(--page-gutter) clamp(24px, 4vw, 64px); color: var(--paper); background: var(--service-stage); }
+.home-coverage__heading { text-align: center; }
+.home-coverage h2 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(40px, 4.6vw, 68px); font-weight: 400; line-height: 1.04; letter-spacing: -.035em; text-wrap: balance; }
+.home-coverage__heading p { max-width: 42ch; margin: 20px auto 0; color: #bed0c3; font-size: clamp(15px, 1.2vw, 17px); line-height: 1.6; text-wrap: balance; }
+.home-coverage__map { margin-top: clamp(36px, 5vw, 64px); }
+@media (min-width: 761px) {
+  .home-coverage__heading p { max-width: none; white-space: nowrap; }
+}
+
 /* Enquiry and footer close the page on the service stage, as About does. */
 .home-close { position: relative; z-index: 2; padding-top: clamp(48px, 7vw, 96px); background: var(--service-stage); }
 
 @media (max-width: 850px) {
   .home-story__inner { grid-template-columns: minmax(0, 1fr); gap: 48px; width: min(100% - var(--page-gutter) * 2, 680px); padding-block: clamp(64px, 12vw, 96px); }
   .home-story__proof { padding-top: 0; }
+  .home-story__floor { min-height: 48px; }
   .home-credential { grid-template-columns: 112px minmax(0, 1fr); gap: 16px; }
   .home-credential__mark { --logo-width: 104px; }
 }

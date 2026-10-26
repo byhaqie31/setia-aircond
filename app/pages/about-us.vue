@@ -4,6 +4,7 @@ import { aboutBrandLogos, featuredDaikinProducts } from '~/data/air-conditioning
 import corporate from '~/data/corporate.json'
 import { commercialCredentialLogos } from '~/data/commercial-logos'
 import { certificateDetailParts } from '~/utils/certificate-detail'
+import { isPlainNavigation, type BuildingFloor } from '~/utils/navigation'
 
 const story = useTemplateRef<HTMLElement>('story')
 const { $scrollTo } = useNuxtApp()
@@ -55,6 +56,15 @@ function onOfficeClick(event: MouseEvent) {
   if (window.location.hash !== '#company-contact') history.pushState(history.state, '', '#company-contact')
   pendingOfficeClick = !motion
   followContact(true, true)
+}
+
+// The service cards send the visitor back to the home building with that floor pointed out.
+const buildingNudge = useState<BuildingFloor | null>('building-nudge', () => null)
+function exploreFloor(floor: BuildingFloor, event: MouseEvent) {
+  if (!isPlainNavigation(event)) return
+  event.preventDefault()
+  buildingNudge.value = floor
+  void navigateTo('/')
 }
 
 function onHashChange() {
@@ -317,6 +327,7 @@ onBeforeUnmount(() => {
             <li v-for="item in group.items" :key="item"><span class="about-service-card__tick" aria-hidden="true"><span class="icon" /></span>{{ item }}</li>
           </ul>
           <p v-if="group.note" class="about-service-card__note">{{ group.note }}</p>
+          <a class="company-link about-service-card__link" :href="$sitePath('/')" @click="exploreFloor(group.id, $event)">Explore {{ group.id }}<span class="icon icon--arrow" aria-hidden="true" /></a>
         </li>
       </ul>
     </div>
@@ -417,7 +428,7 @@ onBeforeUnmount(() => {
 .about-services__summary p { margin: 0; max-width: 60ch; color: var(--company-muted); }
 .about-services__summary .company-link { margin-top: 20px; }
 .about-services__cards { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.75fr); gap: clamp(16px, 2vw, 28px); margin: clamp(40px, 5vw, 64px) 0 0; padding: 0; list-style: none; }
-.about-service-card { padding: clamp(24px, 2.4vw, 36px); background: var(--mist); color: var(--ink); }
+.about-service-card { display: flex; flex-direction: column; padding: clamp(24px, 2.4vw, 36px); background: var(--mist); color: var(--ink); }
 .about-service-card ::selection { background: #16513a; color: #fff; }
 .about-service-card__icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--pine-700); color: var(--paper); }
 .about-service-card__icon .icon { width: 24px; height: 24px; }
@@ -428,6 +439,8 @@ onBeforeUnmount(() => {
 .about-service-card__tick { display: grid; flex: 0 0 auto; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #d1e4d7; color: var(--pine-700); }
 .about-service-card__tick .icon { --icon: url('/icons/check.svg'); width: 12px; height: 12px; }
 .about-service-card__note { margin: 16px 0 0; color: var(--ink-soft); font-size: 14px; line-height: 1.55; }
+/* Both cards' links share the bottom edge, whatever the list length. */
+.about-service-card__link { align-self: flex-start; margin-top: auto; padding-top: 20px; color: #16513a; font-weight: 600; }
 @media (max-width: 850px) {
   .about-services__cards { grid-template-columns: minmax(0, 1fr); }
 }

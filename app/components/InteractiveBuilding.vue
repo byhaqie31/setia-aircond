@@ -12,6 +12,18 @@ const residentialImage = useTemplateRef<HTMLImageElement>('residentialImage')
 const commercialImages = useTemplateRef<HTMLImageElement[]>('commercialImages')
 const activeFloor = computed(() => props.enteringFloor ?? hoveredFloor.value ?? focusedFloor.value)
 const ready = reactive({ residential: false, commercial: false })
+let nudgeAnimation: Animation | undefined
+// A short shake on a floor's label, so a visitor pointed at the building sees which floor to open.
+const nudgeFrames: Keyframe[] = [
+  { transform: 'none' },
+  { transform: 'scale(1.08) rotate(-5deg)', offset: .12 },
+  { transform: 'scale(1.08) rotate(5deg)', offset: .26 },
+  { transform: 'scale(1.06) rotate(-4deg)', offset: .4 },
+  { transform: 'scale(1.06) rotate(4deg)', offset: .54 },
+  { transform: 'scale(1.03) rotate(-2deg)', offset: .68 },
+  { transform: 'rotate(1deg)', offset: .82 },
+  { transform: 'none' },
+]
 
 // Prerendered images can finish loading before Vue attaches their load handlers.
 onMounted(() => {
@@ -51,6 +63,15 @@ function explore(floor: Floor = 'residential') {
   focusedFloor.value = floor
 }
 
+/** Lights a floor and shakes its label for visitors sent here from the story chapter or About. */
+function nudge(floor: Floor) {
+  explore(floor)
+  const label = (floor === 'residential' ? residentialControl.value : commercialControl.value)?.querySelector<HTMLElement>('.floor-label__text')
+  if (!label || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  nudgeAnimation?.cancel()
+  nudgeAnimation = label.animate(nudgeFrames, { duration: 900, easing: 'ease-out' })
+}
+
 async function prepareFloor(floor: Floor) {
   const plates = floor === 'residential' ? [residentialImage.value] : commercialImages.value ?? []
   // The dimmed base sits under every lit floor, so a camera move must find it decoded as well.
@@ -67,7 +88,7 @@ function enter(floor: Floor, event: MouseEvent) {
   emit('enter', floor)
 }
 
-defineExpose({ explore, prepareFloor })
+defineExpose({ explore, nudge, prepareFloor })
 </script>
 
 <template>

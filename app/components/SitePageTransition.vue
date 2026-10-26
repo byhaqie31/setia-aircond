@@ -11,6 +11,9 @@ const serviceReturn = useState<BuildingFloor | null>('service-return', () => nul
 const content = useTemplateRef<HTMLElement>('content')
 const cover = useTemplateRef<HTMLElement>('cover')
 const active = ref(startup)
+// Pages that point at something on arrival wait for the cover to lift first.
+const pageCovered = useState('page-covered', () => startup)
+watch(active, value => { pageCovered.value = value })
 const branded = ref(startup)
 const initialCover = ref(startup)
 const mounted = ref(false)
