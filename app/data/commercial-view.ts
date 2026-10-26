@@ -396,11 +396,11 @@ export const commercialClients: CommercialClient[] = [
   client('taylors', 'Taylor’s Education Group', 'education'),
   client('global-indian-education', 'Global Indian Education', 'education'),
   client('mindvalley', 'Mindvalley', 'education', { systems: ['ccd'] }),
+  client('limkokwing-university', 'Limkokwing University', 'education', { systems: ['ccd'], summary: 'Wall-mounted, ceiling-suspended and cassette air-conditioning installation for Lim Kok Wing Intergrated Sdn Bhd, 2011 and 2013.', projectIds: ['ac-01'], sourceRefs: ['projects'] }),
 ]
 
 // These parties are documented in the project register but have no mark on the clientele screen.
 export const commercialProjectParties: CommercialClient[] = [
-  client('limkokwing-university', 'Limkokwing University', null, { logo: true, summary: 'Wall-mounted, ceiling-suspended and cassette air-conditioning installation for Lim Kok Wing Intergrated Sdn Bhd, 2011 and 2013.', projectIds: ['ac-01'], sourceRefs: ['projects'] }),
   client('radient-trend', 'Radient Trend Sdn Bhd', null, { summary: 'Electrical, telephone and antenna wiring for 150 houses, 2003.', projectIds: ['el-01'], sourceRefs: ['projects'] }),
   client('bukit-ikhlas-development', 'Bukit Ikhlas Development Sdn Bhd', null, { summary: 'Electrical and related infrastructure for condominium blocks and a clubhouse, 2006.', projectIds: ['el-02'], sourceRefs: ['projects'] }),
   client('europlus-construction', 'Europlus Construction Sdn Bhd', null, { summary: 'Street-lighting installation in Dengkil, Sepang, 2006.', projectIds: ['el-03'], sourceRefs: ['projects'] }),
