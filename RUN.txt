@@ -27,10 +27,11 @@ Publish after authenticating to the configured Cloudflare account:
   npx wrangler login
   npm run deploy:cloudflare
 
-The included configuration deploys to the Axel Nova Cloudflare account
-as the "setia-aircond" Worker on its workers.dev URL, served at the root.
-For a custom domain, add a route in wrangler.jsonc and update siteUrl
-in nuxt.config.ts.
+The included configuration deploys to the Cloudflare account set by
+account_id in wrangler.jsonc, as the "setia-aircond" Worker on its
+workers.dev URL, served at the root. To deploy to a different account,
+replace account_id. For a custom domain, add a route in wrangler.jsonc
+and update siteUrl in nuxt.config.ts.
 
 This package excludes documentation, references, tests, editable 3D
 sources, development caches and installed dependencies. workers/site.mjs

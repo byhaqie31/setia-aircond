@@ -45,7 +45,7 @@ onMounted(() => heading.value?.focus({ preventScroll: true }))
       <div class="corporate-section-head">
         <p class="residential-eyebrow">Featured projects</p>
         <h2 id="projects-heading">Delivered across retail, banking, industry and education.</h2>
-        <p>A selection of commercial work. The full project register, with job values and contract years, is on the <a class="corporate-inline-link" href="https://axelnova.my/setiaaircondv2/projects" target="_blank" rel="noopener noreferrer">projects page<span class="sr-only"> (opens in a new tab)</span></a>.</p>
+        <p>A selection of commercial work. The full project register, with job values and contract years, is on the <NuxtLink class="corporate-inline-link" to="/commercial/projects">projects page</NuxtLink>.</p>
       </div>
       <table class="corporate-projects" role="table" aria-describedby="project-data-note">
         <caption class="sr-only">Selected commercial projects, locations, scopes and system types</caption>

@@ -40,7 +40,7 @@ function recordStyle(group: CommercialRecordGroup, index: number) {
           <dl class="records-project-meta"><div><dt>Location</dt><dd>{{ project.location }}</dd></div><div><dt>System</dt><dd>{{ project.system }}</dd></div></dl>
         </article>
       </div>
-      <footer class="records-footnote"><p>Project locations and system types are pending client confirmation.</p><a href="https://axelnova.my/setiaaircondv2/projects" target="_blank" rel="noopener noreferrer">Full project register<span class="icon icon--arrow" aria-hidden="true" /><span class="sr-only"> (opens in a new tab)</span></a></footer>
+      <footer class="records-footnote"><p>Project locations and system types are pending client confirmation.</p><NuxtLink to="/commercial/projects">Full project register<span class="icon icon--arrow" aria-hidden="true" /></NuxtLink></footer>
     </section>
 
     <section id="certifications" class="records-group records-credentials" tabindex="-1" :style="groupStyle('certifications')"
